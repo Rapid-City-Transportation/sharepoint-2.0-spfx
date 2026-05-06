@@ -9,8 +9,8 @@ export interface IOfficeLocation {
 }
 
 export const DEFAULT_OFFICE_LOCATION: IOfficeLocation = {
-  lat: 43.84,
-  lon: -79.09,
+  lat: 43.83106,
+  lon: -79.06702,
   label: 'Pickering, ON',
 };
 
