@@ -61,8 +61,10 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 .heroSection {
-  background: var(--rct-surface);
+  // Subtle department-accent tint; falls back to surface if no dept accent set.
+  background: var(--dept-accent-tint, var(--rct-surface));
   padding: var(--rct-spacing-2xl) var(--rct-spacing-lg);
+  border-top: 4px solid var(--dept-accent, var(--rct-primary));
 }
 
 .heroInner {
@@ -114,7 +116,7 @@
 }
 
 .contactIcon {
-  color: var(--rct-primary);
+  color: var(--dept-accent, var(--rct-primary));
   font-size: 18px;
   flex-shrink: 0;
   width: 24px;
@@ -137,10 +139,23 @@
   }
 }
 
-// "View Department Resources" CTA — uses btnSecondary (Primary Blue bg + white text)
+// "View Department Resources" CTA — department accent bg + white text.
+// Overrides btnSecondary's fixed primary blue with the per-department accent.
 .resourceBtn {
   @extend .btnSecondary;
   align-self: flex-start;
+  background:   var(--dept-accent, var(--rct-primary));
+  border-color: var(--dept-accent, var(--rct-primary));
+
+  &:hover:not(:disabled):not([aria-disabled='true']) {
+    background:   var(--dept-accent-hover, var(--rct-primary-hover));
+    border-color: var(--dept-accent-hover, var(--rct-primary-hover));
+  }
+
+  &:active:not(:disabled):not([aria-disabled='true']) {
+    background:   var(--dept-accent-hover, var(--rct-primary-active));
+    border-color: var(--dept-accent-hover, var(--rct-primary-active));
+  }
 }
 
 .heroRight {
@@ -201,12 +216,12 @@
 .seeAllLink {
   font-size: 15px;
   font-weight: 600;
-  color: var(--rct-secondary);
+  color: var(--dept-accent, var(--rct-secondary));
   text-decoration: none;
 
   &:hover {
     text-decoration: underline;
-    color: var(--rct-secondary-hover);
+    color: var(--dept-accent-hover, var(--rct-secondary-hover));
   }
 
   &:focus-visible {
@@ -260,7 +275,7 @@
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: var(--rct-secondary);
+  color: var(--dept-accent, var(--rct-secondary));
   text-decoration: none;
   margin-bottom: var(--rct-spacing-xs);
 

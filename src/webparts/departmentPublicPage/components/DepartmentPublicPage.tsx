@@ -67,12 +67,19 @@ function useDepartmentMembership(
 // ── Main component ──────────────────────────────────────────────────────────
 
 export default function DepartmentPublicPage(props: IDepartmentPublicPageProps): React.ReactElement {
-  const themeVars = React.useMemo(
-    () => getThemeCssVariables(defaultTheme),
-    []
-  );
-
   const config = getDepartmentConfig(props.departmentKey);
+
+  // Merge the global RCT theme with per-department accent overrides.
+  // Department accents drive the hero tint, CTA button, and icon/link colors.
+  const themeVars = React.useMemo(() => {
+    const base = getThemeCssVariables(defaultTheme) as Record<string, string>;
+    if (config) {
+      base['--dept-accent']       = config.accentColor;
+      base['--dept-accent-hover'] = config.accentColorHover;
+      base['--dept-accent-tint']  = config.accentTint;
+    }
+    return base;
+  }, [config]);
 
   // Resolve values: property-pane overrides > config defaults > fallback
   const deptName  = config?.displayName || 'Department Name';
