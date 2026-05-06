@@ -1,0 +1,175 @@
+@import '../../theme/themeVariables.module.scss';
+
+.widgetWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.widgetButton {
+  background: transparent !important;
+  color: var(--rct-text-inverse) !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: var(--rct-gold-light) !important;
+  }
+
+  &:focus-visible {
+    outline: var(--rct-focus-outline);
+    outline-offset: 2px;
+  }
+
+  :global(.ms-Button-icon),
+  :global(.ms-Icon),
+  :global(i) {
+    color: inherit !important;
+  }
+}
+
+.tempInline {
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.callout {
+  width: 320px;
+  max-width: 90vw;
+}
+
+.calloutInner {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+}
+
+.locationLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rct-text-secondary, #4a5568);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin: 0;
+}
+
+.currentRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.currentIcon {
+  font-size: 40px;
+  color: var(--rct-brand-blue-primary, #1F4C7F);
+  flex-shrink: 0;
+}
+
+.currentTemp {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+  line-height: 1;
+}
+
+.currentMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--rct-text-secondary, #4a5568);
+}
+
+.condition {
+  font-size: 13px;
+  color: var(--rct-text-primary, #262931);
+}
+
+.highLow {
+  font-size: 12px;
+  color: var(--rct-text-secondary, #4a5568);
+}
+
+.divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 0;
+  border: none;
+}
+
+.actionsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.actionLink {
+  background: none;
+  border: none;
+  color: var(--rct-blue-accessible, #187389);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  padding: 6px 0;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: var(--rct-focus-outline);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    color: #9ca3af;
+    cursor: default;
+    text-decoration: none;
+  }
+}
+
+.actionHelper {
+  font-size: 11px;
+  color: var(--rct-text-secondary, #4a5568);
+  line-height: 1.4;
+}
+
+.statusMessage {
+  font-size: 12px;
+  color: var(--rct-text-secondary, #4a5568);
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.statusError {
+  color: #9b2c2c;
+  font-style: normal;
+}
+
+.fetchedAt {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.loadingState {
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.unavailableState {
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+  padding: 20px 0;
+}
