@@ -48,6 +48,21 @@ export const PB = {
   ApprovalNotes: 'Approval_x0020_Notes_x0020__x002',
 } as const;
 
+// SiteResources — column internal names
+export const SR = {
+  LIST_TITLE: 'SiteResources',
+
+  Id: 'Id',
+  Title: 'Title',
+  Category: 'Category',
+  Content: 'Content',
+  Group: 'Group',
+} as const;
+
+export const SR_SELECT_FIELDS = [
+  SR.Id, SR.Title, SR.Category, SR.Group, SR.Content,
+] as const;
+
 // PB Instruction Blocks Test — column internal names
 export const IB = {
   LIST_TITLE: 'PB Instruction Blocks Test',
@@ -80,3 +95,34 @@ export const ALL_LOOKUP_COLUMNS = [
   PB.ChangePolicy,
   PB.CancelPolicy,
 ] as const;
+
+// ContactCardNotifications — column internal names (written by Power Automate)
+export const CCN = {
+  LIST_TITLE: 'ContactCardNotifications',
+
+  Id: 'Id',
+  Title: 'Title',
+  Created: 'Created',
+  Modified: 'Modified',
+  SourceList: 'SourceList',
+  SourceItemId: 'SourceItemId',
+  CompanyName: 'CompanyName',
+  ChangedFields: 'ChangedFields',
+  Summary: 'Summary',
+  NewValueSnapshot: 'NewValueSnapshot',
+  ChangeType: 'ChangeType',
+  ChangedBy: 'ChangedBy',
+  ChangedAt: 'ChangedAt',
+  Scope: 'Scope',
+} as const;
+
+// ContactCardNotifReads — per-user read receipts
+export const CCNR = {
+  LIST_TITLE: 'ContactCardNotifReads',
+
+  Id: 'Id',
+  Title: 'Title',
+  NotificationId: 'NotificationId',
+  User: 'User',
+  ReadAt: 'ReadAt',
+} as const;
