@@ -260,6 +260,20 @@
   white-space: nowrap;
 }
 
+// Role badge: outlined style so it reads as secondary metadata next to the
+// solid-blue type badge — same size, lower visual weight.
+.searchResultRoleBadge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #1f4c7f;
+  background: transparent;
+  border: 1px solid #1f4c7f;
+  border-radius: 3px;
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
 .searchNoResults {
   padding: 12px 14px;
   font-size: 13px;

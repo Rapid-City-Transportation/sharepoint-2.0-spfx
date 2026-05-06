@@ -9,6 +9,8 @@ import { Icon } from '@fluentui/react/lib/Icon';
 import styles from './Navigation.module.scss';
 import { useSearchCustomers } from '../../../customerContactCards/hooks/useSearchCustomers';
 import { ICustomer } from '../../../customerContactCards/components/types';
+import { NotificationBell } from '../../../customerContactCards/components/NotificationBell/NotificationBell';
+import { WeatherWidget } from '../WeatherWidget/WeatherWidget';
 
 export interface INavLink {
   label: string;
@@ -78,10 +80,10 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     setHighlightIndex(-1);
   }, [results]);
 
-  const navigateToCustomer = React.useCallback((customer: ICustomer) => {
+  const navigateToCustomerById = React.useCallback((customerId: string) => {
     // If we're already on the Contact Cards page, use the callback to avoid a page reload
     if (props.onCustomerSelect) {
-      props.onCustomerSelect(customer.id);
+      props.onCustomerSelect(customerId);
       return;
     }
     // Otherwise navigate to the Contact Cards page with ?id= param
@@ -89,8 +91,13 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
       ? contactCardsUrl
       : 'https://rapidcitytransport.sharepoint.com/sites/ContactCards';
     const sep = base.indexOf('?') >= 0 ? '&' : '?';
-    window.location.assign(`${base}${sep}id=${customer.id}`);
+    window.location.assign(`${base}${sep}id=${customerId}`);
   }, [contactCardsUrl, props.onCustomerSelect]);
+
+  const navigateToCustomer = React.useCallback(
+    (customer: ICustomer) => navigateToCustomerById(customer.id),
+    [navigateToCustomerById]
+  );
 
   const handleInputChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -330,6 +337,9 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
                     <div className={styles.searchResultName}>{customer.name}</div>
                     <div className={styles.searchResultMeta}>
                       <span className={styles.searchResultBadge}>{customer.customerType}</span>
+                      {customer.clientRole && (
+                        <span className={styles.searchResultRoleBadge}>{customer.clientRole}</span>
+                      )}
                     </div>
                   </li>
                 ))}
@@ -337,18 +347,17 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
             )}
           </div>
 
-          <IconButton
-            iconProps={{ iconName: 'Ringer' }}
-            ariaLabel="Notifications"
-            title="Notifications"
-            className={styles.utilityIcon}
-          />
-          <IconButton
-            iconProps={{ iconName: 'Sunny' }}
-            ariaLabel="Weather"
-            title="Weather"
-            className={styles.utilityIcon}
-          />
+          {activePage === 'contactCards' ? (
+            <NotificationBell onNavigateToCustomer={navigateToCustomerById} />
+          ) : (
+            <IconButton
+              iconProps={{ iconName: 'Ringer' }}
+              ariaLabel="Notifications"
+              title="Notifications"
+              className={styles.utilityIcon}
+            />
+          )}
+          <WeatherWidget />
         </div>
       </div>
     </nav>
