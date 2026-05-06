@@ -32,9 +32,14 @@ const LOOKUP_TO_SECTION: Record<string, SectionKey> = {
  * If the role contains both "Referral" and "Customer" (e.g. "Referral & Customer"),
  * the Customer tab is hidden — its blocks are merged into Referral.
  */
-function parseVisibleTabs(role?: string, customerType?: CustomerType): TabId[] {
+function parseVisibleTabs(role?: string, customerType?: CustomerType, name?: string): TabId[] {
   // WSIB customers only use the Passenger tab
   if (customerType === 'WSIB') return ['passenger'];
+
+  // "Passengers Who Pay" — passenger-only, no referral tab
+  if (name && name.toLowerCase().indexOf('passengers who pay') !== -1) {
+    return ['passenger'];
+  }
 
   if (!role) return ['referral', 'passenger', 'customer'];
 
@@ -94,7 +99,7 @@ export function mapGridItemsToCustomers(items: IProtocolBookGridItem[]): ICustom
       referral: emptyTabContent(),
       passenger: emptyTabContent(),
       customer: emptyTabContent(),
-      visibleTabs: parseVisibleTabs(item.ClientRole, mapCustomerType(item.ClientType)),
+      visibleTabs: parseVisibleTabs(item.ClientRole, mapCustomerType(item.ClientType), item.Title || item.ClientName),
       clientRole: item.ClientRole || undefined,
     };
   });
@@ -107,7 +112,7 @@ export function mapDetailItemToCustomer(item: IProtocolBookDetailItem): ICustome
   const orgName = item.ClientName || item.Title || '';
 
   const blocksByTab = collectBlocksByTab(item);
-  const visibleTabs = parseVisibleTabs(item.ClientRole, mapCustomerType(item.ClientType));
+  const visibleTabs = parseVisibleTabs(item.ClientRole, mapCustomerType(item.ClientType), item.Title || item.ClientName);
 
   let referralBlocks = blocksByTab.Client || {};
   let passengerBlocks = blocksByTab.Passenger || {};
@@ -146,7 +151,7 @@ export function mapDetailItemToCustomer(item: IProtocolBookDetailItem): ICustome
 
     accountNumber: rawField(item.AccountNumber),
     customerField: rawField(item.Customer),
-    passengerName: cleanField(item.PassengerName),
+    passengerName: rawField(item.PassengerName),
     specialInstructions: rawField(item.SpecialInstructions),
     okToBill3rdParty: item.OkToBill3rdParty || undefined,
     passengerOkToBook: item.PassengerOkToBook === true,
@@ -443,7 +448,7 @@ function extractFirstPhone(text?: string): string {
   if (!text) return '';
   const clean = stripHtml(text);
   const match = clean.match(/[\d(][\d\s().-]{6,}[\d)]/);
-  return match ? match[0].trim() : splitLines(clean)[0] || '';
+  return match ? match[0].trim() : '';
 }
 
 function extractEmail(text?: string): string {
