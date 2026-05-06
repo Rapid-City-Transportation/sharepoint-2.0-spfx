@@ -34,6 +34,25 @@ const TYPE_ACCENT: Record<CustomerType, string> = {
   'Other': '#4A5568'
 };
 
+type RoleClass =
+  | 'roleReferral'
+  | 'roleCustomer'
+  | 'roleCombined'
+  | 'roleIntactException'
+  | 'roleDefault';
+
+function classifyClientRole(role?: string): RoleClass | null {
+  if (!role) return null;
+  const lower = role.toLowerCase();
+  if (lower.indexOf('intact') !== -1) return 'roleIntactException';
+  const hasReferral = lower.indexOf('referral') !== -1;
+  const hasCustomer = lower.indexOf('customer') !== -1;
+  if (hasReferral && hasCustomer) return 'roleCombined';
+  if (hasReferral) return 'roleReferral';
+  if (hasCustomer) return 'roleCustomer';
+  return 'roleDefault';
+}
+
 interface ICustomerDetailViewProps {
   customer: ICustomer;
   onBack: () => void;
@@ -400,12 +419,18 @@ const CustomerDetailView: React.FC<ICustomerDetailViewProps> = ({ customer, onBa
               </span>
             )}
           </h1>
-          {customer.bio && (
-            <div
-              className={`${styles.detailBio} ${styles.detailBioBold}`}
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(customer.bio) }}
-            />
-          )}
+          {customer.bio && (() => {
+            const roleClass = classifyClientRole(customer.clientRole);
+            const bannerClasses = roleClass
+              ? `${styles.specificationBanner} ${styles[roleClass]}`
+              : '';
+            return (
+              <div
+                className={`${styles.detailBio} ${styles.detailBioBold} ${bannerClasses}`}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(customer.bio) }}
+              />
+            );
+          })()}
         </div>
 
       </header>
