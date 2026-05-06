@@ -53,6 +53,12 @@ $transition:      0.18s ease;
   background: $surface;
   min-height: 500px;
   padding: 0;
+  padding-right: 60px;
+  transition: padding-right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.webPartContainerShifted {
+  padding-right: 480px;
 
   *, *::before, *::after {
     box-sizing: border-box;
@@ -62,12 +68,21 @@ $transition:      0.18s ease;
 // ============================================================
 // Page heading (grid view)
 // ============================================================
+.pageHeadingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 28px 28px 0 28px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
 .pageHeading {
   font-size: 26px;
   font-weight: 700;
   color: $primary-blue;
-  margin: 0 0 24px 0;
-  padding: 28px 28px 0 28px;
+  margin: 0;
   letter-spacing: -0.3px;
 }
 
@@ -352,6 +367,39 @@ $transition:      0.18s ease;
   width: fit-content;
 }
 
+.specificationBanner {
+  display: block;
+  padding: 8px 14px;
+  border-radius: 8px;
+  margin-top: 6px;
+  border-left: 4px solid currentColor;
+}
+
+.roleReferral {
+  background: #DCE9F5;
+  color: #1F4C7F;
+}
+
+.roleCustomer {
+  background: #DDEFE0;
+  color: #1E5128;
+}
+
+.roleCombined {
+  background: #D6ECEC;
+  color: #155E63;
+}
+
+.roleIntactException {
+  background: #FBE0E0;
+  color: #9B2C2C;
+}
+
+.roleDefault {
+  background: #EDF0F4;
+  color: #4A5568;
+}
+
 .cardMeta {
   margin-top: auto;
   display: flex;
@@ -445,6 +493,16 @@ $transition:      0.18s ease;
 }
 
 // ---- Back button ----
+.detailTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 28px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
 .backButton {
   @extend %focus-ring;
   font-family: inherit;
@@ -953,6 +1011,7 @@ $transition:      0.18s ease;
   font-family: inherit;
   line-height: 1.6;
   padding-left: 22px;
+  white-space: pre-line;
 
   // Strip inconsistent font-size/family injected by SharePoint's rich text editor
   // Bold, italic, and color are preserved (font-weight, font-style, color are unaffected)

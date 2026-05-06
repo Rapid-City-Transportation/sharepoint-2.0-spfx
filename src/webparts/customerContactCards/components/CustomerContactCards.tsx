@@ -4,6 +4,10 @@ import { ICustomerContactCardsProps } from './ICustomerContactCardsProps';
 import { ICustomer } from './types';
 import CardGridView from './CardGridView';
 import CustomerDetailView from './CustomerDetailView';
+import ResourcesDrawer from './ResourcesDrawer/ResourcesDrawer';
+import ResourcesTrigger from './ResourcesDrawer/ResourcesTrigger';
+import EmailTemplatesDrawer from './EmailTemplatesDrawer/EmailTemplatesDrawer';
+import EmailTemplatesTrigger from './EmailTemplatesDrawer/EmailTemplatesTrigger';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
 import { defaultTheme, getThemeCssVariables } from '../../rapidCityHomepage/theme/ThemeTokens';
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
@@ -15,6 +19,22 @@ const CustomerContactCards: React.FC<ICustomerContactCardsProps> = ({ title }) =
   const [view, setView]                         = React.useState<ViewState>('grid');
   const [selectedCustomer, setSelectedCustomer] = React.useState<ICustomer | null>(null);
   const [searchQuery, setSearchQuery]           = React.useState('');
+  const [drawerOpen, setDrawerOpen]             = React.useState(false);
+  const [emailDrawerOpen, setEmailDrawerOpen]   = React.useState(false);
+  const resourcesTriggerRef                     = React.useRef<HTMLButtonElement>(null);
+  const emailTriggerRef                         = React.useRef<HTMLButtonElement>(null);
+
+  // Mutual-exclusion: opening one drawer closes the other so they don't fight for the same space.
+  const openDrawer = React.useCallback(() => {
+    setEmailDrawerOpen(false);
+    setDrawerOpen(true);
+  }, []);
+  const closeDrawer = React.useCallback(() => setDrawerOpen(false), []);
+  const openEmailDrawer = React.useCallback(() => {
+    setDrawerOpen(false);
+    setEmailDrawerOpen(true);
+  }, []);
+  const closeEmailDrawer = React.useCallback(() => setEmailDrawerOpen(false), []);
 
   const themeVars = React.useMemo(() => getThemeCssVariables(defaultTheme), []);
 
@@ -85,7 +105,10 @@ const CustomerContactCards: React.FC<ICustomerContactCardsProps> = ({ title }) =
     : 'Customer Contact Cards Page';
 
   return (
-    <div className={styles.webPartContainer} style={themeVars as React.CSSProperties}>
+    <div
+      className={`${styles.webPartContainer} ${(drawerOpen || emailDrawerOpen) ? styles.webPartContainerShifted : ''}`}
+      style={themeVars as React.CSSProperties}
+    >
       <Navigation
         onSearch={handleNavSearch}
         onCustomerSelect={handleCustomerSelect}
@@ -94,7 +117,9 @@ const CustomerContactCards: React.FC<ICustomerContactCardsProps> = ({ title }) =
       />
 
       {view === 'grid' && (
-        <h1 className={styles.pageHeading}>{title}</h1>
+        <div className={styles.pageHeadingRow}>
+          <h1 className={styles.pageHeading}>{title}</h1>
+        </div>
       )}
 
       {view === 'grid' && gridLoading && (
@@ -144,6 +169,32 @@ const CustomerContactCards: React.FC<ICustomerContactCardsProps> = ({ title }) =
       )}
 
       <Footer pageIdentifier={feedbackPageId} />
+
+      <ResourcesDrawer
+        isOpen={drawerOpen}
+        onClose={closeDrawer}
+        triggerRef={resourcesTriggerRef}
+      />
+
+      <ResourcesTrigger
+        ref={resourcesTriggerRef}
+        onClick={drawerOpen ? closeDrawer : openDrawer}
+        isOpen={drawerOpen}
+        shifted={drawerOpen || emailDrawerOpen}
+      />
+
+      <EmailTemplatesDrawer
+        isOpen={emailDrawerOpen}
+        onClose={closeEmailDrawer}
+        triggerRef={emailTriggerRef}
+      />
+
+      <EmailTemplatesTrigger
+        ref={emailTriggerRef}
+        onClick={emailDrawerOpen ? closeEmailDrawer : openEmailDrawer}
+        isOpen={emailDrawerOpen}
+        shifted={drawerOpen || emailDrawerOpen}
+      />
     </div>
   );
 };
