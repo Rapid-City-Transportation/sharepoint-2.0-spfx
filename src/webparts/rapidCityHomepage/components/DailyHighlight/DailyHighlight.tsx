@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import styles from './DailyHighlight.module.scss';
 
-const bannerImage = require('../../assets/testing-banner.png');
+const bannerImage = require('../../assets/SP Banner.png');
 
 const DEFAULT_HIGHLIGHT_TITLE = 'Prepare to Launch: Welcome to Testing';
 const DEFAULT_HIGHLIGHT_SUBTITLE = 'RCT Intranet — Mission Ready. Your new hub is preparing for liftoff!';
