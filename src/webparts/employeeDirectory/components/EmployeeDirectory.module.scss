@@ -1,0 +1,680 @@
+// ============================================================
+// Employee Directory — SCSS Module
+// Brand: Rapid City Transportation (RCT) — 2025 palette
+// Mirrors the visual language of customerContactCards.module.scss
+// so the two surfaces feel like one product.
+// WCAG AA accessible throughout (all text ≥ 4.5:1 on white).
+// ============================================================
+
+// ---- Brand tokens (WCAG-safe) ----
+$primary-blue:    #1F4C7F; // 8.71:1 on white — AAA
+$light-blue-acc:  #187389; // 5.45:1 on white — AA
+$gold:            #D29F1C;
+$gold-acc:        #8A6A0C; // 5.09:1 on white — AA (text)
+$dark-navy:       #262931; // 14.54:1 on white — AAA
+$text-primary:    #262931;
+$text-secondary:  #4A5568; // 7.51:1 on white — AAA
+$text-muted:      #6B7280;
+
+$surface:         #F8F8F8;
+$surface-card:    #ffffff;
+$border:          #D0D5DD;
+$border-light:    #E8ECF0;
+$shadow-card:     0 1px 4px rgba(31, 76, 127, 0.08), 0 2px 12px rgba(31, 76, 127, 0.06);
+$shadow-hover:    0 4px 16px rgba(31, 76, 127, 0.14), 0 2px 6px rgba(31, 76, 127, 0.10);
+$radius-card:     12px;
+$radius-btn:      8px;
+$transition:      0.18s ease;
+
+// Shared focus ring — keyboard-only via :focus-visible.
+%focus-ring {
+  outline: none;
+  &:focus-visible {
+    outline: 3px solid $primary-blue;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+:global {
+  #workbenchPageContent,
+  .CanvasComponent.LCS .CanvasZone {
+    max-width: 100% !important;
+  }
+}
+
+// ============================================================
+// Web part root
+// ============================================================
+.webPartContainer {
+  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: $dark-navy;
+  background: $surface;
+  min-height: 500px;
+}
+
+// ============================================================
+// Page heading (grid view)
+// ============================================================
+.pageHeadingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 28px 28px 0;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.pageHeading {
+  font-size: 26px;
+  font-weight: 700;
+  color: $primary-blue;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+// ============================================================
+// GRID VIEW
+// ============================================================
+.gridView {
+  padding: 0 28px 28px;
+  background: $surface;
+}
+
+// ---- Filter bar ----
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid $border;
+}
+
+.filterGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.filterLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $primary-blue;
+  white-space: nowrap;
+}
+
+.filterChip {
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid $primary-blue;
+  border-radius: $radius-btn;
+  overflow: hidden;
+  background: $surface-card;
+}
+
+.filterSelect {
+  @extend %focus-ring;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: $light-blue-acc;
+  background: transparent;
+  border: none;
+  padding: 6px 32px 6px 12px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231F4C7F' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  min-width: 160px;
+
+  &:hover { color: $primary-blue; }
+}
+
+.clearButton {
+  @extend %focus-ring;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $text-secondary;
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color $transition;
+
+  &:hover {
+    color: $primary-blue;
+    text-decoration: underline;
+  }
+}
+
+// ---- Search ----
+.searchWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 440px;
+  min-width: 200px;
+  background: $surface-card;
+  border: 1px solid $border;
+  border-radius: $radius-btn;
+  padding: 0 14px;
+  transition: border-color $transition, box-shadow $transition;
+
+  &:focus-within {
+    border-color: $light-blue-acc;
+    box-shadow: 0 0 0 3px rgba(24, 115, 137, 0.18);
+  }
+}
+
+.searchIcon {
+  font-size: 14px;
+  flex-shrink: 0;
+  color: $text-secondary;
+}
+
+.searchInput {
+  @extend %focus-ring;
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 8px 0;
+  color: $text-primary;
+
+  &::placeholder { color: $text-muted; }
+}
+
+// ---- Count + show-all ----
+.countGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: $text-secondary;
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.countText {
+  white-space: nowrap;
+}
+
+.countDivider {
+  color: $border;
+}
+
+.showAllButton {
+  @extend %focus-ring;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: $light-blue-acc;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+
+  &:hover { color: $primary-blue; text-decoration: underline; }
+}
+
+// ============================================================
+// CARD GRID
+// ============================================================
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.card {
+  @extend %focus-ring;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 18px 14px 16px;
+  background: $surface-card;
+  border: 1px solid $border;
+  border-top: 4px solid $primary-blue;
+  border-radius: $radius-card;
+  cursor: pointer;
+  font-family: inherit;
+  color: $text-primary;
+  box-shadow: $shadow-card;
+  transition: transform $transition, box-shadow $transition;
+  width: 100%;
+  height: 250px;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-hover;
+  }
+}
+
+.cardPhoto {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid $border-light;
+  background: $surface;
+}
+
+.cardAvatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.04em;
+}
+
+.cardName {
+  font-size: 15px;
+  font-weight: 700;
+  color: $text-primary;
+  line-height: 1.3;
+  word-break: break-word;
+  // Constrain to 2 lines so long names can't push the rest of the card down
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardRole {
+  font-size: 12px;
+  color: $text-secondary;
+  line-height: 1.35;
+  // One line max — the role line never needs to wrap
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.cardDeptBadge {
+  display: inline-block;
+  padding: 3px 9px;
+  border: 1px solid $primary-blue;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-top: 4px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardShift {
+  margin-top: auto;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-muted;
+}
+
+.cardLeadBadge {
+  display: inline-block;
+  padding: 3px 10px;
+  background: rgba(210, 159, 28, 0.15);
+  color: $gold-acc;
+  border: 1px solid rgba(210, 159, 28, 0.45);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.cardPhoneLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 9px;
+  background: rgba(31, 76, 127, 0.06);
+  color: $text-secondary;
+  border: 1px solid $border-light;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  max-width: 100%;
+
+  i {
+    font-size: 11px;
+    color: $primary-blue;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+}
+
+/** Muted state used when the phone or TL column is empty — keeps the
+ *  visual rhythm identical across cards without implying we have data. */
+.cardPhoneLineEmpty {
+  background: transparent;
+  color: $text-muted;
+  border-color: $border-light;
+
+  i { color: $text-muted; }
+}
+
+/** Team-lead chip — same chip shape as the phone chip, slightly tinted
+ *  differently so the two pieces of metadata don't read as one line. */
+.cardTeamLead {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 9px;
+  background: rgba(24, 115, 137, 0.07);
+  color: $text-secondary;
+  border: 1px solid $border-light;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  max-width: 100%;
+
+  i {
+    font-size: 11px;
+    color: $light-blue-acc;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+}
+
+// ============================================================
+// Empty state
+// ============================================================
+.emptyState {
+  padding: 48px 28px;
+  text-align: center;
+  color: $text-secondary;
+  background: $surface;
+
+  p { margin: 0 0 12px; font-size: 15px; }
+}
+
+// ============================================================
+// Pagination
+// ============================================================
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.pageBtn {
+  @extend %focus-ring;
+  background: $surface-card;
+  border: 1px solid $border;
+  border-radius: $radius-btn;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: $primary-blue;
+  font-size: 18px;
+  font-weight: 600;
+  transition: border-color $transition, background $transition;
+
+  &:hover:not(:disabled) {
+    border-color: $primary-blue;
+    background: rgba(31, 76, 127, 0.06);
+  }
+
+  &:disabled {
+    color: $text-muted;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+}
+
+.pageIndicator {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-secondary;
+  min-width: 56px;
+  text-align: center;
+}
+
+// ============================================================
+// DETAIL VIEW
+// ============================================================
+.detailView {
+  padding: 24px 28px 40px;
+  background: $surface;
+}
+
+.detailHeaderRow {
+  margin-bottom: 16px;
+}
+
+.backButton {
+  @extend %focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid $border;
+  border-radius: $radius-btn;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: $primary-blue;
+  cursor: pointer;
+  transition: border-color $transition, background $transition;
+
+  &:hover {
+    border-color: $primary-blue;
+    background: rgba(31, 76, 127, 0.06);
+  }
+}
+
+.detailHero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  background: $surface-card;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  box-shadow: $shadow-card;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.detailPhoto {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid $border-light;
+  flex-shrink: 0;
+}
+
+.detailAvatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: $primary-blue;
+  font-weight: 700;
+  font-size: 30px;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.detailHeroBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detailName {
+  font-size: 24px;
+  font-weight: 700;
+  color: $text-primary;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.2px;
+}
+
+.detailRole {
+  font-size: 14px;
+  color: $text-secondary;
+  margin: 0;
+}
+
+.detailDept {
+  font-size: 13px;
+  color: $light-blue-acc;
+  font-weight: 600;
+  margin: 0;
+}
+
+.detailPillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.detailShiftPill {
+  display: inline-block;
+  padding: 3px 12px;
+  background: rgba(31, 76, 127, 0.08);
+  color: $primary-blue;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+}
+
+.detailLeadPill {
+  display: inline-block;
+  padding: 3px 12px;
+  background: rgba(210, 159, 28, 0.15);
+  color: $gold-acc;
+  border: 1px solid rgba(210, 159, 28, 0.45);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+}
+
+.detailSection {
+  background: $surface-card;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: $shadow-card;
+}
+
+.detailSectionTitle {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $primary-blue;
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid $border-light;
+}
+
+.detailList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px 24px;
+  margin: 0;
+}
+
+.detailRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.detailLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $text-muted;
+  margin: 0;
+}
+
+.detailValue {
+  font-size: 14px;
+  color: $text-primary;
+  margin: 0;
+  word-break: break-word;
+
+  a {
+    color: $light-blue-acc;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+    &:focus-visible { outline: 2px solid $primary-blue; outline-offset: 2px; }
+  }
+}
+
+.detailAboutText {
+  margin: 0;
+  font-size: 14px;
+  color: $text-primary;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
