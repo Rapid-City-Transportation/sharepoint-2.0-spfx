@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "c8d9e0f1-a2b3-4c5d-6e7f-89abcdef0123",
+  "alias": "CustomerExperienceHubWebPart",
+  "componentType": "WebPart",
+  "version": "1.0.0",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": [
+    "SharePointWebPart",
+    "SharePointFullPage"
+  ],
+  "supportsThemeVariants": true,
+  "supportsFullBleed": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Advanced" },
+      "title": { "default": "Customer Experience Hub (Prototype)" },
+      "description": {
+        "default": "Prototype landing page for the Customer Experience private hub. Showcases the new branded layout with hero, quick actions, content area, department links, client forms grid, and quality control shortcuts."
+      },
+      "officeFabricIconFontName": "TeamFavorite",
+      "properties": {
+        "title": "Customer Experience"
+      }
+    }
+  ]
+}
