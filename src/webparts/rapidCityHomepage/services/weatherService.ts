@@ -79,7 +79,7 @@ export async function fetchWeather(
 ): Promise<IWeatherData> {
   const cached = readCache(lat, lon);
   if (!forceRefresh && cached && Date.now() - cached.fetchedAt < WEATHER_CACHE_TTL_MS) {
-    return cached.data;
+    return { ...cached.data, locationLabel };
   }
 
   const url = new URL(OPEN_METEO_URL);
@@ -98,12 +98,12 @@ export async function fetchWeather(
     response = await fetch(url.toString());
   } catch (err) {
     // Network failure — return stale cache if any, else rethrow
-    if (cached) return cached.data;
+    if (cached) return { ...cached.data, locationLabel };
     throw new Error('Weather service unreachable.');
   }
 
   if (!response.ok) {
-    if (cached) return cached.data;
+    if (cached) return { ...cached.data, locationLabel };
     throw new Error(`Weather API returned ${response.status}.`);
   }
 
