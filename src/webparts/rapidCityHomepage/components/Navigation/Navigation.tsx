@@ -4,7 +4,6 @@ import {
   IDropdownOption,
   IDropdownProps,
 } from '@fluentui/react/lib/Dropdown';
-import { IconButton } from '@fluentui/react/lib/Button';
 import { Icon } from '@fluentui/react/lib/Icon';
 import styles from './Navigation.module.scss';
 import { useSearchCustomers } from '../../../customerContactCards/hooks/useSearchCustomers';
@@ -22,14 +21,19 @@ export interface INavDropdown {
   options: INavLink[];
 }
 
-const EMPLOYEE_SUPPORT_OPTIONS: INavLink[] = [
-  { label: 'Training Hub', href: '#' },
-  { label: 'Rise Hub', href: '#' },
-  { label: 'Employee Directory', href: '#' },
-  { label: 'Information Technology Support', href: '#' },
-  { label: 'Human Resources Support', href: '#' },
-  // Update hrefs to real intranet pages
-];
+const DEFAULT_EMPLOYEE_DIRECTORY_URL =
+  'https://rapidcitytransport.sharepoint.com/sites/Management/SitePages/EmployeeDirectory.aspx';
+
+function buildEmployeeSupportOptions(employeeDirectoryUrl: string): INavLink[] {
+  return [
+    { label: 'Training Hub', href: '#' },
+    { label: 'Rise Hub', href: '#' },
+    { label: 'Employee Directory', href: employeeDirectoryUrl },
+    { label: 'Information Technology Support', href: '#' },
+    { label: 'Human Resources Support', href: '#' },
+    // Update remaining hrefs as those pages come online.
+  ];
+}
 
 const DEPARTMENT_HUBS_OPTIONS: INavLink[] = [
   { label: 'Customer Experience', href: '#' },
@@ -40,7 +44,12 @@ const DEPARTMENT_HUBS_OPTIONS: INavLink[] = [
   { label: 'Business Development', href: '#' },
 ];
 
-export type NavPage = 'home' | 'contactCards' | 'training';
+export type NavPage =
+  | 'home'
+  | 'contactCards'
+  | 'training'
+  | 'departmentHub'
+  | 'employeeDirectory';
 
 export interface INavigationProps {
   onSearch: (query: string) => void;
@@ -52,12 +61,15 @@ export interface INavigationProps {
   homeUrl?: string;
   /** URL for the Contact Cards page link (defaults to '#') */
   contactCardsUrl?: string;
+  /** URL for the Employee Directory page link (defaults to the Management site page) */
+  employeeDirectoryUrl?: string;
 }
 
 export const Navigation: React.FC<INavigationProps> = (props) => {
   const activePage = props.activePage || 'home';
   const homeUrl = props.homeUrl || 'https://rapidcitytransport.sharepoint.com/sites/HomeTest';
   const contactCardsUrl = props.contactCardsUrl || 'https://rapidcitytransport.sharepoint.com/sites/ContactCards';
+  const employeeDirectoryUrl = props.employeeDirectoryUrl || DEFAULT_EMPLOYEE_DIRECTORY_URL;
 
   // Search dropdown state
   const [query, setQuery] = React.useState('');
@@ -163,11 +175,15 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
   }, [props.onSearch]);
 
   // Fluent dropdown handlers (unchanged)
-  const supportOptions: IDropdownOption[] = EMPLOYEE_SUPPORT_OPTIONS.map((o) => ({
-    key: o.label,
-    text: o.label,
-    data: o,
-  }));
+  const supportOptions: IDropdownOption[] = React.useMemo(
+    () =>
+      buildEmployeeSupportOptions(employeeDirectoryUrl).map((o) => ({
+        key: o.label,
+        text: o.label,
+        data: o,
+      })),
+    [employeeDirectoryUrl]
+  );
 
   const deptOptions: IDropdownOption[] = DEPARTMENT_HUBS_OPTIONS.map((o) => ({
     key: o.label,
@@ -237,7 +253,7 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
           </li>
 
           {/* 4. Department Hubs (dropdown) */}
-          <li className={styles.listItem}>
+          <li className={`${styles.listItem} ${activePage === 'departmentHub' ? styles.listItemActive : ''}`}>
             <Dropdown
               placeholder="Department Hubs"
               options={deptOptions}
@@ -246,13 +262,13 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
               ariaLabel="Department Hubs menu"
               dropdownWidth={220}
               onRenderPlaceholder={() => (
-                <span className={styles.dropdownTitle}>
+                <span className={`${styles.dropdownTitle} ${activePage === 'departmentHub' ? styles.dropdownTitleActive : ''}`}>
                   Department Hubs
                   <Icon iconName="ChevronDown" className={styles.chevron} />
                 </span>
               )}
               onRenderTitle={() => (
-                <span className={styles.dropdownTitle}>
+                <span className={`${styles.dropdownTitle} ${activePage === 'departmentHub' ? styles.dropdownTitleActive : ''}`}>
                   Department Hubs
                   <Icon iconName="ChevronDown" className={styles.chevron} />
                 </span>
@@ -347,16 +363,7 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
             )}
           </div>
 
-          {activePage === 'contactCards' ? (
-            <NotificationBell onNavigateToCustomer={navigateToCustomerById} />
-          ) : (
-            <IconButton
-              iconProps={{ iconName: 'Ringer' }}
-              ariaLabel="Notifications"
-              title="Notifications"
-              className={styles.utilityIcon}
-            />
-          )}
+          <NotificationBell onNavigateToCustomer={navigateToCustomerById} />
           <WeatherWidget />
         </div>
       </div>

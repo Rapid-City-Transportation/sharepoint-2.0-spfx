@@ -104,6 +104,22 @@
   white-space: nowrap;
 }
 
+// Text-only treatment for the active state — color and weight.
+// The bottom underline is drawn by .listItemActive on the wrapping <li>
+// so it lines up with the navbar's bottom edge (same as .linkActive does
+// for plain anchor links).
+.dropdownTitleActive {
+  color: var(--rct-gold-light);
+  font-weight: 600;
+}
+
+.listItemActive {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  border-bottom: 3px solid var(--rct-gold-light);
+}
+
 .chevron {
   font-size: 12px;
   margin-left: 0;
