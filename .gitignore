@@ -20,3 +20,8 @@ Thumbs.db
 # Env
 .env
 .env.*
+!.env.example
+
+# Local tooling / scratch — not part of the SPFx solution
+scripts/
+.claude/
