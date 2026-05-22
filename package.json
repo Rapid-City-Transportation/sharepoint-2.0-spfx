@@ -4,7 +4,9 @@
   "private": true,
   "main": "lib/index.js",
   "scripts": {
-    "build": "gulp bundle",
+    "build": "node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js bundle",
+    "build:ship": "node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js bundle --ship",
+    "serve": "node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js serve",
     "clean": "gulp clean",
     "test": "gulp test"
   },
