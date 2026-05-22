@@ -25,6 +25,30 @@
           "manifest": "./src/webparts/departmentPublicPage/DepartmentPublicPageWebPart.manifest.json"
         }
       ]
+    },
+    "customer-experience-hub-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/customerExperienceHub/CustomerExperienceHubWebPart.js",
+          "manifest": "./src/webparts/customerExperienceHub/CustomerExperienceHubWebPart.manifest.json"
+        }
+      ]
+    },
+    "employee-directory-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/employeeDirectory/EmployeeDirectoryWebPart.js",
+          "manifest": "./src/webparts/employeeDirectory/EmployeeDirectoryWebPart.manifest.json"
+        }
+      ]
+    },
+    "team-lead-hub-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/teamLeadHub/TeamLeadHubWebPart.js",
+          "manifest": "./src/webparts/teamLeadHub/TeamLeadHubWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
