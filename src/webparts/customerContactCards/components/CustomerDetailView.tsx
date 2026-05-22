@@ -10,6 +10,7 @@ import {
 } from './types';
 import AccordionSection from './AccordionSection';
 import { sanitizeHtml } from '../utils/sanitize';
+import { ChangeHistoryModal } from './ChangeHistory/ChangeHistoryModal';
 
 function isItem(x: string | IInstructionItem): x is IInstructionItem {
   return typeof x === 'object';
@@ -352,6 +353,7 @@ const CustomerDetailView: React.FC<ICustomerDetailViewProps> = ({ customer, onBa
   const [activeTab, setActiveTab] = React.useState<TabId | null>(null);
   const [row1Open, setRow1Open] = React.useState(false); // Booking + Service Amendments
   const [row2Open, setRow2Open] = React.useState(false); // Cancellations + Reminder Calls
+  const [historyOpen, setHistoryOpen] = React.useState(false);
   const toggleRow1 = React.useCallback(() => setRow1Open(prev => !prev), []);
   const toggleRow2 = React.useCallback(() => setRow2Open(prev => !prev), []);
 
@@ -397,14 +399,26 @@ const CustomerDetailView: React.FC<ICustomerDetailViewProps> = ({ customer, onBa
   return (
     <article className={styles.detailView} aria-label={`Contact detail for ${customer.name}`}>
 
-      <button
-        className={styles.backButton}
-        onClick={onBack}
-        type="button"
-        aria-label="Back to all customer contacts"
-      >
-        ← Back to All Contacts
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <button
+          className={styles.backButton}
+          onClick={onBack}
+          type="button"
+          aria-label="Back to all customer contacts"
+          style={{ marginBottom: 0 }}
+        >
+          ← Back to All Contacts
+        </button>
+        <button
+          className={styles.backButton}
+          onClick={() => setHistoryOpen(true)}
+          type="button"
+          aria-label={`View change history for ${customer.name}`}
+          style={{ marginBottom: 0, marginLeft: 'auto' }}
+        >
+          View change history
+        </button>
+      </div>
 
       <header className={styles.detailHeader}>
         <div className={styles.detailHeaderLeft}>
@@ -653,6 +667,14 @@ const CustomerDetailView: React.FC<ICustomerDetailViewProps> = ({ customer, onBa
           />
         </section>
       )}
+
+      <ChangeHistoryModal
+        isOpen={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        customerName={customer.name}
+        sourceItemId={parseInt(customer.id, 10)}
+        sourceList="ProtocolBook"
+      />
     </article>
   );
 };
