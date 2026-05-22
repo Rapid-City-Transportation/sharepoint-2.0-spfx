@@ -1,6 +1,8 @@
 import '@pnp/sp/site-users/web';
 import { getSP } from './spConfig';
-import { CCN, CCNR } from './fieldNames';
+import { CCN, CCNR, PB, IB } from './fieldNames';
+import { fetchVersionPair } from './versionsService';
+import { hasVisibleChange, filterRealChangedFields } from './snapshotUtils';
 
 export type NotificationSourceList = 'ProtocolBook' | 'InstructionBlock';
 
@@ -73,7 +75,7 @@ export async function fetchNotifications(
     fetchReadReceipts(userId),
   ]);
 
-  return rawNotifs.map((raw: Record<string, unknown>) => {
+  const mapped: INotificationItem[] = rawNotifs.map((raw: Record<string, unknown>) => {
     const id = raw[CCN.Id] as number;
     const modifiedIso = (raw[CCN.Modified] as string) || (raw[CCN.Created] as string) || '';
     const readAtIso = readMap.get(id);
@@ -96,6 +98,44 @@ export async function fetchNotifications(
       isRead,
     };
   });
+
+  // Filter out "phantom" notifications: cases where SharePoint fired a change
+  // event (so PA wrote the notification row) but the visible plain-text content
+  // is identical to the previous version. Common with rich-text fields where
+  // SP saves trigger HasColumnChanged for invisible HTML/encoding diffs.
+  //
+  // We check each notification in parallel by fetching its source row's
+  // previous version and comparing snapshots. Notifications with no
+  // sourceItemId, no snapshot, or no previous version are kept (we can't
+  // prove they're phantoms).
+  const filtered = await Promise.all(
+    mapped.map(async item => {
+      if (!item.newValueSnapshot || item.sourceItemId <= 0) return item;
+      const listTitle = item.sourceList === 'ProtocolBook' ? PB.LIST_TITLE : IB.LIST_TITLE;
+      const pair = await fetchVersionPair(listTitle, item.sourceItemId);
+      const previous = pair ? pair.previous : null;
+      const current = pair ? pair.current : null;
+      if (!hasVisibleChange(item.newValueSnapshot, item.sourceList, previous)) {
+        return null;
+      }
+      // Drop phantom labels from changedFields so the dropdown matches what
+      // the modal actually renders. Catches both:
+      //   - Text fields where SP fired but the visible text didn't differ
+      //   - Lookup fields where SP fired but the lookup ID didn't change
+      const realChangedFields = filterRealChangedFields(
+        item.changedFields,
+        item.newValueSnapshot,
+        item.sourceList,
+        previous,
+        current
+      );
+      // If the entire changedFields list collapses to nothing after phantom
+      // filtering, drop the notification — there's nothing meaningful left.
+      if (!realChangedFields) return null;
+      return { ...item, changedFields: realChangedFields };
+    })
+  );
+  return filtered.filter((item): item is INotificationItem => item !== null);
 }
 
 /** Fetch this user's read receipts as a map of notificationId → latest ReadAt timestamp. */

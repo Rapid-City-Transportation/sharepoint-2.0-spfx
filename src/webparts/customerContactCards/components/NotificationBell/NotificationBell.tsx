@@ -6,6 +6,14 @@ import { FocusZone, FocusZoneTabbableElements } from '@fluentui/react/lib/FocusZ
 import styles from './NotificationBell.module.scss';
 import { useNotifications } from '../../hooks/useNotifications';
 import { INotificationItem } from '../../services/notificationsService';
+import { fetchPreviousVersion } from '../../services/versionsService';
+import { PB, IB } from '../../services/fieldNames';
+import {
+  parseSnapshotSections,
+  getOldValueForSection,
+  ISnapshotSection,
+} from '../../services/snapshotUtils';
+import { diffSmart, IDiffPart } from './diffUtils';
 
 export interface INotificationBellProps {
   /** Called when a ProtocolBook notification is clicked. Receives the customer ID as string. */
@@ -15,10 +23,38 @@ export interface INotificationBellProps {
 export const NotificationBell: React.FC<INotificationBellProps> = ({ onNavigateToCustomer }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedItem, setSelectedItem] = React.useState<INotificationItem | null>(null);
+  const [previousVersion, setPreviousVersion] = React.useState<Record<string, unknown> | null>(null);
+  const [diffLoading, setDiffLoading] = React.useState(false);
   const bellRef = React.useRef<HTMLDivElement>(null);
 
   const { notifications, unreadCount, loading, error, markAsRead, markAllAsRead } =
     useNotifications(true);
+
+  // When the modal opens for a notification, fetch the previous version of the
+  // source row so we can show a diff against the latest snapshot. Falls back
+  // to showing just the new value if versioning is off or the fetch fails.
+  React.useEffect(() => {
+    if (!selectedItem || selectedItem.sourceItemId <= 0) {
+      setPreviousVersion(null);
+      return;
+    }
+    const listTitle =
+      selectedItem.sourceList === 'ProtocolBook' ? PB.LIST_TITLE : IB.LIST_TITLE;
+    let cancelled = false;
+    setDiffLoading(true);
+    setPreviousVersion(null);
+    fetchPreviousVersion(listTitle, selectedItem.sourceItemId)
+      .then(prev => {
+        if (!cancelled) setPreviousVersion(prev);
+      })
+      .catch(() => {
+        if (!cancelled) setPreviousVersion(null);
+      })
+      .then(() => {
+        if (!cancelled) setDiffLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [selectedItem]);
 
   const toggle = React.useCallback(() => setIsOpen(prev => !prev), []);
   const close = React.useCallback(() => setIsOpen(false), []);
@@ -162,6 +198,8 @@ export const NotificationBell: React.FC<INotificationBellProps> = ({ onNavigateT
         <Dialog
           hidden={false}
           onDismiss={closeDialog}
+          minWidth={620}
+          maxWidth={900}
           dialogContentProps={{
             type: DialogType.normal,
             title: dialogTitle(selectedItem),
@@ -181,15 +219,90 @@ export const NotificationBell: React.FC<INotificationBellProps> = ({ onNavigateT
             <span className={styles.detailMetaSeparator} aria-hidden="true">·</span>
             <span>{selectedItem.changeType} {formatRelative(selectedItem.changedAt)}</span>
           </div>
-          {selectedItem.newValueSnapshot ? (
-            <div className={styles.snapshotContent}>
-              {htmlToPlainText(selectedItem.newValueSnapshot)}
-            </div>
-          ) : (
-            <div className={styles.snapshotEmpty}>
-              No detailed snapshot available for this notification.
-            </div>
-          )}
+          {(() => {
+            if (diffLoading) {
+              return (
+                <div className={styles.snapshotContent}>
+                  <div className={styles.diffLoadingHint} role="status" aria-live="polite">
+                    Loading change history…
+                  </div>
+                </div>
+              );
+            }
+
+            // Iterate over the changedFields labels (already filtered to drop
+            // phantoms in fetchNotifications) so the modal lists every field
+            // the user sees in the dropdown row. Text fields get a diff
+            // section; fields without snapshot content (lookups) get a
+            // placeholder pointing at the customer page.
+            const labels = (selectedItem.changedFields || '')
+              .split(', ')
+              .map(s => s.trim())
+              .filter(Boolean);
+
+            if (labels.length === 0 && !selectedItem.newValueSnapshot) {
+              return (
+                <div className={styles.snapshotEmpty}>
+                  No detailed snapshot available for this notification.
+                </div>
+              );
+            }
+
+            const sectionMap = new Map<string, ISnapshotSection>(
+              selectedItem.newValueSnapshot
+                ? parseSnapshotSections(
+                    selectedItem.newValueSnapshot,
+                    selectedItem.sourceList
+                  )
+                    .filter(s => s.label)
+                    .map(s => [s.label, s] as [string, ISnapshotSection])
+                : []
+            );
+
+            return (
+              <div className={styles.snapshotContent}>
+                {labels.map((label, i) => {
+                  const section = sectionMap.get(label);
+                  if (!section) {
+                    // Lookup field or field without snapshot content — can't
+                    // diff a numeric lookup ID into anything meaningful, so
+                    // tell the user where to find the new value.
+                    return (
+                      <div
+                        key={i}
+                        className={`${styles.snapshotSection} ${styles.snapshotSectionLabeled}`}
+                      >
+                        <div className={styles.snapshotLabel}>{label}</div>
+                        <div className={styles.snapshotPlaceholder}>
+                          This selection changed. Open the customer to see the current value.
+                        </div>
+                      </div>
+                    );
+                  }
+                  const oldValue = getOldValueForSection(
+                    label,
+                    selectedItem.sourceList,
+                    previousVersion
+                  );
+                  return (
+                    <div
+                      key={i}
+                      className={`${styles.snapshotSection} ${styles.snapshotSectionLabeled}`}
+                    >
+                      <div className={styles.snapshotLabel}>{label}</div>
+                      {oldValue !== null && oldValue !== section.value ? (
+                        <div className={styles.snapshotValue}>
+                          {renderDiff(diffSmart(oldValue, section.value))}
+                        </div>
+                      ) : (
+                        <div className={styles.snapshotValue}>{section.value}</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
           <DialogFooter>
             {selectedItem.sourceList === 'ProtocolBook' &&
               selectedItem.sourceItemId > 0 &&
@@ -211,21 +324,48 @@ function dialogTitle(item: INotificationItem): string {
   return item.title ? `Instruction block: ${item.title}` : 'Instruction block updated';
 }
 
-function htmlToPlainText(html: string): string {
-  if (!html) return '';
-  // Convert paragraph and line-break tags to newlines BEFORE stripping,
-  // so structure is preserved when we extract textContent.
-  const withNewlines = html
-    .replace(/<\s*br\s*\/?>/gi, '\n')
-    .replace(/<\/\s*(p|div|li|h[1-6])\s*>/gi, '\n')
-    .replace(/<\s*li\s*[^>]*>/gi, '• ');
-  // Use a temporary element to decode entities and strip remaining tags.
-  // innerHTML does not execute scripts, so this is safe even for untrusted input.
-  const el = document.createElement('div');
-  el.innerHTML = withNewlines;
-  const text = el.textContent || el.innerText || '';
-  // Collapse runs of 3+ newlines to 2 for tighter spacing.
-  return text.replace(/\n{3,}/g, '\n\n').trim();
+/** Render a diff as two stacked lines: "Was" (old value with removed parts
+ *  highlighted in red strikethrough) and "Now" (new value with added parts
+ *  highlighted in green). Easier to scan than inline word-mixing. */
+function renderDiff(parts: IDiffPart[]): JSX.Element {
+  // "Was" line = unchanged + removed parts (i.e. what the value used to be)
+  const wasLine = parts
+    .filter(p => p.type !== 'added')
+    .map((part, i) =>
+      part.type === 'removed' ? (
+        <span key={i} className={styles.diffRemoved}>
+          {part.text}
+        </span>
+      ) : (
+        <span key={i}>{part.text}</span>
+      )
+    );
+
+  // "Now" line = unchanged + added parts (i.e. what the value is now)
+  const nowLine = parts
+    .filter(p => p.type !== 'removed')
+    .map((part, i) =>
+      part.type === 'added' ? (
+        <span key={i} className={styles.diffAdded}>
+          {part.text}
+        </span>
+      ) : (
+        <span key={i}>{part.text}</span>
+      )
+    );
+
+  return (
+    <div className={styles.diffWrapper}>
+      <div className={styles.diffWasLine}>
+        <span className={styles.diffLineLabel}>Was:</span>
+        <span className={styles.diffLineContent}>{wasLine}</span>
+      </div>
+      <div className={styles.diffNowLine}>
+        <span className={styles.diffLineLabel}>Now:</span>
+        <span className={styles.diffLineContent}>{nowLine}</span>
+      </div>
+    </div>
+  );
 }
 
 function formatRelative(iso: string): string {

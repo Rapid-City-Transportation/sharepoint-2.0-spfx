@@ -178,9 +178,12 @@
 .itemFields {
   font-size: 12px;
   color: #4a5568;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.4;
 }
 
 .itemMetaRow {
@@ -278,10 +281,43 @@
   background: var(--rct-surface-light, #f8f8f8);
   border: 1px solid #e2e8f0;
   border-radius: 4px;
-  padding: 12px 14px;
+  padding: 4px 14px;
   margin: 0 0 8px 0;
   max-height: 360px;
   overflow-y: auto;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.snapshotSection {
+  // No divider by default — only labeled sections get one (see below)
+  padding: 4px 0;
+}
+
+.snapshotSectionLabeled {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+
+  &:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
+.snapshotLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rct-blue-accessible, #187389);
+  margin-bottom: 4px;
+}
+
+.snapshotValue {
+  font-size: 13px;
+  color: var(--rct-text-primary, #262931);
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.5;
@@ -295,4 +331,94 @@
   background: var(--rct-surface-light, #f8f8f8);
   border-radius: 4px;
   margin-bottom: 8px;
+}
+
+.snapshotPlaceholder {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+  padding: 4px 0;
+}
+
+// ---- Diff highlighting: two-line "Was / Now" layout ----
+
+.diffWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.diffWasLine,
+.diffNowLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  word-break: break-word;
+}
+
+.diffWasLine {
+  color: #6b7280;
+}
+
+.diffNowLine {
+  color: var(--rct-text-primary, #262931);
+}
+
+.diffLineLabel {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  min-width: 44px;
+  text-align: center;
+
+  .diffWasLine & {
+    background-color: rgba(155, 44, 44, 0.1);
+    color: #9b2c2c;
+  }
+
+  .diffNowLine & {
+    background-color: rgba(22, 101, 52, 0.1);
+    color: #166534;
+  }
+}
+
+.diffLineContent {
+  flex: 1;
+  min-width: 0;
+  // Render \n in diff text as actual line breaks (line-level diffs preserve
+  // newlines as part of each token).
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+// Words inside the "Was" line that were removed
+.diffRemoved {
+  background-color: rgba(155, 44, 44, 0.18);
+  color: #9b2c2c;
+  text-decoration: line-through;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+// Words inside the "Now" line that were added
+.diffAdded {
+  background-color: rgba(22, 101, 52, 0.15);
+  color: #166534;
+  font-weight: 600;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.diffLoadingHint {
+  font-size: 11px;
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+  padding: 8px 0 0 0;
 }
