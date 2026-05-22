@@ -6,6 +6,9 @@ import { getSP } from '../../customerContactCards/services/spConfig';
  *   Title          (Single line — auto-mapped to PageIdentifier)
  *   Description    (Multiple lines of text, plain text)
  *   Urgency        (Choice: Critical, High, Medium, Low)
+ *   SourcePage     (Single line of text, ~500 chars — full URL of the
+ *                   page the feedback was submitted from, used to look
+ *                   up the page's content owner for routing)
  */
 const FEEDBACK_LIST_TITLE = 'SiteFeedback';
 
@@ -13,6 +16,7 @@ export interface IFeedbackPayload {
   pageIdentifier: string;
   description: string;
   urgency: string;
+  sourcePage: string;
 }
 
 /**
@@ -25,5 +29,6 @@ export async function submitFeedback(payload: IFeedbackPayload): Promise<void> {
     Title: payload.pageIdentifier,
     Description: payload.description,
     Urgency: payload.urgency,
+    SourcePage: payload.sourcePage,
   });
 }

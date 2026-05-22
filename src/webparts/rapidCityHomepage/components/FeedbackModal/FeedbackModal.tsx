@@ -97,7 +97,12 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
 
       setSubmitting(true);
       try {
-        await submitFeedback({ pageIdentifier, description: description.trim(), urgency });
+        await submitFeedback({
+          pageIdentifier,
+          description: description.trim(),
+          urgency,
+          sourcePage: window.location.href,
+        });
         setView('success');
       } catch (err) {
         setSubmitError(
