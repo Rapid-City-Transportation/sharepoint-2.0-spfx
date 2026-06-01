@@ -1,0 +1,46 @@
+/* tslint:disable */
+require("./TrainingHub.module.css");
+const styles = {
+  hubLink: 'hubLink_8072572a',
+  trainerDeptTile: 'trainerDeptTile_8072572a',
+  hub: 'hub_8072572a',
+  layout: 'layout_8072572a',
+  mainColumn: 'mainColumn_8072572a',
+  sidebar: 'sidebar_8072572a',
+  welcomeCard: 'welcomeCard_8072572a',
+  welcomeHeader: 'welcomeHeader_8072572a',
+  welcomeHeaderIcon: 'welcomeHeaderIcon_8072572a',
+  welcomeEyebrow: 'welcomeEyebrow_8072572a',
+  welcomeTitle: 'welcomeTitle_8072572a',
+  welcomeSubtitle: 'welcomeSubtitle_8072572a',
+  trainerHubCard: 'trainerHubCard_8072572a',
+  trainerHubHeader: 'trainerHubHeader_8072572a',
+  trainerHubEyebrow: 'trainerHubEyebrow_8072572a',
+  trainerHubTitle: 'trainerHubTitle_8072572a',
+  trainerHubSubtitle: 'trainerHubSubtitle_8072572a',
+  trainerHubGrid: 'trainerHubGrid_8072572a',
+  trainerDeptIcon: 'trainerDeptIcon_8072572a',
+  trainerDeptLabel: 'trainerDeptLabel_8072572a',
+  teamCard: 'teamCard_8072572a',
+  teamHeader: 'teamHeader_8072572a',
+  teamEyebrow: 'teamEyebrow_8072572a',
+  teamTitle: 'teamTitle_8072572a',
+  teamViewAll: 'teamViewAll_8072572a',
+  teamGrid: 'teamGrid_8072572a',
+  teamMember: 'teamMember_8072572a',
+  teamMemberTop: 'teamMemberTop_8072572a',
+  teamAvatar: 'teamAvatar_8072572a',
+  teamMemberInfo: 'teamMemberInfo_8072572a',
+  teamMemberName: 'teamMemberName_8072572a',
+  teamMemberRole: 'teamMemberRole_8072572a',
+  teamMemberFooter: 'teamMemberFooter_8072572a',
+  teamMemberScope: 'teamMemberScope_8072572a',
+  teamMemberContact: 'teamMemberContact_8072572a',
+  hubCard: 'hubCard_8072572a',
+  hubEyebrow: 'hubEyebrow_8072572a',
+  hubTitle: 'hubTitle_8072572a',
+  hubDescription: 'hubDescription_8072572a'
+};
+
+export default styles;
+/* tslint:enable */

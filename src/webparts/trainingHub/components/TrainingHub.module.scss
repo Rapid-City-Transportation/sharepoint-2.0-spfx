@@ -1,0 +1,433 @@
+@import '../../rapidCityHomepage/theme/themeVariables.module.scss';
+
+:global {
+  #workbenchPageContent,
+  .CanvasComponent.LCS .CanvasZone {
+    max-width: 100% !important;
+  }
+}
+
+$primary-blue:    #1F4C7F;
+$dark-navy:       #262931;
+$blue-accessible: #187389;
+$gold:            #D29F1C;
+$gold-accessible: #8A6A0C;
+$surface:         #F8F8F8;
+$surface-page:    #F1F4F9;
+$text-primary:    #262931;
+$text-secondary:  #4A5568;
+$text-muted:      #6B7280;
+$text-inverse:    #FFFFFF;
+$border:          #E2E8F0;
+$border-light:    #E8ECF0;
+$radius-card:     12px;
+$radius-tile:     8px;
+$shadow-card:     0 1px 3px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.06);
+$transition:      0.18s ease;
+
+%focus-ring {
+  outline: none;
+  &:focus-visible {
+    outline: 3px solid var(--rct-brand-blue-primary, #{$primary-blue});
+    outline-offset: 2px;
+  }
+}
+
+.hub {
+  background: $surface-page;
+  color: var(--rct-text-primary, #{$text-primary});
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.5;
+  padding: 24px 56px 0;
+
+  * { box-sizing: border-box; }
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 24px;
+  align-items: start;
+  margin: 24px auto 48px;
+  max-width: 1400px;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.welcomeCard {
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  padding: 18px 22px 22px;
+  box-shadow: $shadow-card;
+}
+
+.welcomeHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.welcomeHeaderIcon {
+  font-size: 18px;
+  color: var(--rct-brand-blue-primary, #{$primary-blue});
+  background: rgba(31, 76, 127, 0.08);
+  padding: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.welcomeEyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rct-text-secondary, #{$text-muted});
+}
+
+.welcomeTitle {
+  margin: 2px 0 2px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+  letter-spacing: -0.005em;
+}
+
+.welcomeSubtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--rct-text-secondary, #{$text-secondary});
+  max-width: 640px;
+}
+
+.trainerHubCard {
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  padding: 20px 22px 22px;
+  box-shadow: $shadow-card;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.trainerHubHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.trainerHubEyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rct-text-secondary, #{$text-muted});
+  margin-bottom: 2px;
+}
+
+.trainerHubTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+}
+
+.trainerHubSubtitle {
+  font-size: 12px;
+  color: var(--rct-text-secondary, #{$text-secondary});
+  max-width: 280px;
+  text-align: right;
+
+  @media (max-width: 720px) {
+    text-align: left;
+  }
+}
+
+.trainerHubGrid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+
+  @media (max-width: 760px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.trainerDeptTile {
+  @extend %focus-ring;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 110px;
+  padding: 14px 14px 16px;
+  border-radius: $radius-tile;
+  text-decoration: none;
+  color: $text-inverse;
+  background:
+    linear-gradient(135deg, var(--dept-accent, #{$primary-blue}) 0%, rgba(38, 41, 49, 0.85) 100%);
+  background-color: var(--dept-accent, #{$primary-blue});
+  box-shadow: $shadow-card;
+  overflow: hidden;
+  transition: transform $transition, box-shadow $transition;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -18px;
+    top: -18px;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 65%);
+    pointer-events: none;
+  }
+}
+
+.trainerDeptIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: $radius-tile;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: $text-inverse;
+  font-size: 16px;
+}
+
+.trainerDeptLabel {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+}
+
+.teamCard {
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  padding: 20px 22px 22px;
+  box-shadow: $shadow-card;
+}
+
+.teamHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.teamEyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rct-text-secondary, #{$text-muted});
+  margin-bottom: 2px;
+}
+
+.teamTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+}
+
+.teamViewAll {
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.teamGrid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.teamMember {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-tile;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.teamMemberTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teamAvatar {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: $text-inverse;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.teamMemberInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.teamMemberName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rct-text-primary, #{$text-primary});
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamMemberRole {
+  font-size: 12px;
+  color: var(--rct-text-secondary, #{$text-secondary});
+}
+
+.teamMemberFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid $border;
+}
+
+.teamMemberScope {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rct-text-secondary, #{$text-muted});
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.teamMemberContact {
+  display: flex;
+  gap: 8px;
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  font-size: 13px;
+
+  span {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(24, 115, 137, 0.08);
+  }
+}
+
+.hubCard {
+  position: relative;
+  background:
+    linear-gradient(135deg, rgba(38, 41, 49, 0.94) 0%, rgba(31, 76, 127, 0.88) 100%);
+  background-color: $dark-navy;
+  color: $text-inverse;
+  border-radius: $radius-card;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -24px;
+    top: -24px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(210, 159, 28, 0.18), transparent 60%);
+  }
+}
+
+.hubEyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hubTitle {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  letter-spacing: -0.005em;
+}
+
+.hubDescription {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.hubLink {
+  @extend %focus-ring;
+  margin-top: 8px;
+  align-self: flex-start;
+  color: $text-inverse;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: gap $transition;
+
+  &:hover {
+    gap: 10px;
+    text-decoration: underline;
+  }
+}
