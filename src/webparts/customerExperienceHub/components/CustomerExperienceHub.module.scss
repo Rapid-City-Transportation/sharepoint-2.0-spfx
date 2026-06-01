@@ -1,7 +1,5 @@
-// ============================================================
 // Customer Experience Hub — Layout v2 (matches PDF mockup)
 // Brand: Rapid City Transportation (RCT) — 2025 palette
-// ============================================================
 
 @import '../../rapidCityHomepage/theme/themeVariables.module.scss';
 
@@ -42,10 +40,6 @@ $transition:      0.18s ease;
   }
 }
 
-// ────────────────────────────────────────────────────────────
-// Root
-// ────────────────────────────────────────────────────────────
-
 .hub {
   background: $surface-page;
   color: var(--rct-text-primary, #{$text-primary});
@@ -83,10 +77,7 @@ $transition:      0.18s ease;
   gap: 20px;
 }
 
-// ────────────────────────────────────────────────────────────
 // News hero card (dark blue)
-// ────────────────────────────────────────────────────────────
-
 .newsCard {
   position: relative;
   background:
@@ -219,10 +210,7 @@ $transition:      0.18s ease;
   }
 }
 
-// ────────────────────────────────────────────────────────────
 // Welcome / pick a tool placeholder
-// ────────────────────────────────────────────────────────────
-
 .welcomeCard {
   background: $text-inverse;
   border: 1px solid $border;
@@ -318,7 +306,7 @@ $transition:      0.18s ease;
   text-align: center;
 }
 
-// ── Active tool container inside the placeholder ──
+// Active tool container inside the placeholder
 .toolContent {
   display: flex;
   flex-direction: column;
@@ -358,6 +346,39 @@ $transition:      0.18s ease;
   line-height: 1.2;
 }
 
+// Right-side cluster on the inner tool-content header — holds the
+// Open-full pill and the Close (X) button side by side.
+.toolContentActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.toolContentOpenFull {
+  @extend %focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color $transition, color $transition;
+
+  &:hover {
+    border-color: var(--rct-blue-accessible, #{$blue-accessible});
+    color: var(--rct-brand-blue-primary, #{$primary-blue});
+  }
+
+  i { font-size: 12px; }
+}
+
 .toolContentClose {
   @extend %focus-ring;
   background: none;
@@ -387,7 +408,7 @@ $transition:      0.18s ease;
   overflow-y: auto;
 }
 
-// ── Lunch Schedule specific rendering ──
+// Lunch Schedule specific rendering
 .lunchSummary {
   display: flex;
   flex-wrap: wrap;
@@ -455,7 +476,7 @@ $transition:      0.18s ease;
   min-height: 520px;
 }
 
-// ── Coming soon state for tools without a real backing yet ──
+// Coming soon state for tools without a real backing yet
 .toolContentComingSoon {
   padding: 32px 22px;
   display: flex;
@@ -489,10 +510,7 @@ $transition:      0.18s ease;
   }
 }
 
-// ────────────────────────────────────────────────────────────
 // Trainer Hub (4 department training tiles)
-// ────────────────────────────────────────────────────────────
-
 .trainerHubCard {
   background: $text-inverse;
   border: 1px solid $border;
@@ -610,12 +628,9 @@ $transition:      0.18s ease;
   line-height: 1.2;
 }
 
-// ────────────────────────────────────────────────────────────
 // Hubs — visual layer shared with the trainerDept tiles, but
 // rendered in a 2-column grid with a description and optional
 // sub-item chips (e.g. Coaching Sessions under Teams Lead Hub).
-// ────────────────────────────────────────────────────────────
-
 .hubsGrid {
   grid-template-columns: repeat(2, 1fr);
 
@@ -676,10 +691,7 @@ $engage-header-crop:  50px;
 }
 
 
-// ────────────────────────────────────────────────────────────
 // Senior & Support Team
-// ────────────────────────────────────────────────────────────
-
 .teamCard {
   background: $text-inverse;
   border: 1px solid $border;
@@ -838,10 +850,7 @@ $engage-header-crop:  50px;
   }
 }
 
-// ────────────────────────────────────────────────────────────
 // Sidebar panels (shared)
-// ────────────────────────────────────────────────────────────
-
 .engageCard,
 .eventsCard {
   background: $text-inverse;
@@ -869,8 +878,8 @@ $engage-header-crop:  50px;
   }
 
   .toolTile {
-    // Brighter against the dark navy panel — was 6% white, now 12% with a
-    // stronger border so each tile reads clearly as an interactive surface.
+    // Brighter against the dark navy panel so each tile reads clearly
+    // as an interactive surface.
     background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.24);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -945,10 +954,7 @@ $engage-header-crop:  50px;
   &:hover { text-decoration: underline; }
 }
 
-// ────────────────────────────────────────────────────────────
 // Tools grid
-// ────────────────────────────────────────────────────────────
-
 .toolsGrid {
   list-style: none;
   padding: 0;
@@ -1001,14 +1007,23 @@ $engage-header-crop:  50px;
   }
 }
 
+// Active-tile treatment: solid brand gold fill with dark-navy text and
+// icon. Maximally distinct against the dark Tools panel, AA contrast
+// (dark navy on gold ≈ 6:1). Same look used on Team Lead Hub and
+// Trainers Hub so all three hubs feel consistent.
 .toolTileActive {
-  background: rgba(31, 76, 127, 0.18);
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) inset;
+  background: $gold;
+  border-color: $gold;
+  box-shadow: 0 4px 14px rgba(210, 159, 28, 0.35);
 
   .toolIcon {
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
+    color: $dark-navy;
+  }
+
+  .toolLabel {
+    color: $dark-navy;
   }
 }
 
@@ -1031,10 +1046,7 @@ $engage-header-crop:  50px;
   line-height: 1.25;
 }
 
-// ────────────────────────────────────────────────────────────
 // Viva Engage feed
-// ────────────────────────────────────────────────────────────
-
 .engageIcon {
   color: var(--rct-blue-accessible, #{$blue-accessible});
   font-size: 16px;
@@ -1161,10 +1173,7 @@ $engage-header-crop:  50px;
   i { font-size: 13px; }
 }
 
-// ────────────────────────────────────────────────────────────
 // Upcoming events
-// ────────────────────────────────────────────────────────────
-
 .eventsIcon {
   color: var(--rct-blue-accessible, #{$blue-accessible});
   font-size: 16px;
@@ -1253,10 +1262,7 @@ $engage-header-crop:  50px;
   letter-spacing: 0.02em;
 }
 
-// ────────────────────────────────────────────────────────────
 // Footer
-// ────────────────────────────────────────────────────────────
-
 .footer {
   text-align: center;
   font-size: 12px;

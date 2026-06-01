@@ -15,13 +15,9 @@ import {
   pickAccentFromString,
 } from '../../employeeDirectory/utils/employeeFormatting';
 
-// ────────────────────────────────────────────────────────────────
-// Placeholder data
-//
-// Everything in this file is placeholder content for visual review.
-// Real data will be migrated in from the existing SharePoint site
-// once the layout is approved.
-// ────────────────────────────────────────────────────────────────
+// Placeholder data: Everything in this file is placeholder content
+// for visual review. Real data will be migrated in from the existing
+// SharePoint site once the layout is approved.
 
 interface ITool {
   label: string;
@@ -38,7 +34,6 @@ interface ITool {
   compactEmbed?: boolean;
 }
 
-// ── External resources migrated from the old CX hub ──
 const PASSENGER_FEEDBACK_FORM_URL =
   'https://forms.office.com/pages/responsepage.aspx' +
   '?id=l4y8NMNy7EWK6c1ZaWvyKz85tpnjwg9PsmL0mLznWPZUMTY1NkQ1R01KWVpNUUxKSTQ0SVdNQVJHRy4u' +
@@ -51,7 +46,6 @@ const LEFT_IN_MONITOR_LOG_URL =
   'https://rapidcitytransport.sharepoint.com' +
   '/Lists/Left%20in%20Monitor%20Log/AllItems.aspx?env=Embedded';
 
-// Power App for the "Errors" tool — embedded inline in the welcome card.
 const ERRORS_POWER_APP_URL =
   'https://apps.powerapps.com/play/e/default-34bc8c97-72c3-45ec-8ae9-cd59696bf22b' +
   '/a/7ce7a212-522d-4f92-ae07-0dfde439fa86' +
@@ -133,10 +127,23 @@ function isCXManagement(emp: IEmployee): boolean {
   return inCustomerExperience(emp) && isManagement(emp);
 }
 
-/** Sort hierarchy: CX Management first, then IT, alphabetical within. */
+function isITManagement(emp: IEmployee): boolean {
+  return inIT(emp) && isManagement(emp);
+}
+
+/** Always render the team-card scope as "<department> · Management" so
+ *  every card reads in the same order regardless of how SharePoint stored
+ *  the multi-choice values. */
+function orderTeamScope(departments: string[]): string[] {
+  const nonMgmt = departments.filter(d => d.toLowerCase() !== 'management');
+  const mgmt    = departments.filter(d => d.toLowerCase() === 'management');
+  return [...nonMgmt, ...mgmt];
+}
+
+/** Sort hierarchy: CX Management first, then IT Management, alphabetical within. */
 function teamSortRank(emp: IEmployee): number {
   if (isCXManagement(emp)) return 1;
-  if (inIT(emp))           return 2;
+  if (isITManagement(emp)) return 2;
   return 3;
 }
 
@@ -145,7 +152,7 @@ function teamSortRank(emp: IEmployee): number {
 function getTeamRoleLabel(emp: IEmployee): string {
   if (emp.level) return emp.level;
   if (isCXManagement(emp)) return 'Customer Experience Management';
-  if (inIT(emp)) return 'IT Support';
+  if (isITManagement(emp)) return 'IT Management';
   return 'Team member';
 }
 
@@ -164,10 +171,7 @@ const EVENTS: IEvent[] = [
   { month: 'MAY', day: '28', title: 'Social committee mixer',     time: '4:00 – 5:30 PM',  location: 'Lounge' },
 ];
 
-// ────────────────────────────────────────────────────────────────
 // Viva Engage embed config — RISE Hub community feed
-// ────────────────────────────────────────────────────────────────
-
 const VIVA_ENGAGE_NETWORK = 'rapidcitytransport.com';
 const RISE_HUB_GROUP_ID = '2281731358872';
 // header=false / footer=false suppress Viva Engage's network-name chrome so
@@ -182,10 +186,6 @@ const RISE_HUB_DEEP_LINK =
   `https://engage.cloud.microsoft/main/org/${VIVA_ENGAGE_NETWORK}` +
   `/groups/eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIyMjgxNzMxMzU4NzIifQ/all`;
 
-// ────────────────────────────────────────────────────────────────
-// Main component
-// ────────────────────────────────────────────────────────────────
-
 const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, subtitle }) => {
   const themeVars = React.useMemo(
     () => getThemeCssVariables(defaultTheme) as React.CSSProperties,
@@ -194,6 +194,29 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
 
   const [activeTool, setActiveTool] = React.useState<ITool | null>(null);
 
+  /** Full URL for the active tool — same as what we embed, minus the
+   *  iframe-only query params (env=Embedded, action=embedview). Opening
+   *  with those stripped gives the normal SharePoint/Office experience
+   *  (full chrome, editable Excel) instead of the embed-restricted view. */
+  const activeToolFullUrl = React.useMemo<string | undefined>(() => {
+    if (!activeTool) return undefined;
+    const raw = activeTool.embedUrl || activeTool.href;
+    if (!raw) return undefined;
+    try {
+      const u = new URL(raw);
+      u.searchParams.delete('env');
+      u.searchParams.delete('action');
+      return u.toString();
+    } catch {
+      return raw;
+    }
+  }, [activeTool]);
+
+  const handleOpenFull = React.useCallback((): void => {
+    if (!activeToolFullUrl) return;
+    window.open(activeToolFullUrl, '_blank', 'noopener,noreferrer');
+  }, [activeToolFullUrl]);
+
   // Pull the active employee roster from the shared Employee Directory
   // hook, then narrow to the people the CX hub team section actually
   // wants to surface: CX management + supervisors + CX team leads + IT.
@@ -201,7 +224,7 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
 
   const teamMembers = React.useMemo<IEmployee[]>(() => {
     return employees
-      .filter(emp => inCustomerExperience(emp) || inIT(emp))
+      .filter(emp => isCXManagement(emp) || isITManagement(emp))
       .sort((a, b) => {
         const diff = teamSortRank(a) - teamSortRank(b);
         return diff !== 0 ? diff : a.name.localeCompare(b.name);
@@ -220,9 +243,8 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
     <div className={styles.hub} style={themeVars}>
       <Navigation onSearch={handleSearch} activePage="departmentHub" />
       <div className={styles.layout}>
-        {/* ─────────────────────────── Main column ─────────────────────────── */}
         <main className={styles.mainColumn}>
-          {/* ── News hero ── */}
+          {/* News hero */}
           <article className={styles.newsCard} aria-labelledby="cx-news-title">
             <div className={styles.newsHeader}>
               <span className={styles.newsKicker}>NEWS</span>
@@ -250,7 +272,7 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
             </div>
           </article>
 
-          {/* ── Welcome back + placeholder area ── */}
+          {/* Welcome back + placeholder area */}
           <section className={styles.welcomeCard} aria-labelledby="cx-welcome">
             <div className={styles.welcomeHeader}>
               <div className={styles.welcomeHeaderLeft}>
@@ -279,14 +301,26 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
                       <span className={styles.toolContentEyebrow}>Now viewing</span>
                       <h4 className={styles.toolContentTitle}>{activeTool.label}</h4>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTool(null)}
-                      className={styles.toolContentClose}
-                      aria-label="Close tool"
-                    >
-                      <Icon iconName="Cancel" />
-                    </button>
+                    <div className={styles.toolContentActions}>
+                      {activeToolFullUrl && (
+                        <button
+                          type="button"
+                          onClick={handleOpenFull}
+                          className={styles.toolContentOpenFull}
+                          aria-label={`Open ${activeTool.label} in a new tab`}
+                        >
+                          Open full <Icon iconName="OpenInNewTab" aria-hidden="true" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setActiveTool(null)}
+                        className={styles.toolContentClose}
+                        aria-label="Close tool"
+                      >
+                        <Icon iconName="Cancel" />
+                      </button>
+                    </div>
                   </header>
 
                   {activeTool.label === 'Lunch Schedule' ? (
@@ -325,7 +359,7 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
             </div>
           </section>
 
-          {/* ── Hubs (SPRQ Hub, Teams Lead Hub) ── */}
+          {/* Hubs (SPRQ Hub, Teams Lead Hub) */}
           <section className={styles.trainerHubCard} aria-labelledby="cx-hubs">
             <div className={styles.trainerHubHeader}>
               <div>
@@ -360,7 +394,7 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
             </ul>
           </section>
 
-          {/* ── Senior & Support Team ── */}
+          {/* Senior & Support Team */}
           <section className={styles.teamCard} aria-labelledby="cx-team">
             <div className={styles.teamHeader}>
               <div>
@@ -382,7 +416,7 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
 
             {!teamLoading && teamMembers.length === 0 && (
               <p className={styles.teamMemberRole}>
-                No team members found yet — check Active Working filter on the Employee Tracker.
+                No team members found yet. Check the Employee Highlight list for entries tagged with Management.
               </p>
             )}
 
@@ -392,7 +426,7 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
                   const accent = pickAccentFromString(member.name);
                   const initials = getEmployeeInitials(member.name);
                   const role = getTeamRoleLabel(member);
-                  const scope = member.departments.join(' · ') || '—';
+                  const scope = orderTeamScope(member.departments).join(' · ') || '—';
 
                   return (
                     <li key={member.id} className={styles.teamMember}>
@@ -424,9 +458,8 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
           </section>
         </main>
 
-        {/* ─────────────────────────── Sidebar ─────────────────────────── */}
         <aside className={styles.sidebar} aria-label="Tools, feed, and events">
-          {/* ── Tools panel ── */}
+          {/* Tools panel */}
           <section className={styles.toolsPanel} aria-labelledby="cx-tools">
             <div className={styles.panelHeader}>
               <h3 id="cx-tools" className={styles.panelTitle}>Tools</h3>
@@ -463,7 +496,7 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
             </ul>
           </section>
 
-          {/* ── Rise Hub feed (Viva Engage embed) ── */}
+          {/* Rise Hub feed (Viva Engage embed) */}
           <section className={styles.engageCard} aria-labelledby="cx-engage">
             <div className={styles.panelHeader}>
               <h3 id="cx-engage" className={styles.panelTitle}>
@@ -494,7 +527,7 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
             </div>
           </section>
 
-          {/* ── Upcoming events ── */}
+          {/* Upcoming events */}
           <section className={styles.eventsCard} aria-labelledby="cx-events">
             <div className={styles.panelHeader}>
               <h3 id="cx-events" className={styles.panelTitle}>
