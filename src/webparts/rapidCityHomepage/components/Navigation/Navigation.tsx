@@ -24,9 +24,15 @@ export interface INavDropdown {
 const DEFAULT_EMPLOYEE_DIRECTORY_URL =
   'https://rapidcitytransport.sharepoint.com/sites/Management/SitePages/EmployeeDirectory.aspx';
 
-function buildEmployeeSupportOptions(employeeDirectoryUrl: string): INavLink[] {
+const DEFAULT_TRAINING_HUB_URL =
+  'https://rapidcitytransport.sharepoint.com/SitePages/TrainingHub.aspx';
+
+function buildEmployeeSupportOptions(
+  employeeDirectoryUrl: string,
+  trainingHubUrl: string
+): INavLink[] {
   return [
-    { label: 'Training Hub', href: '#' },
+    { label: 'Training Hub', href: trainingHubUrl },
     { label: 'Rise Hub', href: '#' },
     { label: 'Employee Directory', href: employeeDirectoryUrl },
     { label: 'Information Technology Support', href: '#' },
@@ -63,6 +69,8 @@ export interface INavigationProps {
   contactCardsUrl?: string;
   /** URL for the Employee Directory page link (defaults to the Management site page) */
   employeeDirectoryUrl?: string;
+  /** URL for the public Training Hub landing page. */
+  trainingHubUrl?: string;
 }
 
 export const Navigation: React.FC<INavigationProps> = (props) => {
@@ -70,8 +78,8 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
   const homeUrl = props.homeUrl || 'https://rapidcitytransport.sharepoint.com/sites/HomeTest';
   const contactCardsUrl = props.contactCardsUrl || 'https://rapidcitytransport.sharepoint.com/sites/ContactCards';
   const employeeDirectoryUrl = props.employeeDirectoryUrl || DEFAULT_EMPLOYEE_DIRECTORY_URL;
+  const trainingHubUrl       = props.trainingHubUrl       || DEFAULT_TRAINING_HUB_URL;
 
-  // Search dropdown state
   const [query, setQuery] = React.useState('');
   const [isOpen, setIsOpen] = React.useState(false);
   const [highlightIndex, setHighlightIndex] = React.useState(-1);
@@ -79,7 +87,6 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
   const wrapperRef = React.useRef<HTMLDivElement>(null);
   const blurTimeoutRef = React.useRef<number | undefined>(undefined);
 
-  // Debounce the query
   React.useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(query), 200);
     return () => window.clearTimeout(timer);
@@ -87,7 +94,6 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
 
   const { results, loading } = useSearchCustomers(debouncedQuery);
 
-  // Reset highlight when results change
   React.useEffect(() => {
     setHighlightIndex(-1);
   }, [results]);
@@ -174,15 +180,14 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     props.onSearch('');
   }, [props.onSearch]);
 
-  // Fluent dropdown handlers (unchanged)
   const supportOptions: IDropdownOption[] = React.useMemo(
     () =>
-      buildEmployeeSupportOptions(employeeDirectoryUrl).map((o) => ({
+      buildEmployeeSupportOptions(employeeDirectoryUrl, trainingHubUrl).map((o) => ({
         key: o.label,
         text: o.label,
         data: o,
       })),
-    [employeeDirectoryUrl]
+    [employeeDirectoryUrl, trainingHubUrl]
   );
 
   const deptOptions: IDropdownOption[] = DEPARTMENT_HUBS_OPTIONS.map((o) => ({

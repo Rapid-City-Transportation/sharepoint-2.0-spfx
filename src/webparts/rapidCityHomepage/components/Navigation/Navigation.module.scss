@@ -113,8 +113,12 @@
   font-weight: 600;
 }
 
+// Underline on the wrapping <li>. Deliberately NOT stretched to the
+// navbar's full height (no align-self: stretch) — .linkActive draws its
+// underline at the bottom of its own padding box, so the dropdown's
+// underline needs to sit at that same height to align with it. Stretching
+// would push the line down to the navbar's bottom edge.
 .listItemActive {
-  align-self: stretch;
   display: flex;
   align-items: center;
   border-bottom: 3px solid var(--rct-gold-light);
@@ -208,8 +212,7 @@
   }
 }
 
-// ---- Search Dropdown ----
-
+// Search Dropdown
 .searchDropdown {
   position: absolute;
   top: 100%;
