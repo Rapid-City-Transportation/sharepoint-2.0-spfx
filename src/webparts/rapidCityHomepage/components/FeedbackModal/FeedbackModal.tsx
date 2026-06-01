@@ -3,7 +3,6 @@ import { Icon } from '@fluentui/react/lib/Icon';
 import { submitFeedback } from '../../services/FeedbackService';
 import styles from './FeedbackModal.module.scss';
 
-/* ── Urgency choices ─────────────────────────────────────────────────────────── */
 const URGENCY_OPTIONS = [
   'Critical - Information missing or incorrect',
   'High - Information is there, but unclear',
@@ -34,7 +33,7 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const previousFocusRef = React.useRef<HTMLElement | null>(null);
 
-  // ── Focus trap: capture & restore focus ────────────────────────────────────
+  // Focus trap: capture & restore focus
   React.useEffect(() => {
     previousFocusRef.current = document.activeElement as HTMLElement;
     dialogRef.current?.focus();
@@ -44,7 +43,7 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
     };
   }, []);
 
-  // ── Close on Escape ────────────────────────────────────────────────────────
+  // Close on Escape
   React.useEffect(() => {
     const handleKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
@@ -55,7 +54,7 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
     return () => document.removeEventListener('keydown', handleKey);
   }, [onDismiss]);
 
-  // ── Trap focus inside modal ────────────────────────────────────────────────
+  // Trap focus inside modal
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key !== 'Tab' || !dialogRef.current) return;
@@ -83,7 +82,6 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
     []
   );
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
   const handleSubmit = React.useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -115,7 +113,7 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
     [description, urgency, pageIdentifier]
   );
 
-  // ── Backdrop click closes modal ────────────────────────────────────────────
+  // Backdrop click closes modal
   const handleBackdropClick = React.useCallback(
     (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) onDismiss();
@@ -138,7 +136,6 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
         tabIndex={-1}
         onKeyDown={handleKeyDown}
       >
-        {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className={styles.header}>
           <h2 id="feedback-modal-title" className={styles.title}>
             Send Feedback
@@ -153,7 +150,6 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
           </button>
         </div>
 
-        {/* ── Success view ───────────────────────────────────────────────── */}
         {view === 'success' && (
           <div className={styles.successState}>
             <Icon iconName="CompletedSolid" className={styles.successIcon} />
@@ -172,7 +168,6 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
           </div>
         )}
 
-        {/* ── Form view ──────────────────────────────────────────────────── */}
         {view === 'form' && (
           <form onSubmit={handleSubmit} noValidate>
             {submitError && (
