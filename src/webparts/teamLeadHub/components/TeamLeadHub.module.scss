@@ -1,8 +1,6 @@
-// ============================================================
 // Team Lead Hub — SCSS Module
 // Mirrors CustomerExperienceHub.module.scss for visual consistency
 // (same brand tokens, card shapes, tools panel treatment).
-// ============================================================
 
 @import '../../rapidCityHomepage/theme/themeVariables.module.scss';
 
@@ -43,10 +41,6 @@ $transition:      0.18s ease;
     outline-offset: 2px;
   }
 }
-
-// ────────────────────────────────────────────────────────────
-// Root
-// ────────────────────────────────────────────────────────────
 
 .hub {
   background: $surface-page;
@@ -90,10 +84,7 @@ $transition:      0.18s ease;
   gap: 20px;
 }
 
-// ────────────────────────────────────────────────────────────
 // Weekly Focus + Weekly Updates (top row of main column)
-// ────────────────────────────────────────────────────────────
-
 .weeklyRow {
   display: grid;
   grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
@@ -217,10 +208,7 @@ $transition:      0.18s ease;
   border-color: rgba(31, 76, 127, 0.25);
 }
 
-// ────────────────────────────────────────────────────────────
 // Tool Viewer (mirrors the CX Hub welcome card / placeholder)
-// ────────────────────────────────────────────────────────────
-
 .toolViewerCard {
   background: $text-inverse;
   border: 1px solid $border;
@@ -270,6 +258,18 @@ $transition:      0.18s ease;
   font-size: 17px;
   font-weight: 700;
   color: var(--rct-text-primary, #{$text-primary});
+}
+
+// Right-side cluster on the inner tool-content header — holds the
+// Open-full pill and the close (X) button. The outer Tool Viewer
+// header stays static (no actions, no tool name) so the inner
+// "Now viewing" header is the only place the active tool is identified —
+// same pattern as the CX Hub.
+.toolContentActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .toolViewerOpenFull {
@@ -339,10 +339,7 @@ $transition:      0.18s ease;
   text-align: center;
 }
 
-// ────────────────────────────────────────────────────────────
 // Active tool content (matches CX Hub conventions)
-// ────────────────────────────────────────────────────────────
-
 .toolContent {
   display: flex;
   flex-direction: column;
@@ -449,10 +446,7 @@ $transition:      0.18s ease;
   }
 }
 
-// ────────────────────────────────────────────────────────────
 // Tools panel (sidebar) — identical visual treatment to CX Hub
-// ────────────────────────────────────────────────────────────
-
 .toolsPanel {
   background:
     linear-gradient(160deg, rgba(31, 76, 127, 0.96) 0%, rgba(38, 41, 49, 0.98) 100%);
@@ -477,6 +471,28 @@ $transition:      0.18s ease;
       background: rgba(255, 255, 255, 0.1);
       border-color: rgba(255, 255, 255, 0.3);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+  }
+
+  // Selected tile: solid brand gold so it pops against the dark panel.
+  // Nested inside .toolsPanel so the specificity (0,0,2,0) beats the
+  // sibling .toolsPanel .toolTile rule. The :hover sibling locks the
+  // gold in place when the user moves over a selected tile.
+  .toolTileActive,
+  .toolTileActive:hover {
+    background: var(--rct-brand-gold, #{$gold});
+    border-color: var(--rct-brand-gold, #{$gold});
+    color: $dark-navy;
+    box-shadow: 0 4px 16px rgba(210, 159, 28, 0.4);
+
+    .toolIcon {
+      background: rgba(38, 41, 49, 0.18);
+      border-color: rgba(38, 41, 49, 0.28);
+      color: $dark-navy;
+    }
+
+    .toolLabel {
+      color: $dark-navy;
     }
   }
 
@@ -554,11 +570,8 @@ $transition:      0.18s ease;
   text-align: center;
 }
 
-.toolTileActive {
-  background: rgba(31, 76, 127, 0.22);
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2) inset;
-}
+// Active-tile treatment lives inside .toolsPanel above — it needs the
+// extra specificity to beat the sibling .toolsPanel .toolTile rule.
 
 .toolIcon {
   width: 32px;

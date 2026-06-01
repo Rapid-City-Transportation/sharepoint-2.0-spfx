@@ -9,19 +9,20 @@ import {
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
 
-// ────────────────────────────────────────────────────────────────
-// Static content
-// ────────────────────────────────────────────────────────────────
-
 interface ITool {
   label: string;
   icon: string;
   /** Optional iframe URL — when set, clicking the tile loads the URL
    *  inline in the Tool Viewer instead of the "coming soon" message. */
   embedUrl?: string;
+  /** Optional external URL — when set, clicking the tile opens this URL
+   *  in a popup window instead of loading it inline. Used for forms
+   *  hosted outside SharePoint (e.g. Microsoft Forms) that don't iframe
+   *  well due to X-Frame-Options. */
+  href?: string;
 }
 
-// ── Existing SharePoint list views wired into the Team Lead Hub ──
+// Existing SharePoint list views wired into the Team Lead Hub.
 
 // Complaints reviewed by department managers — lives under /sites/Management.
 const COMPLAINTS_DEPT_MANAGERS_URL =
@@ -39,15 +40,42 @@ const ATTENDANCE_TRACKER_URL =
   'https://rapidcitytransport.sharepoint.com' +
   '/Lists/Attendance%20Tracker/AllItems.aspx?env=Embedded';
 
+// Call Monitoring — lives under /sites/Management.
+const CALL_MONITORING_URL =
+  'https://rapidcitytransport.sharepoint.com/sites/Management' +
+  '/Lists/Call%20Monitoring/AllItems.aspx?env=Embedded';
+
+// One on One Form — Microsoft Forms link, opens in a popup window
+// since MS Forms blocks iframe embedding via X-Frame-Options.
+const ONE_ON_ONE_FORM_URL =
+  'https://forms.cloud.microsoft/Pages/ResponsePage.aspx' +
+  '?id=l4y8NMNy7EWK6c1ZaWvyK4pA91Pih8lBtEvq1awi_ZxUNVdRRjhMVkVSRTk2RzdYUzJVWTc4TUFJOCQlQCN0PWcu';
+
+// Weekly Efficiency dashboard — Excel file on /sites/CSQCLeads.
+// Same SharePoint site as TL Assignment, so `&action=embedview` is
+// sufficient to make Office Online serve it inside our iframe.
+const WEEKLY_EFFICIENCY_URL =
+  'https://rapidcitytransport.sharepoint.com/:x:/s/CSQCLeads' +
+  '/IQDGIMKKaZq2RIQvJ5DpsajfAZyCq0zTf7VjBBlNlmEbl3I' +
+  '?wdExp=TEAMS-TREATMENT&web=1' +
+  '&TeamsCID=c8bca27e-2e99-443f-9b0c-39f5a79b4f4b&action=embedview';
+
+// TL Assignments — Excel file on /sites/CSQCLeads. Same embedview trick
+// so the Office Online viewer serves it inside our iframe.
+const TL_ASSIGNMENTS_URL =
+  'https://rapidcitytransport.sharepoint.com/:x:/s/CSQCLeads' +
+  '/IQBiSeuvzoYaSraMo_isZfW0AW3jhqvVqVTkbObFya2EEnc' +
+  '?e=nJ9NTS&CID=9e17441f-b50b-cf0f-c80f-03cd7bdebcd3&action=embedview';
+
 const TOOLS: ITool[] = [
-  { label: 'TL Assignment',        icon: 'AccountManagement' },
+  { label: 'TL Assignment',        icon: 'AccountManagement', embedUrl: TL_ASSIGNMENTS_URL       },
   { label: 'CX Calendar',          icon: 'Calendar'       },
   { label: 'Complaints Log',       icon: 'Warning',        embedUrl: COMPLAINTS_DEPT_MANAGERS_URL },
   { label: 'Error Log',            icon: 'ErrorBadge',     embedUrl: QC_ERROR_LOG_URL            },
   { label: 'Productivity Report',  icon: 'ReportDocument' },
-  { label: 'Call Monitoring Form', icon: 'Headset'        },
-  { label: 'One on One Form',      icon: 'Group'          },
-  { label: 'Weekly Efficiency',    icon: 'AreaChart'      },
+  { label: 'Call Monitoring Form', icon: 'Headset',        embedUrl: CALL_MONITORING_URL         },
+  { label: 'One on One Form',      icon: 'Group',          href: ONE_ON_ONE_FORM_URL             },
+  { label: 'Weekly Efficiency',    icon: 'AreaChart',      embedUrl: WEEKLY_EFFICIENCY_URL       },
   { label: 'Attendance Log',       icon: 'CalendarAgenda', embedUrl: ATTENDANCE_TRACKER_URL     },
 ];
 
@@ -66,10 +94,6 @@ const WEEKLY_PILLS: Array<{ label: string; tone: 'amber' | 'red' | 'blue' }> = [
   { label: 'Team sync Tue 9 AM',    tone: 'blue'  },
 ];
 
-// ────────────────────────────────────────────────────────────────
-// Component
-// ────────────────────────────────────────────────────────────────
-
 const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) => {
   const themeVars = React.useMemo(
     () => getThemeCssVariables(defaultTheme) as React.CSSProperties,
@@ -77,6 +101,29 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
   );
 
   const [activeTool, setActiveTool] = React.useState<ITool | null>(null);
+
+  /** "Full" URL for the active tool — the same URL we embed, minus the
+   *  iframe-only query params (env=Embedded, action=embedview). Opening
+   *  with those stripped gives the normal SharePoint/Office experience
+   *  (full chrome, editable Excel) instead of the embed-restricted view. */
+  const activeToolFullUrl = React.useMemo<string | undefined>(() => {
+    if (!activeTool) return undefined;
+    const raw = activeTool.embedUrl || activeTool.href;
+    if (!raw) return undefined;
+    try {
+      const u = new URL(raw);
+      u.searchParams.delete('env');
+      u.searchParams.delete('action');
+      return u.toString();
+    } catch {
+      return raw;
+    }
+  }, [activeTool]);
+
+  const handleOpenFull = React.useCallback((): void => {
+    if (!activeToolFullUrl) return;
+    window.open(activeToolFullUrl, '_blank', 'noopener,noreferrer');
+  }, [activeToolFullUrl]);
 
   const handleNavSearch = React.useCallback((query: string): void => {
     const q = (query || '').trim();
@@ -95,10 +142,9 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
       <Navigation onSearch={handleNavSearch} activePage="departmentHub" />
 
       <div className={styles.layout}>
-        {/* ─────────────────────────── Main column ─────────────────────────── */}
         <main className={styles.mainColumn}>
 
-          {/* ── Weekly Focus + Weekly Updates row ── */}
+          {/* Weekly Focus + Weekly Updates row */}
           <div className={styles.weeklyRow}>
             <article className={styles.weeklyFocusCard} aria-labelledby="tlh-focus-title">
               <span className={styles.weeklyFocusEyebrow}>Weekly Focus</span>
@@ -130,7 +176,7 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
             </section>
           </div>
 
-          {/* ── Tool Viewer ── */}
+          {/* Tool Viewer */}
           <section className={styles.toolViewerCard} aria-labelledby="tlh-viewer-title">
             <header className={styles.toolViewerHeader}>
               <div className={styles.toolViewerHeaderLeft}>
@@ -138,18 +184,10 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
                 <div>
                   <p className={styles.toolViewerEyebrow}>Tool Viewer</p>
                   <h3 id="tlh-viewer-title" className={styles.toolViewerTitle}>
-                    {activeTool ? activeTool.label : 'Select a tool from the right'}
+                    Select a tool from the right
                   </h3>
                 </div>
               </div>
-              <button
-                type="button"
-                className={styles.toolViewerOpenFull}
-                disabled={!activeTool}
-                aria-label="Open the active tool in a new tab"
-              >
-                Open full <Icon iconName="OpenInNewTab" aria-hidden="true" />
-              </button>
             </header>
 
             <div
@@ -169,14 +207,26 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
                       <span className={styles.toolContentEyebrow}>Now viewing</span>
                       <h4 className={styles.toolContentTitle}>{activeTool.label}</h4>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTool(null)}
-                      className={styles.toolContentClose}
-                      aria-label="Close tool"
-                    >
-                      <Icon iconName="Cancel" />
-                    </button>
+                    <div className={styles.toolContentActions}>
+                      {activeToolFullUrl && (
+                        <button
+                          type="button"
+                          onClick={handleOpenFull}
+                          className={styles.toolViewerOpenFull}
+                          aria-label={`Open ${activeTool.label} in a new tab`}
+                        >
+                          Open full <Icon iconName="OpenInNewTab" aria-hidden="true" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setActiveTool(null)}
+                        className={styles.toolContentClose}
+                        aria-label="Close tool"
+                      >
+                        <Icon iconName="Cancel" />
+                      </button>
+                    </div>
                   </header>
 
                   {activeTool.embedUrl ? (
@@ -203,7 +253,6 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
           </section>
         </main>
 
-        {/* ─────────────────────────── Sidebar ─────────────────────────── */}
         <aside className={styles.sidebar} aria-label="Team lead tools">
           <section className={styles.toolsPanel} aria-labelledby="tlh-tools-title">
             <div className={styles.panelHeader}>
@@ -219,7 +268,20 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
                   <li key={tool.label}>
                     <button
                       type="button"
-                      onClick={() => setActiveTool(tool)}
+                      onClick={() => {
+                        if (tool.href) {
+                          // Forms hosted outside SharePoint (e.g. MS Forms)
+                          // block iframe embedding via X-Frame-Options, so
+                          // open them in a popup window instead.
+                          window.open(
+                            tool.href,
+                            '_blank',
+                            'popup,width=900,height=900,scrollbars=yes,resizable=yes'
+                          );
+                        } else {
+                          setActiveTool(tool);
+                        }
+                      }}
                       className={`${styles.toolTile} ${isActive ? styles.toolTileActive : ''}`}
                       aria-pressed={isActive}
                     >
