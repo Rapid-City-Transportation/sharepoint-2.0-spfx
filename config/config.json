@@ -49,6 +49,22 @@
           "manifest": "./src/webparts/teamLeadHub/TeamLeadHubWebPart.manifest.json"
         }
       ]
+    },
+    "training-hub-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/trainingHub/TrainingHubWebPart.js",
+          "manifest": "./src/webparts/trainingHub/TrainingHubWebPart.manifest.json"
+        }
+      ]
+    },
+    "trainers-hub-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/trainersHub/TrainersHubWebPart.js",
+          "manifest": "./src/webparts/trainersHub/TrainersHubWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
