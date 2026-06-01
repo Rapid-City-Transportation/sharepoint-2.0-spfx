@@ -35,7 +35,6 @@ export interface IEmployee {
   altContact?: string;
   keyFob?: string;
   server?: string;
-  aboutMe?: string;
 
   /** Server-relative URL of the first attachment (used as the photo). */
   photoUrl?: string;

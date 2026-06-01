@@ -115,12 +115,6 @@ const EmployeeDetailView: React.FC<IEmployeeDetailViewProps> = ({ employee, onBa
         </dl>
       </section>
 
-      {employee.aboutMe && (
-        <section className={styles.detailSection} aria-labelledby="ed-detail-about">
-          <h2 id="ed-detail-about" className={styles.detailSectionTitle}>About</h2>
-          <p className={styles.detailAboutText}>{employee.aboutMe}</p>
-        </section>
-      )}
     </article>
   );
 };

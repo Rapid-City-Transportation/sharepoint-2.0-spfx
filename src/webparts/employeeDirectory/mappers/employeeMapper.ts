@@ -18,9 +18,16 @@ function readString(row: SPRow, field: string): string | undefined {
 function readChoiceArray(row: SPRow, field: string): string[] {
   const val = row[field];
   if (Array.isArray(val)) {
-    return val.filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
+    return val
+      .filter((v): v is string => typeof v === 'string' && v.trim().length > 0)
+      .map(v => v.trim());
   }
-  if (typeof val === 'string' && val.trim().length > 0) return [val];
+  // Multi-choice columns sometimes serialize as a comma-joined string
+  // (e.g. "Customer Experience, Management") instead of an array. Split
+  // those so downstream filters can match each choice as a discrete value.
+  if (typeof val === 'string' && val.trim().length > 0) {
+    return val.split(',').map(s => s.trim()).filter(s => s.length > 0);
+  }
   return [];
 }
 
