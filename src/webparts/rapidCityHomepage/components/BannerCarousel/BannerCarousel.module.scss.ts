@@ -1,21 +1,21 @@
 /* tslint:disable */
 require("./BannerCarousel.module.css");
 const styles = {
-  carousel: 'carousel_a0292340',
-  banner: 'banner_a0292340',
-  bannerImg: 'bannerImg_a0292340',
-  bannerOverlay: 'bannerOverlay_a0292340',
-  card: 'card_a0292340',
-  headerRow: 'headerRow_a0292340',
-  icon: 'icon_a0292340',
-  title: 'title_a0292340',
-  subtitle: 'subtitle_a0292340',
-  arrow: 'arrow_a0292340',
-  arrowLeft: 'arrowLeft_a0292340',
-  arrowRight: 'arrowRight_a0292340',
-  dots: 'dots_a0292340',
-  dot: 'dot_a0292340',
-  dotActive: 'dotActive_a0292340'
+  carousel: 'carousel_2d1024ec',
+  banner: 'banner_2d1024ec',
+  bannerImg: 'bannerImg_2d1024ec',
+  bannerOverlay: 'bannerOverlay_2d1024ec',
+  card: 'card_2d1024ec',
+  headerRow: 'headerRow_2d1024ec',
+  icon: 'icon_2d1024ec',
+  title: 'title_2d1024ec',
+  subtitle: 'subtitle_2d1024ec',
+  arrow: 'arrow_2d1024ec',
+  arrowLeft: 'arrowLeft_2d1024ec',
+  arrowRight: 'arrowRight_2d1024ec',
+  dots: 'dots_2d1024ec',
+  dot: 'dot_2d1024ec',
+  dotActive: 'dotActive_2d1024ec'
 };
 
 export default styles;

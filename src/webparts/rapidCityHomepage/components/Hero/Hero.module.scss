@@ -1,6 +1,6 @@
 @import '../../theme/themeVariables.module.scss';
 
-/* Clean white hero — minimal, confident, modern */
+/* Clean white hero: minimal, confident, modern */
 .hero {
   position: relative;
   text-align: center;
@@ -25,6 +25,7 @@
   line-height: 1.3;
   color: #ffffff;                                   /* White on #1F4C7F: 8.71:1 → AAA */
   letter-spacing: -0.2px;
+  overflow-wrap: anywhere;
 }
 
 .subtitle {
@@ -33,6 +34,19 @@
   color: rgba(255, 255, 255, 0.9);                  /* Off-white on #1F4C7F: ~7.8:1 → AAA */
   line-height: 1.5;
   font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 400px) {
+  .hero {
+    padding: calc(var(--rct-spacing-unit) * 2) calc(var(--rct-spacing-unit) * 1.5);
+  }
+
+  /* Let the blue inner box use the available width instead of overflowing. */
+  .heroInner {
+    display: block;
+    padding: calc(var(--rct-spacing-unit) * 2.5) calc(var(--rct-spacing-unit) * 2.5);
+  }
 }
 
 @media (min-width: 640px) {

@@ -83,6 +83,10 @@
 }
 
 @media (max-width: 640px) {
+  .section {
+    padding: calc(var(--rct-spacing-unit) * 2);
+  }
+
   .list {
     flex-direction: column;
   }
@@ -90,5 +94,21 @@
   .tile {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  /* Allow long link labels to wrap instead of overflowing a full-width tile. */
+  .tileLabel {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 400px) {
+  .section {
+    padding: calc(var(--rct-spacing-unit) * 1.5);
+  }
+
+  .card {
+    padding: calc(var(--rct-spacing-unit) * 2.5);
   }
 }

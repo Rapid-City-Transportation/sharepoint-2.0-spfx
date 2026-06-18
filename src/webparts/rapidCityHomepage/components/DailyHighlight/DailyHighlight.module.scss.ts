@@ -1,14 +1,14 @@
 /* tslint:disable */
 require("./DailyHighlight.module.css");
 const styles = {
-  highlight: 'highlight_2eca336d',
-  banner: 'banner_2eca336d',
-  bannerOverlay: 'bannerOverlay_2eca336d',
-  card: 'card_2eca336d',
-  headerRow: 'headerRow_2eca336d',
-  icon: 'icon_2eca336d',
-  title: 'title_2eca336d',
-  subtitle: 'subtitle_2eca336d'
+  highlight: 'highlight_5f021802',
+  banner: 'banner_5f021802',
+  bannerOverlay: 'bannerOverlay_5f021802',
+  card: 'card_5f021802',
+  headerRow: 'headerRow_5f021802',
+  icon: 'icon_5f021802',
+  title: 'title_5f021802',
+  subtitle: 'subtitle_5f021802'
 };
 
 export default styles;

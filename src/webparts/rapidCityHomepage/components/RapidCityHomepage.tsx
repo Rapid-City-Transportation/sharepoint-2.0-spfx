@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Navigation } from './Navigation/Navigation';
-import { Hero } from './Hero/Hero';
 import { BannerCarousel } from './BannerCarousel/BannerCarousel';
 import { Footer } from './Footer/Footer';
 import { defaultTheme, getThemeCssVariables } from '../theme/ThemeTokens';
@@ -8,8 +7,9 @@ import { IRapidCityHomepageProps } from './IRapidCityHomepageProps';
 import styles from './RapidCityHomepage.module.scss';
 
 /**
- * Builds Contact Cards page URL with query string.
- * Update basePath if your intranet uses a different base (e.g. relative path).
+ * Build the Contact Cards page URL with the search query appended as ?q=.
+ * Accepts either an absolute URL or a server-relative path; returns '#' when
+ * baseUrl is empty or '#'.
  */
 function buildContactCardsSearchUrl(baseUrl: string, query: string): string {
   if (!baseUrl || baseUrl === '#') return '#';
@@ -50,15 +50,10 @@ export default function RapidCityHomepage(props: IRapidCityHomepageProps) {
         Skip to main content
       </a>
 
-      <Navigation
-        onSearch={handleSearch}
-        activePage="home"
-        homeUrl="https://rapidcitytransport.sharepoint.com/sites/HomeTest"
-        contactCardsUrl={props.contactCardsPageUrl || '#'}
-      />
+      <Navigation onSearch={handleSearch} activePage="home" />
 
       <main id="main-content" className={styles.main} role="main" tabIndex={-1}>
-        <Hero />
+        <h1 className={styles.srHeading}>Rapid City Transportation Hub</h1>
         <BannerCarousel />
       </main>
 

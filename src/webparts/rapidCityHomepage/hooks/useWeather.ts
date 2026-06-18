@@ -56,7 +56,7 @@ function writePreference(pref: IStoredPreference): void {
   try {
     localStorage.setItem(LOCATION_PREF_STORAGE_KEY, JSON.stringify(pref));
   } catch {
-    // localStorage might be unavailable — fail silently
+    // localStorage might be unavailable; fail silently
   }
 }
 

@@ -173,3 +173,22 @@
   text-align: center;
   padding: 20px 0;
 }
+
+@media (max-width: 480px) {
+  /* Bump key popup text to the 14px floor and give the action link a
+     44px-tall touch target. */
+  .condition,
+  .actionLink {
+    font-size: 14px;
+  }
+
+  .currentMeta,
+  .highLow {
+    font-size: 13px;
+  }
+
+  .actionLink {
+    min-height: 44px;
+    padding: 11px 0;
+  }
+}

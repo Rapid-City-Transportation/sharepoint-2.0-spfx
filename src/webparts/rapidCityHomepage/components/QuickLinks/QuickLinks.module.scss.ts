@@ -1,14 +1,14 @@
 /* tslint:disable */
 require("./QuickLinks.module.css");
 const styles = {
-  section: 'section_c6502310',
-  card: 'card_c6502310',
-  title: 'title_c6502310',
-  list: 'list_c6502310',
-  listItem: 'listItem_c6502310',
-  tile: 'tile_c6502310',
-  tileIcon: 'tileIcon_c6502310',
-  tileLabel: 'tileLabel_c6502310'
+  section: 'section_61901f8d',
+  card: 'card_61901f8d',
+  title: 'title_61901f8d',
+  list: 'list_61901f8d',
+  listItem: 'listItem_61901f8d',
+  tile: 'tile_61901f8d',
+  tileIcon: 'tileIcon_61901f8d',
+  tileLabel: 'tileLabel_61901f8d'
 };
 
 export default styles;

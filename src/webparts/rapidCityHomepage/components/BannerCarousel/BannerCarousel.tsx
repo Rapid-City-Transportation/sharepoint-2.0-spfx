@@ -1,13 +1,9 @@
 import * as React from 'react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import styles from './BannerCarousel.module.scss';
+import { useBanners } from '../../hooks/useBanners';
 
-const launchBanner = require('../../assets/testing-banner.png');
-
-/* ── Slide data ────────────────────────────────────────────────────────────────
- * Each slide defines its own content and visual style.
- * Replace this array with SharePoint list data later.
- * ──────────────────────────────────────────────────────────────────────────── */
+/** One banner slide. Slides are sourced from the Home Banners SharePoint list. */
 export interface IBannerSlide {
   id: string;
   title: string;
@@ -15,7 +11,7 @@ export interface IBannerSlide {
   iconName: string;
   /** URL or require()'d image module */
   backgroundImage?: string;
-  /** CSS gradient for the overlay — keeps contrast on text */
+  /** CSS gradient for the overlay; keeps contrast on text */
   overlayGradient?: string;
   /** Accessible description of the background image */
   backgroundAlt?: string;
@@ -25,45 +21,12 @@ export interface IBannerSlide {
   hideOverlay?: boolean;
 }
 
-const BANNER_SLIDES: IBannerSlide[] = [
-  {
-    id: 'launch',
-    title: 'Prepare to Launch: Welcome to Testing',
-    subtitle: 'RCT Intranet — Mission Ready',
-    iconName: 'Rocket',
-    backgroundImage: launchBanner,
-    backgroundAlt:
-      'Space themed banner with Earth horizon and rocket trajectory',
-    accentColor: 'var(--rct-brand-gold)',
-    hideOverlay: true,
-  },
-  {
-    id: 'easter',
-    title: 'Holiday Hours: Good Friday',
-    subtitle:
-      'The office will be operating on holiday hours Friday, April 18. Wishing everyone a happy Easter!',
-    iconName: 'Calendar',
-    overlayGradient:
-      'linear-gradient(135deg, rgba(31,76,127,0.88) 0%, rgba(24,115,137,0.90) 100%)',
-    backgroundAlt: 'Easter holiday notice banner',
-    accentColor: 'var(--rct-blue-accessible)',
-  },
-  {
-    id: 'company',
-    title: 'Stay Connected on Microsoft Teams',
-    subtitle:
-      'Check the #general channel for daily updates, shout-outs, and important company announcements.',
-    iconName: 'TeamsLogo',
-    overlayGradient:
-      'linear-gradient(135deg, rgba(38,41,49,0.85) 0%, rgba(31,76,127,0.78) 100%)',
-    backgroundAlt: 'Microsoft Teams company communications banner',
-    accentColor: 'var(--rct-brand-gold)',
-  },
-];
-
 export const BannerCarousel: React.FC = () => {
+  // Slides come straight from the Home Banners list. No hardcoded fallback:
+  // if the list is empty or unreachable, the carousel renders nothing.
+  const { banners: slides } = useBanners();
   const [activeIndex, setActiveIndex] = React.useState(0);
-  const slideCount = BANNER_SLIDES.length;
+  const slideCount = slides.length;
 
   const goTo = React.useCallback(
     (index: number) => {
@@ -88,7 +51,10 @@ export const BannerCarousel: React.FC = () => {
     [goPrev, goNext]
   );
 
-  const slide = BANNER_SLIDES[activeIndex];
+  const slide = slides[activeIndex] || slides[0];
+
+  // Nothing to show yet (still loading, empty list, or unreachable).
+  if (!slide) return null;
 
   return (
     <section
@@ -108,7 +74,10 @@ export const BannerCarousel: React.FC = () => {
             ? `url(${slide.backgroundImage})`
             : 'none',
           borderLeftColor: slide.accentColor || 'var(--rct-brand-gold)',
-        }}
+          ['--banner-img']: slide.hideOverlay && slide.backgroundImage
+            ? `url("${slide.backgroundImage}")`
+            : undefined,
+        } as React.CSSProperties}
       >
         {slide.hideOverlay && slide.backgroundImage && (
           <img
@@ -163,7 +132,7 @@ export const BannerCarousel: React.FC = () => {
 
       {/* ── Dot indicators ───────────────────────────────────────────── */}
       <div className={styles.dots} role="tablist" aria-label="Banner slides">
-        {BANNER_SLIDES.map((s, i) => (
+        {slides.map((s, i) => (
           <button
             key={s.id}
             type="button"

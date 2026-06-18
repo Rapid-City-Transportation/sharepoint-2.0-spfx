@@ -235,3 +235,37 @@
   color: var(--rct-accent-negative);
   line-height: 1.5;
 }
+
+// ── Mobile ──────────────────────────────────────────────────────────────────
+@media (max-width: 600px) {
+  // Near-full-width sheet; keep it scrollable and within the viewport.
+  .backdrop {
+    padding: var(--rct-spacing-sm);
+    align-items: flex-start;
+  }
+
+  .dialog {
+    max-width: none;
+    max-height: calc(100vh - calc(var(--rct-spacing-unit) * 2));
+    margin: var(--rct-spacing-unit) 0;
+    padding: calc(var(--rct-spacing-unit) * 2.5);
+  }
+
+  // 44×44 close target, reachable at the top of the scrollable sheet.
+  .closeButton {
+    width: 44px;
+    height: 44px;
+  }
+
+  // Stack the action buttons full-width so they don't crowd on a narrow row.
+  .actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    width: 100%;
+    min-height: 44px;
+  }
+}

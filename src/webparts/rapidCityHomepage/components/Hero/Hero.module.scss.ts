@@ -1,10 +1,10 @@
 /* tslint:disable */
 require("./Hero.module.css");
 const styles = {
-  hero: 'hero_ee10f391',
-  heroInner: 'heroInner_ee10f391',
-  title: 'title_ee10f391',
-  subtitle: 'subtitle_ee10f391'
+  hero: 'hero_e8cef707',
+  heroInner: 'heroInner_e8cef707',
+  title: 'title_e8cef707',
+  subtitle: 'subtitle_e8cef707'
 };
 
 export default styles;

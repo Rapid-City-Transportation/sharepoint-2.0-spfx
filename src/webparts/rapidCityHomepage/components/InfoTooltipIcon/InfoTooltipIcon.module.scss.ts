@@ -1,8 +1,8 @@
 /* tslint:disable */
 require("./InfoTooltipIcon.module.css");
 const styles = {
-  iconWrapper: 'iconWrapper_1baf81e1',
-  icon: 'icon_1baf81e1'
+  iconWrapper: 'iconWrapper_31777ea0',
+  icon: 'icon_31777ea0'
 };
 
 export default styles;

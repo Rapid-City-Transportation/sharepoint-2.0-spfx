@@ -3,7 +3,7 @@
 /* ── Banner Carousel ────────────────────────────────────────────────────────── */
 
 .carousel {
-  padding: 0 calc(var(--rct-spacing-unit) * 3) calc(var(--rct-spacing-unit) * 2);
+  padding: 0 0 calc(var(--rct-spacing-unit) * 2);   /* full-bleed: banner spans the full width */
 }
 
 /* ── Slide panel ─────────────────────────────────────────────────────────────── */
@@ -13,20 +13,38 @@
   background-position: center;
   background-repeat: no-repeat;
   background-color: var(--rct-surface-dark);       /* fallback when no image */
-  border-radius: var(--rct-border-radius-lg);
   overflow: hidden;
+  width: 100%;
   max-width: none;
   margin: 0;
-  aspect-ratio: 5 / 2;
+  height: 50vh;        /* prominent but not full-height; whole image shown via contain */
   border-left: 6px solid var(--rct-brand-gold);
   transition: background-image var(--rct-transition-medium);
 }
 
+/* Blurred, zoomed copy of the slide fills any letterbox so 'contain' never shows
+   flat bars: the whole image stays visible and the gaps blend into it. */
+.banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--banner-img, none);
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.15);
+  filter: blur(24px) brightness(0.9);
+}
+
 .bannerImg {
   display: block;
+  position: relative;
+  z-index: 1;
   width: 100%;
-  height: auto;
-  border-radius: var(--rct-border-radius-lg);
+  height: 100%;
+  /* Show the whole image (no crop); the blurred ::before fills any letterbox. */
+  object-fit: contain;
+  object-position: center;
 }
 
 .bannerOverlay {
@@ -68,6 +86,7 @@
   flex: 1;
   min-width: 0;
   letter-spacing: -0.2px;
+  overflow-wrap: anywhere;
 }
 
 .subtitle {
@@ -77,6 +96,7 @@
   line-height: 1.6;
   padding-left: calc(36px + calc(var(--rct-spacing-unit) * 1.5));
   max-width: 720px;
+  overflow-wrap: anywhere;
 }
 
 /* ── Arrow buttons ───────────────────────────────────────────────────────────── */
@@ -122,6 +142,7 @@
   justify-content: center;
   gap: calc(var(--rct-spacing-unit) * 1.5);
   padding-top: calc(var(--rct-spacing-unit) * 2);
+  flex-shrink: 0;
 }
 
 .dot {
@@ -169,18 +190,34 @@
 }
 
 @media (max-width: 640px) {
+  .carousel {
+    padding: 0 0 calc(var(--rct-spacing-unit) * 2);
+  }
+
+  /* Drop the fixed 5:2 ratio so the text can't overflow a too-short box. */
+  .banner {
+    aspect-ratio: auto;
+    min-height: 220px;
+  }
+
   .card {
     padding: calc(var(--rct-spacing-unit) * 4);
   }
 
+  .title {
+    font-size: 22px;
+  }
+
   .subtitle {
+    font-size: 15px;
     padding-left: 0;
   }
 
+  /* 44×44 touch targets for the carousel controls. */
   .arrow {
-    width: 34px;
-    height: 34px;
-    font-size: 16px;
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
   }
 
   .arrowLeft {
@@ -189,5 +226,38 @@
 
   .arrowRight {
     right: var(--rct-spacing-unit);
+  }
+
+  /* Expand the dot hit area to 44x44 with a transparent overlay: keeps the
+     visible 12px dot unchanged and is immune to box-sizing on the canvas. */
+  .dot {
+    position: relative;
+  }
+
+  .dot::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Pitch the dots ~44px apart so the overlay hit areas sit side by side
+     without overlapping (12px dot + 32px gap ≈ 44px). */
+  .dots {
+    gap: calc(var(--rct-spacing-unit) * 4);
+    padding-top: calc(var(--rct-spacing-unit) * 2);
+  }
+}
+
+@media (max-width: 400px) {
+  .carousel {
+    padding: 0 0 calc(var(--rct-spacing-unit) * 2);
+  }
+
+  .card {
+    padding: calc(var(--rct-spacing-unit) * 3);
   }
 }

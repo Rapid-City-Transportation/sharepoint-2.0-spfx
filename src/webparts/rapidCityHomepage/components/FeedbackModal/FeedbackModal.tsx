@@ -33,7 +33,7 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const previousFocusRef = React.useRef<HTMLElement | null>(null);
 
-  // Focus trap: capture & restore focus
+  // Restore focus to the element that opened the dialog when it unmounts (a11y).
   React.useEffect(() => {
     previousFocusRef.current = document.activeElement as HTMLElement;
     dialogRef.current?.focus();
@@ -43,7 +43,6 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
     };
   }, []);
 
-  // Close on Escape
   React.useEffect(() => {
     const handleKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') {
@@ -113,7 +112,8 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
     [description, urgency, pageIdentifier]
   );
 
-  // Backdrop click closes modal
+  // Close only when the click lands on the backdrop itself, not on bubbled
+  // clicks from the dialog content.
   const handleBackdropClick = React.useCallback(
     (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) onDismiss();
@@ -177,7 +177,6 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
             )}
 
             <div className={styles.fieldGroup}>
-              {/* Page Identifier (read-only) */}
               <div className={styles.field}>
                 <label className={styles.label} htmlFor="fb-page">
                   Page
@@ -192,7 +191,6 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
                 />
               </div>
 
-              {/* Description */}
               <div className={styles.field}>
                 <label className={styles.label} htmlFor="fb-description">
                   Description of Issue
@@ -226,7 +224,6 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
                 )}
               </div>
 
-              {/* Urgency */}
               <div className={styles.field}>
                 <label className={styles.label} htmlFor="fb-urgency">
                   Urgency
@@ -246,7 +243,6 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
               </div>
             </div>
 
-            {/* Actions */}
             <div className={styles.actions}>
               <button
                 type="button"

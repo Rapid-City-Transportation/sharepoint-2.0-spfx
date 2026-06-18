@@ -77,5 +77,24 @@
 
   .actions {
     justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: var(--rct-spacing-unit);
+  }
+
+  /* 44×44 touch targets for the utility icon buttons on touch screens. */
+  .iconBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 400px) {
+  .header {
+    padding: var(--rct-spacing-unit) calc(var(--rct-spacing-unit) * 1.5);
+  }
+
+  /* Min-width on the search field could push past the viewport on tiny phones. */
+  .searchWrapper {
+    min-width: 0;
   }
 }

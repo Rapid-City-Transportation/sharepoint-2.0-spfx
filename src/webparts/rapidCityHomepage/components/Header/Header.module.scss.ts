@@ -1,14 +1,14 @@
 /* tslint:disable */
 require("./Header.module.css");
 const styles = {
-  header: 'header_a352c008',
-  branding: 'branding_a352c008',
-  logoPlaceholder: 'logoPlaceholder_a352c008',
-  title: 'title_a352c008',
-  searchWrapper: 'searchWrapper_a352c008',
-  searchBox: 'searchBox_a352c008',
-  actions: 'actions_a352c008',
-  iconBtn: 'iconBtn_a352c008'
+  header: 'header_c23e4446',
+  branding: 'branding_c23e4446',
+  logoPlaceholder: 'logoPlaceholder_c23e4446',
+  title: 'title_c23e4446',
+  searchWrapper: 'searchWrapper_c23e4446',
+  searchBox: 'searchBox_c23e4446',
+  actions: 'actions_c23e4446',
+  iconBtn: 'iconBtn_c23e4446'
 };
 
 export default styles;

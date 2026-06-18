@@ -20,7 +20,7 @@ export interface IWeatherData {
   highC: number;
   /** Today's low in °C. */
   lowC: number;
-  /** WMO weather code — see getCondition() for mapping. */
+  /** WMO weather code; see getCondition() for mapping. */
   weatherCode: number;
   /** Whether it's daytime (affects icon choice). */
   isDay: boolean;
@@ -64,13 +64,13 @@ function writeCache(lat: number, lon: number, data: IWeatherData): void {
     const payload: ICachedWeather = { fetchedAt: Date.now(), data };
     sessionStorage.setItem(cacheKey(lat, lon), JSON.stringify(payload));
   } catch {
-    // sessionStorage might be unavailable (private mode etc.) — fail silently
+    // sessionStorage might be unavailable (private mode etc.); fail silently
   }
 }
 
 /** Fetch current weather for a coordinate. Uses sessionStorage cache (30 min TTL).
  *  If the network call fails but a stale cache exists, returns the stale data
- *  rather than throwing — caller can detect staleness via fetchedAt. */
+ *  rather than throwing; caller can detect staleness via fetchedAt. */
 export async function fetchWeather(
   lat: number,
   lon: number,
@@ -97,7 +97,7 @@ export async function fetchWeather(
   try {
     response = await fetch(url.toString());
   } catch (err) {
-    // Network failure — return stale cache if any, else rethrow
+    // Network failure: return stale cache if any, else rethrow
     if (cached) return { ...cached.data, locationLabel };
     throw new Error('Weather service unreachable.');
   }
