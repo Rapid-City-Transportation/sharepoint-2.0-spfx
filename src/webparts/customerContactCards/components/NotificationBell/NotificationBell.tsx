@@ -264,7 +264,7 @@ export const NotificationBell: React.FC<INotificationBellProps> = ({ onNavigateT
                 {labels.map((label, i) => {
                   const section = sectionMap.get(label);
                   if (!section) {
-                    // Lookup field or field without snapshot content — can't
+                    // Lookup field or field without snapshot content: can't
                     // diff a numeric lookup ID into anything meaningful, so
                     // tell the user where to find the new value.
                     return (

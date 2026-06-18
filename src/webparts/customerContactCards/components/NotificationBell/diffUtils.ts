@@ -3,11 +3,11 @@
  * algorithm. Returns an array of parts, each labeled as unchanged / added / removed.
  *
  * For the notification modal we use this to highlight what specifically changed
- * between the previous and current value of a field — so an agent's eye lands
+ * between the previous and current value of a field, so an agent's eye lands
  * on the new/removed words instead of having to reread the whole field.
  *
  * Performance: O(n*m) for tokenized inputs. Fine for prose-length fields
- * (Specification, Passenger Notes etc.) — not appropriate for huge documents.
+ * (Specification, Passenger Notes etc.), not appropriate for huge documents.
  */
 
 export type DiffPartType = 'unchanged' | 'added' | 'removed';
@@ -47,7 +47,7 @@ export function diffLines(oldText: string, newText: string): IDiffPart[] {
   return mergeAdjacent(walkLcs(oldLines, newLines, dp));
 }
 
-/** Append "\n" to each element except the last — so concatenating tokens
+/** Append "\n" to each element except the last so concatenating tokens
  *  reproduces the original text including line breaks. */
 function withTrailingNewlines(lines: string[]): string[] {
   return lines.map((line, i) => (i < lines.length - 1 ? line + '\n' : line));

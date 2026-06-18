@@ -82,7 +82,7 @@ export async function fetchNotifications(
     // A notification is "read" only if the latest read receipt is at or after the
     // notification's last modification. If the row was updated by Power Automate
     // after the user marked it read (debounce upsert merging in new changes),
-    // treat it as unread again — there's new content to see.
+    // treat it as unread again: there's new content to see.
     const isRead = !!readAtIso && (!modifiedIso || readAtIso >= modifiedIso);
     return {
       id,
@@ -130,7 +130,7 @@ export async function fetchNotifications(
         current
       );
       // If the entire changedFields list collapses to nothing after phantom
-      // filtering, drop the notification — there's nothing meaningful left.
+      // filtering, drop the notification: there's nothing meaningful left.
       if (!realChangedFields) return null;
       return { ...item, changedFields: realChangedFields };
     })

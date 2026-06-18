@@ -1,6 +1,7 @@
 import * as React from 'react';
 import styles from './CustomerContactCards.module.scss';
 import { ICustomer, CustomerType, CUSTOMER_TYPES } from './types';
+import { customerMatchesQuery } from '../services/customerSearch';
 import CustomerCard from './CustomerCard';
 
 const PAGE_SIZE = 15;
@@ -29,19 +30,12 @@ const CardGridView: React.FC<ICardGridViewProps> = ({ allCustomers, onCardClick,
       list = list.filter(c => c.customerType === filterType);
     }
     if (searchText.trim()) {
-      const q = searchText.toLowerCase();
-      list = list.filter(
-        c =>
-          c.name.toLowerCase().includes(q) ||
-          c.customerType.toLowerCase().includes(q) ||
-          c.phone.toLowerCase().includes(q) ||
-          c.email.toLowerCase().includes(q)
-      );
+      const q = searchText.trim().toLowerCase();
+      list = list.filter(c => customerMatchesQuery(c, q));
     }
     return list;
   }, [allCustomers, filterType, searchText]);
 
-  // Reset pagination and collapse "show all" when filters change
   React.useEffect(() => { setCurrentPage(1); setShowAll(false); }, [filterType, searchText]);
 
   const totalPages   = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { ICustomer } from '../components/types';
 import { fetchGridItems } from '../services/SharePointService';
 import { mapGridItemsToCustomers } from '../mappers/customerMapper';
+import { customerMatchesQuery } from '../services/customerSearch';
 
 const MAX_RESULTS = 8;
 
@@ -18,7 +19,6 @@ export function useSearchCustomers(query: string): {
   const [loading, setLoading] = React.useState(false);
   const loadedRef = React.useRef(false);
 
-  // Lazy-load customer data on first non-empty query
   React.useEffect(() => {
     if (!query || loadedRef.current) return;
 
@@ -33,7 +33,7 @@ export function useSearchCustomers(query: string): {
         }
       })
       .catch(() => {
-        // Silently fail — dropdown just won't show results
+        // Silently fail: dropdown just won't show results
       })
       .then(() => {
         if (!cancelled) setLoading(false);
@@ -42,19 +42,13 @@ export function useSearchCustomers(query: string): {
     return () => { cancelled = true; };
   }, [query]);
 
-  // Filter client-side
   const results = React.useMemo(() => {
     const q = (query || '').trim().toLowerCase();
     if (!q || allCustomers.length === 0) return [];
 
     const matches: ICustomer[] = [];
     for (const c of allCustomers) {
-      if (
-        c.name.toLowerCase().includes(q) ||
-        c.customerType.toLowerCase().includes(q) ||
-        c.phone.toLowerCase().includes(q) ||
-        c.email.toLowerCase().includes(q)
-      ) {
+      if (customerMatchesQuery(c, q)) {
         matches.push(c);
         if (matches.length >= MAX_RESULTS) break;
       }

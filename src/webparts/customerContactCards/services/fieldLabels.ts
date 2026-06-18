@@ -7,7 +7,7 @@
  * Keep these in sync with the friendly names used in the Power Automate
  * `ChangedFieldsRaw` and `MergedSnapshot` Compose expressions.
  *
- * Lookup-type fields are intentionally excluded — version history stores
+ * Lookup-type fields are intentionally excluded: version history stores
  * lookup values as numeric IDs, which can't be diffed meaningfully against
  * each other for end-user display.
  */

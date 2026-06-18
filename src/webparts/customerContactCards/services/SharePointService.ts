@@ -39,7 +39,11 @@ export async function fetchGridItems(
       PB.ClientRole,
       PB.ClientType,
       PB.PhoneBusinessHours,
-      PB.Specification
+      PB.Specification,
+      PB.PhoneAfterHours,
+      PB.BusinessHours,
+      PB.SpecialInstructions,
+      PB.ProblemWithReminderCall
     )
     .orderBy(PB.Title, true)
     .top(5000)();
@@ -52,6 +56,10 @@ export async function fetchGridItems(
     ClientType: (raw[PB.ClientType] as string) || undefined,
     PhoneBusinessHours: (raw[PB.PhoneBusinessHours] as string) || undefined,
     Specification: (raw[PB.Specification] as string) || undefined,
+    PhoneAfterHours: (raw[PB.PhoneAfterHours] as string) || undefined,
+    BusinessHours: (raw[PB.BusinessHours] as string) || undefined,
+    SpecialInstructions: (raw[PB.SpecialInstructions] as string) || undefined,
+    ProblemWithReminderCall: (raw[PB.ProblemWithReminderCall] as string) || undefined,
   }));
 
   gridCache.entry = { data: items, timestamp: Date.now() };

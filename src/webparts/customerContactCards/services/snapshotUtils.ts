@@ -107,7 +107,7 @@ export function getOldValueForSection(
  * Returns true if any section has either no comparable previous value (so
  * we can't prove it's a phantom) OR has plain-text content that differs from
  * the previous version. Returns false ONLY when every section's plain text
- * is provably identical to the previous version — i.e., a phantom triggered
+ * is provably identical to the previous version: a phantom triggered
  * by SharePoint's HTML/encoding quirks on rich-text saves.
  *
  * Conservative by design: when in doubt, keep the notification. We only
@@ -124,9 +124,9 @@ export function hasVisibleChange(
   if (sections.length === 0) return true;
   for (const section of sections) {
     const oldValue = getOldValueForSection(section.label, sourceList, previousVersion);
-    // Can't compare — keep the notification (could be brand-new content)
+    // Can't compare: keep the notification (could be brand-new content)
     if (oldValue === null) return true;
-    // Real difference — keep the notification
+    // Real difference: keep the notification
     if (oldValue !== section.value) return true;
   }
   // Every section's plain text matched the previous version → phantom
@@ -154,9 +154,9 @@ export interface IVersionDiff {
   /** Friendly field label (e.g., "Passenger Notes"). */
   field: string;
   type: VersionDiffType;
-  /** Plain-text old value — only present for type === 'text'. */
+  /** Plain-text old value, only present for type === 'text'. */
   oldText?: string;
-  /** Plain-text new value — only present for type === 'text'. */
+  /** Plain-text new value, only present for type === 'text'. */
   newText?: string;
 }
 
@@ -176,7 +176,7 @@ export function computeChangesBetweenVersions(
   const result: IVersionDiff[] = [];
 
   // Text fields. Iterate the field map and dedupe by internal name (some
-  // friendly-label aliases share an internal name — keep just the first one).
+  // friendly-label aliases share an internal name: keep just the first one).
   const fieldMap = getFieldMap(sourceList);
   const seen = new Set<string>();
   for (const label of Object.keys(fieldMap)) {
@@ -194,7 +194,7 @@ export function computeChangesBetweenVersions(
     }
   }
 
-  // Lookup fields — compare the lookup ID column. Only meaningful for PB lists.
+  // Lookup fields: compare the lookup ID column. Only meaningful for PB lists.
   if (sourceList === 'ProtocolBook') {
     const lookupMap = getLookupMap(sourceList);
     const seenLookups = new Set<string>();
@@ -256,7 +256,7 @@ export function filterRealChangedFields(
   }
 
   // Lookup-field phantoms: lookup ID matches between current and previous.
-  // Needs the current version to compare against — if we don't have it, skip
+  // Needs the current version to compare against: if we don't have it, skip
   // (caller will fall back to keeping the labels).
   if (currentVersion) {
     const lookupMap = getLookupMap(sourceList);

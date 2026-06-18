@@ -94,7 +94,7 @@ export function useNotifications(enabled: boolean): IUseNotificationsResult {
   }, [enabled, refresh]);
 
   const markAsRead = React.useCallback(async (id: number): Promise<void> => {
-    // Optimistic — flip local state first, persist after.
+    // Optimistic: flip local state first, persist after.
     setNotifications(prev => prev.map(n => (n.id === id ? { ...n, isRead: true } : n)));
     try {
       await markNotificationRead(id);

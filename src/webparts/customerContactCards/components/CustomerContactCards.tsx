@@ -113,7 +113,6 @@ const CustomerContactCards: React.FC<ICustomerContactCardsProps> = ({ title }) =
         onSearch={handleNavSearch}
         onCustomerSelect={handleCustomerSelect}
         activePage="contactCards"
-        homeUrl="https://rapidcitytransport.sharepoint.com/sites/HomeTest"
       />
 
       {view === 'grid' && (

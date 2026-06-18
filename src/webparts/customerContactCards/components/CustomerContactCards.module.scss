@@ -1,17 +1,17 @@
 // ============================================================
-// Customer Contact Cards — SCSS Module
-// Brand: Rapid City Transportation (RCT) — 2025 palette refresh
+// Customer Contact Cards: SCSS Module
+// Brand: Rapid City Transportation (RCT), 2025 palette refresh
 // WCAG AA accessible throughout (all text ≥ 4.5:1 on white)
 // ============================================================
 
 // ---- Brand tokens (WCAG-safe) ----
-$primary-blue:    #1F4C7F; // 8.71:1 on white — AAA
-$light-blue-acc:  #187389; // 5.45:1 on white — AA
-$gold:            #D29F1C; // Buttons — dark text on gold (6.06:1)
-$gold-acc:        #8A6A0C; // 5.09:1 on white — AA (text)
-$dark-navy:       #262931; // 14.54:1 on white — AAA
-$red:             #9B2C2C; // 7.51:1 on white — AAA
-$text-secondary:  #4A5568; // 7.51:1 on white — AAA
+$primary-blue:    #1F4C7F; // 8.71:1 on white (AAA)
+$light-blue-acc:  #187389; // 5.45:1 on white (AA)
+$gold:            #D29F1C; // Buttons: dark text on gold (6.06:1)
+$gold-acc:        #8A6A0C; // 5.09:1 on white (AA text)
+$dark-navy:       #262931; // 14.54:1 on white (AAA)
+$red:             #9B2C2C; // 7.51:1 on white (AAA)
+$text-secondary:  #4A5568; // 7.51:1 on white (AAA)
 
 $surface:         #F8F8F8;
 $surface-card:    #ffffff;
@@ -55,6 +55,12 @@ $transition:      0.18s ease;
   padding: 0;
   padding-right: 60px;
   transition: padding-right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // On phones the drawer trigger rail collapses to the bottom edge, so the
+  // reserved right gutter is no longer needed and would only waste width.
+  @media (max-width: 640px) {
+    padding-right: 0;
+  }
 }
 
 .webPartContainerShifted {
@@ -62,6 +68,11 @@ $transition:      0.18s ease;
 
   *, *::before, *::after {
     box-sizing: border-box;
+  }
+
+  // Drawers go full-width on phones, so don't shove page content off-screen.
+  @media (max-width: 640px) {
+    padding-right: 0;
   }
 }
 
@@ -76,6 +87,15 @@ $transition:      0.18s ease;
   padding: 28px 28px 0 28px;
   margin-bottom: 24px;
   flex-wrap: wrap;
+
+  @media (max-width: 640px) {
+    padding: 20px 16px 0 16px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 400px) {
+    padding: 16px 12px 0 12px;
+  }
 }
 
 .pageHeading {
@@ -84,6 +104,15 @@ $transition:      0.18s ease;
   color: $primary-blue;
   margin: 0;
   letter-spacing: -0.3px;
+  overflow-wrap: anywhere;
+
+  @media (max-width: 640px) {
+    font-size: 21px;
+  }
+
+  @media (max-width: 400px) {
+    font-size: 19px;
+  }
 }
 
 // ============================================================
@@ -92,6 +121,14 @@ $transition:      0.18s ease;
 .gridView {
   padding: 0 28px 28px 28px;
   background: $surface;
+
+  @media (max-width: 640px) {
+    padding: 0 16px 24px 16px;
+  }
+
+  @media (max-width: 400px) {
+    padding: 0 12px 20px 12px;
+  }
 }
 
 // ---- Filter bar ----
@@ -103,6 +140,13 @@ $transition:      0.18s ease;
   margin-bottom: 24px;
   padding: 16px 0;
   border-bottom: 1px solid $border;
+
+  // Stack the toolbar so the type filter, search, and count don't crowd or
+  // overflow on narrow screens.
+  @media (max-width: 600px) {
+    align-items: stretch;
+    gap: 12px;
+  }
 }
 
 .filterGroup {
@@ -110,6 +154,10 @@ $transition:      0.18s ease;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+
+  @media (max-width: 600px) {
+    flex-wrap: wrap;
+  }
 }
 
 .filterLabel {
@@ -187,6 +235,12 @@ $transition:      0.18s ease;
   padding: 0 14px;
   transition: border-color $transition, box-shadow $transition;
 
+  // Let the field shrink and span the full stacked row on phones.
+  @media (max-width: 600px) {
+    max-width: none;
+    min-width: 0;
+  }
+
   &:focus-within {
     border-color: $light-blue-acc;
     box-shadow: 0 0 0 3px rgba(24, 115, 137, 0.18);
@@ -226,6 +280,12 @@ $transition:      0.18s ease;
   align-items: center;
   gap: 8px;
   white-space: nowrap;
+
+  // When the toolbar stacks, drop the auto margin so the count sits at the
+  // start of its own row instead of being pushed to the far edge.
+  @media (max-width: 600px) {
+    margin-left: 0;
+  }
 }
 
 .countText {
@@ -268,6 +328,7 @@ $transition:      0.18s ease;
   // Ensure wrapper divs stretch so cards within each row share the same height
   > * {
     display: flex;
+    min-width: 0;
   }
 
   @media (max-width: 1280px) {
@@ -328,6 +389,10 @@ $transition:      0.18s ease;
     transform: translateY(0);
     box-shadow: $shadow-card;
   }
+
+  @media (max-width: 400px) {
+    padding: 16px;
+  }
 }
 
 .cardAvatar {
@@ -352,6 +417,7 @@ $transition:      0.18s ease;
   color: $dark-navy;
   margin-bottom: 8px;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .cardTypeBadge {
@@ -365,6 +431,8 @@ $transition:      0.18s ease;
   margin-bottom: 12px;
   color: $primary-blue;
   width: fit-content;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .specificationBanner {
@@ -470,6 +538,11 @@ $transition:      0.18s ease;
     opacity: 0.38;
     cursor: not-allowed;
   }
+
+  @media (max-width: 640px) {
+    width: 44px;
+    height: 44px;
+  }
 }
 
 .pageIndicator {
@@ -490,6 +563,14 @@ $transition:      0.18s ease;
   padding: 24px 28px 40px 28px;
   background: $surface-card;
   min-height: 600px;
+
+  @media (max-width: 640px) {
+    padding: 16px 16px 32px 16px;
+  }
+
+  @media (max-width: 400px) {
+    padding: 12px 12px 28px 12px;
+  }
 }
 
 // ---- Back button ----
@@ -501,6 +582,10 @@ $transition:      0.18s ease;
   padding: 0 28px;
   margin-bottom: 12px;
   flex-wrap: wrap;
+
+  @media (max-width: 640px) {
+    padding: 0 16px;
+  }
 }
 
 .backButton {
@@ -550,6 +635,11 @@ $transition:      0.18s ease;
   flex-wrap: wrap;
   gap: 10px;
   line-height: 1.3;
+  overflow-wrap: anywhere;
+
+  @media (max-width: 640px) {
+    font-size: 19px;
+  }
 }
 
 .detailTypePill {
@@ -670,7 +760,7 @@ $transition:      0.18s ease;
   font-family: inherit;
   font-size: 14px;
   font-weight: 500;
-  color: #ffffff !important;                   /* White on blue → 8.71:1 — AAA  */
+  color: #ffffff !important;                   /* White on blue, 8.71:1 (AAA) */
   background: $primary-blue !important;        /* Blue filled for non-selected   */
   border: 1.5px solid $primary-blue !important;
   border-radius: 24px;
@@ -682,11 +772,17 @@ $transition:      0.18s ease;
     background: darken($primary-blue, 8%) !important;
     border-color: darken($primary-blue, 8%) !important;
   }
+
+  // Taller tap target on phones (≥44px) and allow long labels to wrap.
+  @media (max-width: 640px) {
+    padding: 11px 18px;
+    overflow-wrap: anywhere;
+  }
 }
 
 .tabActive {
   background: $gold !important;              /* Orange filled when selected            */
-  color: $dark-navy !important;              /* Dark Navy text → 6.06:1 on gold — AA  */
+  color: $dark-navy !important;              /* Dark Navy text, 6.06:1 on gold (AA) */
   border-color: $gold !important;
   font-weight: 600;
 }
@@ -705,6 +801,12 @@ $transition:      0.18s ease;
   margin-bottom: 20px;
   align-items: start;
 
+  // Grid children must be allowed to shrink below their content's intrinsic
+  // width or long unbroken strings force the whole page to scroll sideways.
+  > * {
+    min-width: 0;
+  }
+
   @media (max-width: 820px) {
     grid-template-columns: 1fr;
   }
@@ -714,6 +816,7 @@ $transition:      0.18s ease;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
 }
 
 .fullWidthSection {
@@ -737,6 +840,10 @@ $transition:      0.18s ease;
   border-top: 3px solid #{$text-secondary};
   border-radius: $radius-card;
   padding: 20px 24px;
+
+  @media (max-width: 640px) {
+    padding: 16px;
+  }
 }
 
 .persistentContactInfoHeader {
@@ -792,6 +899,9 @@ $transition:      0.18s ease;
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
 }
 
 .addressAlertBadge {
@@ -841,6 +951,10 @@ $transition:      0.18s ease;
 .accordionBodyInner {
   padding: 6px 18px 18px 18px;
   border-top: 1px solid $border-light;
+
+  @media (max-width: 640px) {
+    padding: 6px 14px 14px 14px;
+  }
 }
 
 // ============================================================
@@ -860,6 +974,7 @@ $transition:      0.18s ease;
   font-weight: 600;
   color: $red;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 
   svg {
     flex-shrink: 0;
@@ -868,6 +983,11 @@ $transition:      0.18s ease;
 
   strong {
     font-weight: 700;
+  }
+
+  @media (max-width: 640px) {
+    padding: 12px 14px;
+    font-size: 15px;
   }
 }
 
@@ -1012,6 +1132,18 @@ $transition:      0.18s ease;
   line-height: 1.6;
   padding-left: 22px;
   white-space: pre-line;
+  overflow-wrap: anywhere;
+
+  // Wide SharePoint tables shouldn't push the page sideways, so let them scroll.
+  @media (max-width: 640px) {
+    padding-left: 12px;
+
+    table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+    }
+  }
 
   // Strip inconsistent font-size/family injected by SharePoint's rich text editor
   // Bold, italic, and color are preserved (font-weight, font-style, color are unaffected)
@@ -1069,9 +1201,14 @@ $transition:      0.18s ease;
   color: $text-secondary;
   font-size: 16px;
   line-height: 1.6;
+  overflow-wrap: anywhere;
 
   li {
     margin-bottom: 3px;
+  }
+
+  @media (max-width: 640px) {
+    padding-left: 22px;
   }
 }
 
@@ -1246,9 +1383,14 @@ $transition:      0.18s ease;
   flex-direction: column;
   gap: 14px;
   transition: box-shadow $transition;
+  min-width: 0;
 
   &:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  @media (max-width: 640px) {
+    padding: 14px;
   }
 }
 
@@ -1302,9 +1444,6 @@ $transition:      0.18s ease;
   margin: 0;
 }
 
-// ============================================================
-// APPROVAL TO MODIFY BADGES
-// ============================================================
 // ============================================================
 // TAB SELECTION PROMPT (no perspective chosen yet)
 // ============================================================

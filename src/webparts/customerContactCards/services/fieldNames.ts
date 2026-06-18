@@ -1,4 +1,4 @@
-// Protocol Book Draft2 — column internal names
+// Protocol Book Draft2: column internal names
 export const PB = {
   LIST_TITLE: 'Protocol Book Draft2',
 
@@ -48,7 +48,7 @@ export const PB = {
   ApprovalNotes: 'Approval_x0020_Notes_x0020__x002',
 } as const;
 
-// SiteResources — column internal names
+// SiteResources: column internal names
 export const SR = {
   LIST_TITLE: 'SiteResources',
 
@@ -63,7 +63,7 @@ export const SR_SELECT_FIELDS = [
   SR.Id, SR.Title, SR.Category, SR.Group, SR.Content,
 ] as const;
 
-// PB Instruction Blocks Test — column internal names
+// PB Instruction Blocks Test: column internal names
 export const IB = {
   LIST_TITLE: 'PB Instruction Blocks Test',
 
@@ -96,7 +96,7 @@ export const ALL_LOOKUP_COLUMNS = [
   PB.CancelPolicy,
 ] as const;
 
-// ContactCardNotifications — column internal names (written by Power Automate)
+// ContactCardNotifications: column internal names (written by Power Automate)
 export const CCN = {
   LIST_TITLE: 'ContactCardNotifications',
 
@@ -116,7 +116,7 @@ export const CCN = {
   Scope: 'Scope',
 } as const;
 
-// ContactCardNotifReads — per-user read receipts
+// ContactCardNotifReads: per-user read receipts
 export const CCNR = {
   LIST_TITLE: 'ContactCardNotifReads',
 

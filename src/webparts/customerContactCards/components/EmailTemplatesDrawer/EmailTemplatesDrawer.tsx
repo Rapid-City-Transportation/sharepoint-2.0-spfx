@@ -66,7 +66,7 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
       });
   }, [isOpen, templates.length, loading]);
 
-  // Only return focus to the trigger after a real close — not on initial mount.
+  // Only return focus to the trigger after a real close, not on initial mount.
   const wasOpenRef = React.useRef(false);
   React.useEffect(() => {
     if (isOpen) {
@@ -131,7 +131,7 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
   // Copy the rich-text HTML body to the clipboard so the agent can paste it
   // into Outlook with full formatting preserved (fonts, colors, paragraphs,
   // signatures). Then open a `mailto:` with any auto-CC recipients pre-filled
-  // so Outlook's compose window pops up — agent presses Ctrl+V to paste.
+  // so Outlook's compose window pops up: agent presses Ctrl+V to paste.
   const handleTemplateClick = React.useCallback(async (template: IEmailTemplate) => {
     const html = template.bodyHtml || template.body;
     const plain = template.body;

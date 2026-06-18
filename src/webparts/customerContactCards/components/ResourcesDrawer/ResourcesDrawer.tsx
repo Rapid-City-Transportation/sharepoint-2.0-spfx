@@ -66,7 +66,7 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({ isOpen, onClose, tri
       });
   }, [isOpen, resources.length, loading]);
 
-  // Only return focus to the trigger after a real close — not on initial mount.
+  // Only return focus to the trigger after a real close, not on initial mount.
   const wasOpenRef = React.useRef(false);
   React.useEffect(() => {
     if (isOpen) {

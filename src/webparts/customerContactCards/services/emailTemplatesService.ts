@@ -6,14 +6,14 @@ import '@pnp/sp/items';
 export type EmailTemplateCategory = 'Booking' | 'Dispatch Alerts' | 'Reminder Call';
 
 export interface IEmailTemplate {
-  /** SharePoint list item ID — used as a stable React key. */
+  /** SharePoint list item ID, used as a stable React key. */
   id: number;
   /** Display name (the Title column). */
   name: string;
   category: EmailTemplateCategory;
-  /** Plain-text email body — used as the `mailto:` fallback if clipboard fails. */
+  /** Plain-text email body, used as the `mailto:` fallback if clipboard fails. */
   body: string;
-  /** Raw HTML body from SharePoint — copied to the clipboard for rich paste. */
+  /** Raw HTML body from SharePoint, copied to the clipboard for rich paste. */
   bodyHtml: string;
   /**
    * Comma-separated list of email addresses to auto-CC. Empty string if no CC

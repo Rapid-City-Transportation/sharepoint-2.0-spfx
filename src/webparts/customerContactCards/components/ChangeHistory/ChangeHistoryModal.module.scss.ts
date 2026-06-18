@@ -1,25 +1,25 @@
 /* tslint:disable */
 require("./ChangeHistoryModal.module.css");
 const styles = {
-  timelineRoot: 'timelineRoot_ceed39fb',
-  entry: 'entry_ceed39fb',
-  entryHeader: 'entryHeader_ceed39fb',
-  entryDate: 'entryDate_ceed39fb',
-  entrySeparator: 'entrySeparator_ceed39fb',
-  entryFieldCount: 'entryFieldCount_ceed39fb',
-  field: 'field_ceed39fb',
-  fieldLabel: 'fieldLabel_ceed39fb',
-  fieldPlaceholder: 'fieldPlaceholder_ceed39fb',
-  empty: 'empty_ceed39fb',
-  errorBanner: 'errorBanner_ceed39fb',
-  loading: 'loading_ceed39fb',
-  diffWrapper: 'diffWrapper_ceed39fb',
-  diffWasLine: 'diffWasLine_ceed39fb',
-  diffNowLine: 'diffNowLine_ceed39fb',
-  diffLineLabel: 'diffLineLabel_ceed39fb',
-  diffLineContent: 'diffLineContent_ceed39fb',
-  diffRemoved: 'diffRemoved_ceed39fb',
-  diffAdded: 'diffAdded_ceed39fb'
+  timelineRoot: 'timelineRoot_a3400a16',
+  entry: 'entry_a3400a16',
+  diffWasLine: 'diffWasLine_a3400a16',
+  diffNowLine: 'diffNowLine_a3400a16',
+  diffLineLabel: 'diffLineLabel_a3400a16',
+  entryHeader: 'entryHeader_a3400a16',
+  entryDate: 'entryDate_a3400a16',
+  entrySeparator: 'entrySeparator_a3400a16',
+  entryFieldCount: 'entryFieldCount_a3400a16',
+  field: 'field_a3400a16',
+  fieldLabel: 'fieldLabel_a3400a16',
+  fieldPlaceholder: 'fieldPlaceholder_a3400a16',
+  empty: 'empty_a3400a16',
+  errorBanner: 'errorBanner_a3400a16',
+  loading: 'loading_a3400a16',
+  diffWrapper: 'diffWrapper_a3400a16',
+  diffLineContent: 'diffLineContent_a3400a16',
+  diffRemoved: 'diffRemoved_a3400a16',
+  diffAdded: 'diffAdded_a3400a16'
 };
 
 export default styles;

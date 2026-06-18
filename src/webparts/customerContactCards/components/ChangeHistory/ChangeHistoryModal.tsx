@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Dialog, DialogType, DialogFooter } from '@fluentui/react/lib/Dialog';
 import { DefaultButton } from '@fluentui/react/lib/Button';
+import { ResponsiveMode } from '@fluentui/react/lib/ResponsiveMode';
 import styles from './ChangeHistoryModal.module.scss';
 import { fetchAllVersions } from '../../services/versionsService';
 import { PB, IB } from '../../services/fieldNames';
@@ -29,7 +30,7 @@ const MAX_VERSIONS = 20;
 
 /**
  * Cutoff date for the visible change history. Anything edited before this
- * date is hidden from users — those entries are leftover testing-phase
+ * date is hidden from users: those entries are leftover testing-phase
  * activity and aren't real change history they care about.
  *
  * If you ever need to widen the history window, lower this date.
@@ -112,7 +113,9 @@ export const ChangeHistoryModal: React.FC<IChangeHistoryModalProps> = ({
         type: DialogType.normal,
         title: `Change history: ${customerName}`,
       }}
-      modalProps={{ isBlocking: false }}
+      // Force a centered, contained modal so Fluent does not flip to its
+      // small-screen full-screen takeover on phones.
+      modalProps={{ isBlocking: false, responsiveMode: ResponsiveMode.large }}
     >
       {loading && versions.length === 0 && (
         <div className={styles.loading} role="status" aria-live="polite">

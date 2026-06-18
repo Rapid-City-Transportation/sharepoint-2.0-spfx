@@ -1,5 +1,51 @@
 @import '../../../rapidCityHomepage/theme/themeVariables.module.scss';
 
+// The Fluent Dialog is given a fixed minWidth via JS props (680px), which
+// overflows phone viewports. Relax the surface to fit small screens. Scoped to
+// a media query so desktop rendering is untouched.
+@media (max-width: 640px) {
+  // Keep the Dialog a contained, centered modal on phones (the JS minWidth of
+  // 680 would otherwise overflow, and Fluent's small responsive mode tries to
+  // go full-screen). Width fits the viewport; height is capped so the card
+  // floats with the backdrop visible around it.
+  :global(.ms-Dialog-main) {
+    min-width: 0 !important;
+    width: calc(100vw - 32px) !important;
+    max-width: calc(100vw - 32px) !important;
+    min-height: 0 !important;
+    max-height: calc(100vh - 96px) !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+
+  // Scroll inside the dialog body so the card itself stays within the cap.
+  :global(.ms-Dialog-main .ms-Modal-scrollableContent) {
+    max-height: calc(100vh - 96px) !important;
+    overflow-y: auto !important;
+  }
+
+  // Drop the inner scroll so there is a single scroll region, not nested ones.
+  .timelineRoot {
+    max-height: none;
+  }
+
+  .entry {
+    padding: 12px;
+  }
+
+  // Stack the Was/Now badge above its text so the change content uses the
+  // full width instead of being pushed behind a 44px label column.
+  .diffWasLine,
+  .diffNowLine {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .diffLineLabel {
+    align-self: flex-start;
+  }
+}
+
 .timelineRoot {
   display: flex;
   flex-direction: column;

@@ -360,7 +360,7 @@ const CustomerDetailView: React.FC<ICustomerDetailViewProps> = ({ customer, onBa
   const tabContent: ITabContent | null = activeTab ? customer[activeTab] : null;
   const accentColor = TYPE_ACCENT[customer.customerType] || '#1F4C7F';
 
-  // Contact info is the same across all tabs — pull from whichever is available
+  // Contact info is the same across all tabs: pull from whichever is available
   const contactTabContent: ITabContent | null =
     customer[customer.visibleTabs[0]] || customer.referral || null;
 

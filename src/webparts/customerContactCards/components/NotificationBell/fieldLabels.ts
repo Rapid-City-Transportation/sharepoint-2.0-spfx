@@ -1,6 +1,6 @@
 /**
  * @deprecated Moved to ../../services/fieldLabels. This file just re-exports
- * for backward compatibility — import from the services path going forward.
+ * for backward compatibility. Import from the services path going forward.
  */
 
 export {

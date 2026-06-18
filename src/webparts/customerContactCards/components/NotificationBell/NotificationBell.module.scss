@@ -1,5 +1,17 @@
 @import '../../../rapidCityHomepage/theme/themeVariables.module.scss';
 
+// The notification detail dialog is given a fixed minWidth via JS props (620px),
+// which overflows phone viewports. Relax the Fluent surface on small screens
+// only so desktop rendering is untouched.
+@media (max-width: 640px) {
+  :global(.ms-Dialog-main) {
+    min-width: 0 !important;
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 0 12px !important;
+  }
+}
+
 .bellWrapper {
   position: relative;
   display: inline-flex;
@@ -9,6 +21,12 @@
 .bellButton {
   background: transparent !important;
   color: var(--rct-text-inverse) !important;
+
+  // Ensure a comfortable tap target on phones (Fluent IconButton is ~32px).
+  @media (max-width: 640px) {
+    width: 44px !important;
+    height: 44px !important;
+  }
 
   &:hover {
     background: rgba(255, 255, 255, 0.08) !important;
@@ -204,7 +222,7 @@
   font-weight: 500;
   color: #6b7280;
   white-space: nowrap;
-  // Decorative cue only — the whole row is the click target, this is just signage.
+  // Decorative cue only: the whole row is the click target, this is just signage.
   pointer-events: none;
   opacity: 0.7;
   transition: opacity 0.15s, color 0.15s;
@@ -289,7 +307,7 @@
 }
 
 .snapshotSection {
-  // No divider by default — only labeled sections get one (see below)
+  // No divider by default: only labeled sections get one (see below)
   padding: 4px 0;
 }
 

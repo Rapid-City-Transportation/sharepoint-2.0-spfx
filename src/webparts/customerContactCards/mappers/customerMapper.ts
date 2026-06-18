@@ -30,13 +30,13 @@ const LOOKUP_TO_SECTION: Record<string, SectionKey> = {
 /**
  * Parse ClientRole to determine which tabs are visible.
  * If the role contains both "Referral" and "Customer" (e.g. "Referral & Customer"),
- * the Customer tab is hidden — its blocks are merged into Referral.
+ * the Customer tab is hidden: its blocks are merged into Referral.
  */
 function parseVisibleTabs(role?: string, customerType?: CustomerType, name?: string): TabId[] {
   // WSIB customers only use the Passenger tab
   if (customerType === 'WSIB') return ['passenger'];
 
-  // "Passengers Who Pay" — passenger-only, no referral tab
+  // "Passengers Who Pay": passenger-only, no referral tab
   if (name && name.toLowerCase().indexOf('passengers who pay') !== -1) {
     return ['passenger'];
   }
@@ -48,7 +48,7 @@ function parseVisibleTabs(role?: string, customerType?: CustomerType, name?: str
   const hasCustomer = lower.includes('customer');
   const hasPassenger = lower.includes('passenger');
 
-  // Combined roles — hide the redundant tab
+  // Combined roles: hide the redundant tab
   if (hasReferral && hasCustomer) {
     return ['referral', 'passenger'];
   }
@@ -101,6 +101,11 @@ export function mapGridItemsToCustomers(items: IProtocolBookGridItem[]): ICustom
       customer: emptyTabContent(),
       visibleTabs: parseVisibleTabs(item.ClientRole, mapCustomerType(item.ClientType), item.Title || item.ClientName),
       clientRole: item.ClientRole || undefined,
+      searchText: buildSearchText([
+        item.Title, item.ClientName, item.ClientType, item.ClientRole,
+        item.PhoneBusinessHours, item.PhoneAfterHours, item.BusinessHours,
+        item.SpecialInstructions, item.Specification, item.ProblemWithReminderCall,
+      ]),
     };
   });
 }
@@ -120,17 +125,17 @@ export function mapDetailItemToCustomer(item: IProtocolBookDetailItem): ICustome
 
   // Merge blocks from hidden tabs into visible ones
   if (visibleTabs.indexOf('customer') === -1 && visibleTabs.indexOf('referral') !== -1) {
-    // "Referral & Customer" — merge Customer blocks into Referral
+    // "Referral & Customer": merge Customer blocks into Referral
     referralBlocks = mergeBlocksBySections(referralBlocks, customerBlocks);
     customerBlocks = {};
   } else if (visibleTabs.indexOf('referral') === -1 && visibleTabs.indexOf('customer') !== -1) {
-    // "Customer & Passenger" — merge Referral blocks into Customer
+    // "Customer & Passenger": merge Referral blocks into Customer
     customerBlocks = mergeBlocksBySections(customerBlocks, referralBlocks);
     referralBlocks = {};
   }
 
   if (visibleTabs.indexOf('passenger') === -1 && visibleTabs.indexOf('referral') !== -1) {
-    // "Referral & Passenger" — merge Passenger blocks into Referral
+    // "Referral & Passenger": merge Passenger blocks into Referral
     referralBlocks = mergeBlocksBySections(referralBlocks, passengerBlocks);
     passengerBlocks = {};
   }
@@ -170,6 +175,18 @@ export function mapDetailItemToCustomer(item: IProtocolBookDetailItem): ICustome
 }
 
 // ---- Internal helpers ----
+
+/** Build the lowercased search blob for a customer. Each field is HTML-stripped
+ *  and joined so the customer search can match a hospital name buried in the
+ *  during/after-hours, business-hours, or special-instructions text. */
+function buildSearchText(parts: Array<string | undefined>): string {
+  return parts
+    .map(p => (p ? stripHtml(p) : ''))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
 
 /** Strip HTML and return trimmed string, or undefined if empty. */
 function cleanField(val?: string): string | undefined {

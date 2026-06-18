@@ -3,7 +3,7 @@ import { PB, IB, ALL_LOOKUP_COLUMNS } from './fieldNames';
 
 /**
  * Fields we explicitly request when fetching versions. SharePoint's /versions
- * endpoint returns only built-in metadata by default — custom field values
+ * endpoint returns only built-in metadata by default: custom field values
  * have to be selected explicitly or they come back as undefined.
  *
  * Per source list, we request the union of built-in metadata + every watched
@@ -25,7 +25,7 @@ const PROTOCOL_BOOK_VERSION_FIELDS = [
   PB.ApprovalBlanket,
   PB.ApprovalRTW,
   PB.ApprovalNotes,
-  // Lookup ID columns — used by the phantom filter to detect when SP fired
+  // Lookup ID columns, used by the phantom filter to detect when SP fired
   // HasColumnChanged on a lookup but the actual ID didn't change.
   ...ALL_LOOKUP_COLUMNS.map(col => `${col}Id`),
 ];
@@ -63,7 +63,7 @@ export async function fetchVersionPair(
     const sp = getSP();
     // Pick the right $select set: SP throws if you ask for fields that don't
     // exist on the list, so PB and IB get separate field lists. Without an
-    // explicit select, the versions endpoint returns metadata only — custom
+    // explicit select, the versions endpoint returns metadata only: custom
     // field values come back as undefined.
     const fields =
       listTitle === PB.LIST_TITLE
@@ -96,7 +96,7 @@ export async function fetchVersionPair(
 }
 
 /**
- * Convenience wrapper — returns just the previous version. Used by the
+ * Convenience wrapper that returns just the previous version. Used by the
  * notification modal which only needs the previous value to render diffs.
  */
 export async function fetchPreviousVersion(
