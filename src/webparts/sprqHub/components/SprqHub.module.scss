@@ -1,0 +1,962 @@
+// SPRQ Hub: Customer Experience private hub.
+// Layout and visual language mirror the Trainers Hub / Customer Experience
+// Hub so the CX department pages read as one consistent family.
+// Brand: Rapid City Transportation (RCT) - 2025 palette.
+
+@import '../../rapidCityHomepage/theme/themeVariables.module.scss';
+
+// Break out of SharePoint's default canvas max-width so the hub renders
+// edge-to-edge like the other top-level web parts.
+:global {
+  #workbenchPageContent,
+  .CanvasComponent.LCS .CanvasZone {
+    max-width: 100% !important;
+  }
+}
+
+// Local brand tokens: fallbacks for when the theme CSS custom properties
+// from rapidCityHomepage aren't loaded.
+$primary-blue:    #1F4C7F;
+$dark-navy:       #262931;
+$blue-accessible: #187389;
+$gold:            #D29F1C;
+$gold-accessible: #8A6A0C;
+$orange-acc:      #9A5B00;
+$green-acc:       #2E7D32;
+$red:             #9B2C2C;
+$surface:         #F8F8F8;
+$surface-page:    #F1F4F9;
+$text-primary:    #262931;
+$text-secondary:  #4A5568;
+$text-muted:      #6B7280;
+$text-inverse:    #FFFFFF;
+$border:          #E2E8F0;
+$radius-card:     12px;
+$radius-tile:     8px;
+$shadow-card:     0 1px 3px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.06);
+$transition:      0.18s ease;
+
+%focus-ring {
+  outline: none;
+  &:focus-visible {
+    outline: 3px solid var(--rct-brand-blue-primary, #{$primary-blue});
+    outline-offset: 2px;
+  }
+}
+
+// Flex column + min-height keeps the Footer pinned to the bottom even when
+// the page content is short (the Footer itself uses margin-top: auto).
+.hub {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: $surface-page;
+  color: var(--rct-text-primary, #{$text-primary});
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.5;
+
+  * { box-sizing: border-box; }
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 24px;
+  align-items: start;
+  width: 100%;
+  max-width: 1400px;
+  margin: 24px auto 48px;
+  padding: 0 32px;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.backLink {
+  @extend %focus-ring;
+  grid-column: 1 / -1;     /* full-width row above both columns so they line up */
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  border-radius: var(--rct-border-radius);
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rct-blue-accessible);
+  text-decoration: none;
+  transition: color var(--rct-transition);
+
+  &:hover {
+    color: var(--rct-primary);
+    text-decoration: underline;
+  }
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ----------------------------------------------------------------------- */
+/* Latest updates & temp changes                                           */
+/* ----------------------------------------------------------------------- */
+
+.updatesCard {
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+}
+
+.updatesHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px 24px;
+  background:
+    linear-gradient(135deg, rgba(38, 41, 49, 0.96) 0%, rgba(31, 76, 127, 0.92) 100%),
+    radial-gradient(circle at 85% 20%, rgba(210, 159, 28, 0.16), transparent 55%);
+  background-color: $dark-navy;
+  color: $text-inverse;
+}
+
+.updatesHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.updatesKicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.updatesKickerDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $gold;
+  box-shadow: 0 0 0 3px rgba(210, 159, 28, 0.22);
+  flex-shrink: 0;
+}
+
+.updatesTitle {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.updatesPost {
+  @extend %focus-ring;
+  background: none;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  color: $text-inverse;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background $transition, border-color $transition;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.65);
+  }
+
+  span { margin-right: 2px; }
+}
+
+.updatesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.updateRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 24px;
+  border-top: 1px solid $border;
+
+  &:first-child { border-top: none; }
+}
+
+.updateBadge {
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: inline-flex;
+  align-items: center;
+  min-width: 64px;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  border: 1px solid transparent;
+}
+
+.updateBadge_pause {
+  background: rgba(193, 120, 23, 0.12);
+  color: $orange-acc;
+  border-color: rgba(193, 120, 23, 0.32);
+}
+
+.updateBadge_school {
+  background: rgba(31, 76, 127, 0.10);
+  color: $primary-blue;
+  border-color: rgba(31, 76, 127, 0.28);
+}
+
+.updateBadge_change {
+  background: rgba(210, 159, 28, 0.14);
+  color: $gold-accessible;
+  border-color: rgba(210, 159, 28, 0.35);
+}
+
+.updateBadge_info {
+  background: rgba(74, 85, 104, 0.10);
+  color: $text-secondary;
+  border-color: rgba(74, 85, 104, 0.26);
+}
+
+.updateBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.updateRowTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.updateTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+  min-width: 0;
+}
+
+.updateTime {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--rct-text-secondary, #{$text-muted});
+  white-space: nowrap;
+}
+
+.updateDesc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--rct-text-secondary, #{$text-secondary});
+}
+
+/* ----------------------------------------------------------------------- */
+/* Tool Viewer                                                             */
+/* ----------------------------------------------------------------------- */
+
+.toolViewerCard {
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  padding: 18px 22px 22px;
+  box-shadow: $shadow-card;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.toolViewerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.toolViewerHeaderLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.toolViewerHeaderIcon {
+  font-size: 18px;
+  color: var(--rct-brand-blue-primary, #{$primary-blue});
+  background: rgba(31, 76, 127, 0.08);
+  padding: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.toolViewerEyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rct-text-secondary, #{$text-muted});
+}
+
+.toolViewerTitle {
+  margin: 2px 0 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+}
+
+.toolViewerOpenFull {
+  @extend %focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: border-color $transition, color $transition;
+
+  &:hover:not(:disabled) {
+    border-color: var(--rct-blue-accessible, #{$blue-accessible});
+    color: var(--rct-brand-blue-primary, #{$primary-blue});
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: var(--rct-text-secondary, #{$text-muted});
+  }
+
+  i { font-size: 12px; }
+}
+
+.toolViewerBody {
+  position: relative;
+  min-height: 300px;
+  background: linear-gradient(135deg, #F8FAFC 0%, #EEF2F7 100%);
+  border: 1px dashed #D6DCE5;
+  border-radius: $radius-tile;
+  display: grid;
+  padding: 16px;
+  transition: background $transition, border-color $transition;
+}
+
+.toolViewerBodyActive {
+  background: $text-inverse;
+  border: 1px solid $border;
+  display: block;
+  padding: 0;
+  height: 650px;
+  overflow: hidden;
+}
+
+// Empty-state placeholder (icon + label + hint), centered in the viewer.
+.placeholder {
+  align-self: center;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 0 16px;
+  max-width: 360px;
+}
+
+.placeholderIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: $radius-tile;
+  display: grid;
+  place-items: center;
+  background: $text-inverse;
+  border: 1px solid #E2E8F0;
+  color: #98A2B3;
+  font-size: 24px;
+}
+
+.placeholderTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rct-text-secondary, #{$text-secondary});
+}
+
+.placeholderHint {
+  color: #98A2B3;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.toolContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.toolContentHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid $border;
+  background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
+}
+
+.toolContentTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.toolContentEyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--rct-text-secondary, #{$text-muted});
+}
+
+.toolContentTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+  line-height: 1.2;
+}
+
+.toolContentClose {
+  @extend %focus-ring;
+  background: none;
+  border: 1px solid $border;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--rct-text-secondary, #{$text-muted});
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: border-color $transition, color $transition, background $transition;
+
+  &:hover {
+    border-color: var(--rct-brand-blue-primary, #{$primary-blue});
+    color: var(--rct-brand-blue-primary, #{$primary-blue});
+    background: rgba(31, 76, 127, 0.06);
+  }
+
+  i { font-size: 12px; }
+}
+
+.toolContentFrame {
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  border: 0;
+  border-radius: $radius-tile;
+  background: #ffffff;
+  display: block;
+}
+
+// Inline lists shown in the Tool Viewer (client accounts, master lists, forms).
+.toolContentList {
+  list-style: none;
+  margin: 0;
+  padding: 14px 20px;
+  overflow-y: auto;
+  max-height: 60vh;
+
+  li {
+    padding: 9px 2px;
+    border-bottom: 1px solid var(--rct-border, #E8ECF0);
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--rct-text-primary, #{$text-primary});
+  }
+
+  li:last-child {
+    border-bottom: none;
+  }
+}
+
+.toolContentLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--rct-blue-accessible, #187389);
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--rct-blue-accessible, #187389);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.toolContentComingSoon {
+  padding: 32px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.comingSoonIcon {
+  font-size: 36px;
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  background: rgba(24, 115, 137, 0.08);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.comingSoonText {
+  margin: 0;
+  max-width: 380px;
+  font-size: 13px;
+  color: var(--rct-text-secondary, #{$text-secondary});
+  line-height: 1.5;
+
+  strong {
+    color: var(--rct-text-primary, #{$text-primary});
+    font-weight: 700;
+  }
+}
+
+/* ----------------------------------------------------------------------- */
+/* Shared panel header (sidebar cards)                                      */
+/* ----------------------------------------------------------------------- */
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panelTitleIcon {
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  font-size: 16px;
+  display: inline-flex;
+}
+
+.panelAction {
+  @extend %focus-ring;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  cursor: pointer;
+  padding: 2px 4px;
+
+  &:hover { text-decoration: underline; }
+}
+
+/* ----------------------------------------------------------------------- */
+/* Tools panel (dark navy)                                                  */
+/* ----------------------------------------------------------------------- */
+
+// The mobile copy of the Tools panel (rendered above the Tool Viewer in the
+// main column) is hidden on desktop; the sidebar copy is shown instead. The
+// show/hide swap happens in the max-width: 1100px block at the foot of this
+// file, reusing the same breakpoint the layout collapses on.
+.toolsPanelMobile { display: none; }
+
+.toolsPanel {
+  background:
+    linear-gradient(160deg, rgba(31, 76, 127, 0.96) 0%, rgba(38, 41, 49, 0.98) 100%);
+  background-color: $dark-navy;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $radius-card;
+  padding: 16px 18px 18px;
+  box-shadow: $shadow-card;
+  color: $text-inverse;
+
+  .panelTitle { color: $text-inverse; }
+
+  .toolTile {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+  }
+
+  .toolTileActive,
+  .toolTileActive:hover {
+    background: var(--rct-brand-gold, #{$gold});
+    border-color: var(--rct-brand-gold, #{$gold});
+    color: $dark-navy;
+    box-shadow: 0 4px 16px rgba(210, 159, 28, 0.4);
+
+    .toolIcon {
+      background: rgba(38, 41, 49, 0.18);
+      border-color: rgba(38, 41, 49, 0.28);
+      color: $dark-navy;
+    }
+
+    .toolLabel { color: $dark-navy; }
+  }
+
+  .toolIcon {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: $text-inverse;
+  }
+
+  .toolLabel { color: $text-inverse; }
+}
+
+.toolsGrid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 10px;
+}
+
+.toolTile {
+  @extend %focus-ring;
+  width: 100%;
+  height: 100%;
+  min-height: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 8px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-tile;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+  transition: transform $transition, box-shadow $transition,
+              border-color $transition, background $transition;
+  text-align: center;
+
+  &:active { transform: translateY(0); }
+}
+
+.toolIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-tile;
+  display: grid;
+  place-items: center;
+  background: $text-inverse;
+  border: 1px solid $border;
+  color: var(--rct-brand-blue-primary, #{$primary-blue});
+  font-size: 16px;
+}
+
+.toolLabel {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--rct-text-primary, #{$text-primary});
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ----------------------------------------------------------------------- */
+/* Task Schedule                                                            */
+/* ----------------------------------------------------------------------- */
+
+.tasksCard,
+.statsCard {
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  padding: 16px 18px 18px;
+  box-shadow: $shadow-card;
+}
+
+.tasksList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.taskRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid $border;
+
+  &:first-child { border-top: none; padding-top: 2px; }
+  &:last-child { padding-bottom: 2px; }
+}
+
+.taskAvatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: $text-inverse;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.taskInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.taskTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rct-text-primary, #{$text-primary});
+  line-height: 1.3;
+}
+
+.taskMeta {
+  font-size: 11.5px;
+  color: var(--rct-text-secondary, #{$text-muted});
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusBadge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.statusBadge_inprogress {
+  background: rgba(31, 76, 127, 0.10);
+  color: $primary-blue;
+  border-color: rgba(31, 76, 127, 0.26);
+}
+
+.statusBadge_duesoon {
+  background: rgba(193, 120, 23, 0.12);
+  color: $orange-acc;
+  border-color: rgba(193, 120, 23, 0.30);
+}
+
+.statusBadge_pending {
+  background: rgba(210, 159, 28, 0.14);
+  color: $gold-accessible;
+  border-color: rgba(210, 159, 28, 0.34);
+}
+
+.statusBadge_done {
+  background: rgba(46, 125, 50, 0.12);
+  color: $green-acc;
+  border-color: rgba(46, 125, 50, 0.30);
+}
+
+.statusBadge_blocked {
+  background: rgba(155, 44, 44, 0.10);
+  color: $red;
+  border-color: rgba(155, 44, 44, 0.28);
+}
+
+/* ----------------------------------------------------------------------- */
+/* At a glance                                                              */
+/* ----------------------------------------------------------------------- */
+
+.statsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.statRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-tile;
+}
+
+.statIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: $radius-tile;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.statIcon_blue {
+  background: rgba(24, 115, 137, 0.10);
+  color: $blue-accessible;
+}
+
+.statIcon_gold {
+  background: rgba(210, 159, 28, 0.14);
+  color: $gold-accessible;
+}
+
+.statIcon_green {
+  background: rgba(46, 125, 50, 0.12);
+  color: $green-acc;
+}
+
+.statLabel {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--rct-text-primary, #{$text-primary});
+}
+
+.statValue {
+  flex-shrink: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+  letter-spacing: -0.01em;
+}
+
+// ---------------------------------------------------------------------------
+// Tools panel placement swap. At the same 1100px breakpoint the layout
+// collapses to one column, hide the sidebar copy and show the main-column copy
+// so Tools sits directly above the Tool Viewer instead of at the page bottom.
+// ---------------------------------------------------------------------------
+@media (max-width: 1100px) {
+  .toolsPanelDesktop { display: none; }
+  .toolsPanelMobile { display: block; }
+}
+
+// ---------------------------------------------------------------------------
+// Mobile / small-screen refinements. Scoped entirely to max-width queries so
+// the desktop layout is unchanged: only phones / small tablets are affected.
+// ---------------------------------------------------------------------------
+@media (max-width: 640px) {
+  // Pull the page in less so content isn't squeezed into a narrow strip.
+  .layout { padding: 0 16px; }
+
+  // Comfortable touch targets (>= 44px) for thumbs.
+  .toolContentClose { width: 40px; height: 40px; }
+  .toolViewerOpenFull,
+  .updatesPost,
+  .panelAction { min-height: 44px; }
+
+  // A selected tool shouldn't swallow the whole phone screen.
+  .toolViewerBodyActive { height: 460px; }
+  .toolContentFrame { min-height: 360px; }
+}
+
+@media (max-width: 400px) {
+  .layout { padding: 0 12px; }
+
+  // Give the headline room: drop the timestamp onto its own line.
+  .updateRowTop { flex-direction: column; align-items: flex-start; gap: 2px; }
+}
