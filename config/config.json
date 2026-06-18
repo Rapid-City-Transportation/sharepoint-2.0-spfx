@@ -65,6 +65,14 @@
           "manifest": "./src/webparts/trainersHub/TrainersHubWebPart.manifest.json"
         }
       ]
+    },
+    "sprq-hub-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/sprqHub/SprqHubWebPart.js",
+          "manifest": "./src/webparts/sprqHub/SprqHubWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
