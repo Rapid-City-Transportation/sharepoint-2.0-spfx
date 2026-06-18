@@ -16,9 +16,11 @@ import {
   DEPARTMENT_CONFIGS,
 } from './services/DepartmentConfig';
 import { initializeSP } from './services/spConfig';
+import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
+import { initializeSP as initializeDirectorySP } from '../employeeDirectory/services/spConfig';
 
 export interface IDepartmentPublicPageWebPartProps {
-  /** Department key — determines which department's content is rendered. */
+  /** Department key: determines which department's content is rendered. */
   departmentKey: string;
   /** Azure AD group GUID (optional override). */
   allowedGroupId: string;
@@ -37,6 +39,10 @@ export default class DepartmentPublicPageWebPart extends BaseClientSideWebPart<I
   protected async onInit(): Promise<void> {
     await super.onInit();
     initializeSP(this.context);
+    initializeFeedbackSP(this.context);
+    // Leaders now source from the Employee Highlight list (root site) via the
+    // Employee Directory reader, so its SPFI must be initialized too.
+    initializeDirectorySP(this.context);
   }
 
   public render(): void {

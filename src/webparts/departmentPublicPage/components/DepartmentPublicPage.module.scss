@@ -61,100 +61,148 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 .heroSection {
-  // Subtle department-accent tint; falls back to surface if no dept accent set.
-  background: var(--dept-accent-tint, var(--rct-surface));
+  position: relative;
   padding: var(--rct-spacing-2xl) var(--rct-spacing-lg);
   border-top: 4px solid var(--dept-accent, var(--rct-primary));
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #ffffff;
+  overflow: hidden;
+
+  // Department-accent scrim over the backdrop image: heaviest on the left
+  // (behind the text) so white text stays >= 4.5:1, lighter on the right so
+  // the image reads through. Falls back to RCT blue if no accent is set.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    // Kept dark across the left ~65% so the white contact/hours text stays
+    // >= 4.5:1 (AODA); fades on the far right so the backdrop reads through.
+    background: linear-gradient(
+      100deg,
+      rgba(var(--dept-accent-rgb, 31, 76, 127), 0.95) 0%,
+      rgba(var(--dept-accent-rgb, 31, 76, 127), 0.92) 65%,
+      rgba(var(--dept-accent-rgb, 31, 76, 127), 0.68) 88%,
+      rgba(var(--dept-accent-rgb, 31, 76, 127), 0.52) 100%
+    );
+  }
 }
 
 .heroInner {
+  position: relative;
+  z-index: 1;
   max-width: 1200px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--rct-spacing-2xl);
-  align-items: center;
-}
-
-.heroLeft {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
 }
 
 .heroTitle {
   margin: 0 0 var(--rct-spacing-xs);
   font-size: clamp(28px, 4vw, 40px);
   font-weight: 700;
-  color: var(--rct-text-primary);
+  color: #ffffff;
   line-height: 1.15;
 }
 
 .heroSubtitle {
-  margin: 0 0 var(--rct-spacing-lg);
+  margin: 0 0 var(--rct-spacing-sm);
   font-size: 18px;
   font-style: italic;
-  color: var(--rct-text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.4;
 }
 
-.contactList {
-  list-style: none;
-  margin: 0 0 var(--rct-spacing-lg);
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--rct-spacing-sm);
+.heroAbout {
+  margin: var(--rct-spacing-sm) 0 var(--rct-spacing-lg);
+  max-width: 560px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.92);
 }
 
-.contactItem {
-  display: flex;
-  align-items: center;
-  gap: var(--rct-spacing-sm);
-  font-size: 15px;
-  color: var(--rct-text-primary);
-  line-height: 1.5;
+// Contact + Office Hours: white text laid directly on the hero (no boxes). Kept
+// in the left content well where the accent scrim is darkest, so white text
+// stays >= 4.5:1 (AODA). Two columns: Contact | Office Hours.
+.heroMeta {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;   // contact column wider so email + badge fit on one line
+  gap: var(--rct-spacing-xl);
+  width: 100%;                         // fill up to max-width so the fr columns get real width
+  max-width: 720px;
+  margin: var(--rct-spacing-sm) 0 var(--rct-spacing-lg);
 }
 
-.contactIcon {
-  color: var(--dept-accent, var(--rct-primary));
-  font-size: 18px;
-  flex-shrink: 0;
-  width: 24px;
-  text-align: center;
+.heroMetaCol {
+  min-width: 0; // overflow guard
 }
 
-.contactLink {
-  color: var(--rct-text-primary);
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-    color: var(--rct-secondary);
-  }
-
-  &:focus-visible {
-    outline: var(--rct-focus-outline);
-    outline-offset: var(--rct-focus-offset);
-    border-radius: var(--rct-border-radius);
-  }
+.heroMetaTitle {
+  margin: 0 0 var(--rct-spacing-sm);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-// "View Department Resources" CTA — department accent bg + white text.
+// "View Department Resources" CTA: department accent bg + white text.
 // Overrides btnSecondary's fixed primary blue with the per-department accent.
 .resourceBtn {
   @extend .btnSecondary;
-  align-self: flex-start;
-  background:   var(--dept-accent, var(--rct-primary));
-  border-color: var(--dept-accent, var(--rct-primary));
+  align-self: flex-end;   // bubble CTA on the right-hand side of the hero
+  // Inverted for the dark hero scrim: a bold white pill with an accent label.
+  background:     #ffffff;
+  border-color:   #ffffff;
+  color:          var(--dept-accent, var(--rct-primary));
+  font-size:      16px;
+  font-weight:    700;
+  min-height:     50px;
+  padding:        0 var(--rct-spacing-xl);  // roomier than the default
+  border-radius:  999px;                    // pill
+  box-shadow:     0 10px 26px rgba(0, 0, 0, 0.28);
+  transition:     transform var(--rct-transition),
+                  box-shadow var(--rct-transition),
+                  background var(--rct-transition),
+                  color var(--rct-transition);
 
   &:hover:not(:disabled):not([aria-disabled='true']) {
-    background:   var(--dept-accent-hover, var(--rct-primary-hover));
-    border-color: var(--dept-accent-hover, var(--rct-primary-hover));
+    background:    #ffffff;
+    border-color:  #ffffff;
+    color:         var(--dept-accent-hover, var(--rct-primary));
+    transform:     translateY(-2px);                 // lift on hover
+    box-shadow:    0 14px 34px rgba(0, 0, 0, 0.34);
   }
 
   &:active:not(:disabled):not([aria-disabled='true']) {
-    background:   var(--dept-accent-hover, var(--rct-primary-active));
-    border-color: var(--dept-accent-hover, var(--rct-primary-active));
+    background:    rgba(255, 255, 255, 0.94);
+    border-color:  rgba(255, 255, 255, 0.94);
+    color:         var(--dept-accent-hover, var(--rct-primary));
+    transform:     translateY(0);                    // no jump on click
+    box-shadow:    0 6px 18px rgba(0, 0, 0, 0.26);
+  }
+}
+
+// On wide screens the hero content (max 720px) sits on the left, so float the
+// CTA off to the side, vertically centered on the right, like a standalone
+// action card. heroInner is position:relative, so this anchors to its right edge.
+@media (min-width: 1100px) {
+  .resourceBtn {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+
+    // Combine the lift with the vertical-centering transform (can't stack them).
+    &:hover:not(:disabled):not([aria-disabled='true']) {
+      transform: translateY(calc(-50% - 2px));
+    }
+    &:active:not(:disabled):not([aria-disabled='true']) {
+      transform: translateY(-50%);
+    }
   }
 }
 
@@ -214,6 +262,11 @@
 }
 
 .seeAllLink {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 15px;
   font-weight: 600;
   color: var(--dept-accent, var(--rct-secondary));
@@ -242,6 +295,7 @@
   border: 1px solid var(--rct-border);
   border-radius: var(--rct-border-radius-lg);
   overflow: hidden;
+  min-width: 0; // overflow guard: allow grid child to shrink below content
   box-shadow: var(--rct-shadow-sm);
   transition: box-shadow var(--rct-transition-medium),
               transform var(--rct-transition-medium);
@@ -265,6 +319,13 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--rct-text-secondary);
+}
+
+.newsImage {
+  display: block;
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
 }
 
 .newsBody {
@@ -296,6 +357,7 @@
   font-weight: 600;
   color: var(--rct-text-primary);
   line-height: 1.3;
+  overflow-wrap: anywhere; // overflow guard: break long titles
 }
 
 .newsMeta {
@@ -318,6 +380,135 @@
 //  § 3. MEET THE DEPARTMENT LEADERS
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════════════
+//  CONTACT & OFFICE HOURS  (white text in the hero: see .heroMeta)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+.contactEmailList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rct-spacing-xs);
+}
+
+.contactEmailItem {
+  display: flex;
+  align-items: center;
+  gap: var(--rct-spacing-sm);
+  flex-wrap: nowrap;   // keep the Internal/External badge on the same line as its email
+  min-width: 0;
+}
+
+.contactEmailLink {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 15px;
+  line-height: 1.5;
+  min-width: 0;            // allow the email to shrink before the badge wraps
+  overflow-wrap: anywhere; // overflow guard: break long emails
+
+  &:hover { text-decoration: underline; }
+
+  &:focus-visible {
+    outline: var(--rct-focus-outline);
+    outline-offset: var(--rct-focus-offset);
+    border-radius: var(--rct-border-radius);
+  }
+}
+
+// Internal / External pill: outlined so the dark hero shows through and the
+// white label keeps AAA contrast. The text label (not color) carries meaning.
+.contactBadge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+  flex-shrink: 0;   // never let the badge drop below its email
+}
+
+.heroPhoneList {
+  list-style: none;
+  margin: var(--rct-spacing-sm) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rct-spacing-xs);
+}
+
+.heroPhoneItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--rct-spacing-sm);
+  font-size: 15px;
+  min-width: 0;
+}
+
+// Fixed-width label column so Main / Other / WSIB and their numbers align.
+.heroPhoneLabel {
+  flex-shrink: 0;
+  min-width: 48px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.contactPhoneLink {
+  color: #ffffff;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.hoursGroup {
+  margin: 0;
+}
+
+.hoursGroupTitle {
+  margin: 0 0 var(--rct-spacing-xs);
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.hoursList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rct-spacing-sm);
+}
+
+.hoursRow {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.hoursDays {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.hoursTime {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .heroMeta {
+    grid-template-columns: 1fr;
+    gap: var(--rct-spacing-lg);
+  }
+}
+
 .leadersSection {
   background: var(--rct-background);
   padding: var(--rct-spacing-2xl) var(--rct-spacing-lg);
@@ -339,21 +530,39 @@
   border-radius: var(--rct-border-radius-lg);
   overflow: hidden;
   box-shadow: var(--rct-shadow-sm);
+  min-width: 0; // overflow guard: allow grid child to shrink below content
 }
 
 .leaderImageWrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #DCDCDC;
-  height: 300px;
+  position: relative;
+  background: #DCDCDC;   // fallback behind the no-photo placeholder
+  height: 180px;
   overflow: hidden;
 }
 
+// Blurred, zoomed copy of the same photo fills the letterbox so the empty space
+// blends into the photo instead of showing a flat gray bar.
+.leaderImageWrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--leader-photo, none);
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.2);
+  filter: blur(16px) brightness(1.03);
+  z-index: 0;
+}
+
 .leaderPhoto {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;   // whole photo, no cropping; the blurred backdrop fills the rest
   display: block;
 }
 
@@ -372,6 +581,7 @@
   font-size: 16px;
   color: var(--rct-text-primary);
   line-height: 1.3;
+  overflow-wrap: anywhere; // overflow guard: break long names
 }
 
 .leaderNameLabel {
@@ -416,6 +626,33 @@
   }
 }
 
+// ── Small tablets / large phones ────────────────────────────────────────────
+@media (max-width: 640px) {
+  // Reduce oversized horizontal page padding (24px → 16px); keep vertical rhythm
+  .heroSection,
+  .whatsNewSection,
+  .leadersSection {
+    padding-left: var(--rct-spacing-md);
+    padding-right: var(--rct-spacing-md);
+  }
+
+  // Let the CTA wrap / span full width so the long label can't overflow
+  .resourceBtn {
+    align-self: stretch;
+    white-space: normal;
+  }
+
+  // Shrink the fixed-height hero placeholder so it doesn't dominate the phone
+  .heroImageWrap {
+    min-height: 200px;
+  }
+
+  // Shorter portrait tiles for single-column leaders
+  .leaderImageWrap {
+    height: 160px;
+  }
+}
+
 @media (max-width: 600px) {
   .newsGrid,
   .leadersGrid {
@@ -424,10 +661,53 @@
 
   .sectionHeader {
     flex-direction: column;
+    align-items: flex-start;
     gap: var(--rct-spacing-sm);
+  }
+
+  // ≥44px tap target for the standalone "See all" action link on phones
+  .seeAllLink {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 
   .heroTitle {
     font-size: 24px;
+  }
+
+  // Body type ≥14px for readability on phones
+  .newsMeta,
+  .newsViews {
+    font-size: 14px;
+  }
+}
+
+// ── Small phones (~320-400px) ───────────────────────────────────────────────
+@media (max-width: 400px) {
+  // Tighten horizontal padding further (16px → 12px)
+  .heroSection,
+  .whatsNewSection,
+  .leadersSection {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  // Keep hierarchy but prevent the display heading from overflowing
+  .heroTitle {
+    font-size: 22px;
+  }
+
+  .heroSubtitle {
+    font-size: 16px;
+  }
+
+  // Smaller placeholders fit narrow viewports
+  .heroImageWrap {
+    min-height: 170px;
+  }
+
+  .leaderImageWrap {
+    height: 150px;
   }
 }

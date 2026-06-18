@@ -14,6 +14,6 @@ export interface IDepartmentPublicPageProps {
   contactPhone?: string;
   /** Override contact hours (optional). */
   contactHours?: string;
-  /** SPFx context — needed for MSGraphClient group membership check. */
+  /** SPFx context, needed for the MSGraphClient group membership check. */
   context: WebPartContext;
 }

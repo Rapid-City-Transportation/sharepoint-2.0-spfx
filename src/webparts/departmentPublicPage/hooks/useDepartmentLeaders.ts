@@ -2,7 +2,7 @@ import * as React from 'react';
 import {
   IDepartmentLeader,
   fetchDepartmentLeaders,
-} from '../services/EmployeeTrackerService';
+} from '../services/DepartmentLeadersService';
 
 export interface IUseDepartmentLeadersResult {
   leaders: IDepartmentLeader[];
