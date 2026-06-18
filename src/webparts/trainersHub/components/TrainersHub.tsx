@@ -8,14 +8,19 @@ import {
 } from '../../rapidCityHomepage/theme/ThemeTokens';
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
+import { QuizzesPanel } from './QuizzesPanel/QuizzesPanel';
+import { useAnnouncements } from '../../rapidCityHomepage/hooks/useAnnouncements';
+import { getCurrentWeek } from '../../rapidCityHomepage/services/weekUtils';
 
 interface ITool {
   label: string;
   icon: string;
-  /** Optional iframe URL — loads inline in the Tool Viewer. */
+  /** Optional iframe URL: loads inline in the Tool Viewer. */
   embedUrl?: string;
-  /** Optional external URL — opens in a popup (forms that block iframes). */
+  /** Optional external URL: opens in a popup (forms that block iframes). */
   href?: string;
+  /** Optional custom React content rendered inside the Tool Viewer body. */
+  customRender?: () => React.ReactNode;
 }
 
 const CALL_MONITORING_URL =
@@ -38,7 +43,7 @@ const TOOLS: ITool[] = [
   { label: 'Training Matrix',    icon: 'TableGroup',     embedUrl: TRAINING_MATRIX_URL },
   { label: 'Call Monitoring',    icon: 'Headset',        embedUrl: CALL_MONITORING_URL },
   { label: 'Training Planner',   icon: 'ReadingMode',    href:     TRAINING_PLANNER_URL },
-  { label: 'Quizzes',            icon: 'TestSuite'       },
+  { label: 'Training Stages',    icon: 'Education',      customRender: () => <QuizzesPanel /> },
   { label: 'Quiz Results',       icon: 'AnalyticsReport' },
 ];
 
@@ -49,21 +54,21 @@ const WEEKLY_UPDATES: string[] = [
   'Refresh your training matrix bookmarks this week.',
 ];
 
-const WEEKLY_PILLS: Array<{ label: string; tone: 'amber' | 'red' | 'blue' }> = [
-  { label: '3 quizzes pending review', tone: 'amber' },
-  { label: '1 matrix update overdue',  tone: 'red'   },
-  { label: 'Trainer sync Tue 10 AM',   tone: 'blue'  },
-];
-
-const TrainersHub: React.FC<ITrainersHubProps> = ({ weekTitle, weekDateRange }) => {
+const TrainersHub: React.FC<ITrainersHubProps> = () => {
   const themeVars = React.useMemo(
     () => getThemeCssVariables(defaultTheme) as React.CSSProperties,
     []
   );
 
+  const { announcements } = useAnnouncements('Trainers');
+  const weeklyUpdates = announcements.length > 0 ? announcements.map(a => a.title) : WEEKLY_UPDATES;
+
+  // Weekly Focus always shows the current week (Monday to Sunday).
+  const week = React.useMemo(() => getCurrentWeek(), []);
+
   const [activeTool, setActiveTool] = React.useState<ITool | null>(null);
 
-  /** Full URL for the active tool — same as the embedded view minus the
+  /** Full URL for the active tool: same as the embedded view minus the
    *  iframe-only query params (env=Embedded, action=embedview). Used by
    *  the "Open full" button to launch the natural full experience. */
   const activeToolFullUrl = React.useMemo<string | undefined>(() => {
@@ -99,7 +104,7 @@ const TrainersHub: React.FC<ITrainersHubProps> = ({ weekTitle, weekDateRange }) 
 
   return (
     <div className={styles.hub} style={themeVars}>
-      <Navigation onSearch={handleNavSearch} activePage="departmentHub" />
+      <Navigation onSearch={handleNavSearch} activePage="training" />
 
       <div className={styles.layout}>
         <main className={styles.mainColumn}>
@@ -108,9 +113,9 @@ const TrainersHub: React.FC<ITrainersHubProps> = ({ weekTitle, weekDateRange }) 
             <article className={styles.weeklyFocusCard} aria-labelledby="trh-focus-title">
               <span className={styles.weeklyFocusEyebrow}>Weekly Focus</span>
               <h2 id="trh-focus-title" className={styles.weeklyFocusTitle}>
-                {weekTitle}
+                {week.title}
               </h2>
-              <p className={styles.weeklyFocusDate}>{weekDateRange}</p>
+              <p className={styles.weeklyFocusDate}>{week.range}</p>
             </article>
 
             <section className={styles.weeklyUpdatesCard} aria-labelledby="trh-updates-title">
@@ -118,22 +123,48 @@ const TrainersHub: React.FC<ITrainersHubProps> = ({ weekTitle, weekDateRange }) 
                 Weekly updates
               </h3>
               <ul className={styles.weeklyUpdatesList}>
-                {WEEKLY_UPDATES.map((u, i) => (
+                {weeklyUpdates.map((u, i) => (
                   <li key={i}>{u}</li>
                 ))}
               </ul>
-              <div className={styles.weeklyPillsRow}>
-                {WEEKLY_PILLS.map((p) => (
-                  <span
-                    key={p.label}
-                    className={`${styles.weeklyPill} ${styles[`weeklyPill_${p.tone}`]}`}
-                  >
-                    {p.label}
-                  </span>
-                ))}
-              </div>
             </section>
           </div>
+
+          <section className={`${styles.toolsPanel} ${styles.toolsPanelMobile}`} aria-labelledby="trh-tools-title-m">
+            <div className={styles.panelHeader}>
+              <h3 id="trh-tools-title-m" className={styles.panelTitle}><Icon iconName="Toolbox" aria-hidden="true" />Tools</h3>
+            </div>
+            <ul className={styles.toolsGrid} role="list">
+              {TOOLS.map((tool) => {
+                const isActive = activeTool?.label === tool.label;
+                return (
+                  <li key={tool.label}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (tool.href) {
+                          window.open(
+                            tool.href,
+                            '_blank',
+                            'popup,width=900,height=900,scrollbars=yes,resizable=yes'
+                          );
+                        } else {
+                          setActiveTool(tool);
+                        }
+                      }}
+                      className={`${styles.toolTile} ${isActive ? styles.toolTileActive : ''}`}
+                      aria-pressed={isActive}
+                    >
+                      <span className={styles.toolIcon} aria-hidden="true">
+                        <Icon iconName={tool.icon} />
+                      </span>
+                      <span className={styles.toolLabel}>{tool.label}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
 
           <section className={styles.toolViewerCard} aria-labelledby="trh-viewer-title">
             <header className={styles.toolViewerHeader}>
@@ -142,7 +173,7 @@ const TrainersHub: React.FC<ITrainersHubProps> = ({ weekTitle, weekDateRange }) 
                 <div>
                   <p className={styles.toolViewerEyebrow}>Tool Viewer</p>
                   <h3 id="trh-viewer-title" className={styles.toolViewerTitle}>
-                    Select a tool from the right
+                    Select a tool
                   </h3>
                 </div>
               </div>
@@ -154,7 +185,7 @@ const TrainersHub: React.FC<ITrainersHubProps> = ({ weekTitle, weekDateRange }) 
             >
               {!activeTool && (
                 <span className={styles.placeholderHint}>
-                  Pick a tool from the right to view it here.
+                  Pick a tool to view it here.
                 </span>
               )}
 
@@ -187,7 +218,9 @@ const TrainersHub: React.FC<ITrainersHubProps> = ({ weekTitle, weekDateRange }) 
                     </div>
                   </header>
 
-                  {activeTool.embedUrl ? (
+                  {activeTool.customRender ? (
+                    activeTool.customRender()
+                  ) : activeTool.embedUrl ? (
                     <iframe
                       title={`${activeTool.label} — embedded view`}
                       src={activeTool.embedUrl}
@@ -212,12 +245,9 @@ const TrainersHub: React.FC<ITrainersHubProps> = ({ weekTitle, weekDateRange }) 
         </main>
 
         <aside className={styles.sidebar} aria-label="Trainer tools">
-          <section className={styles.toolsPanel} aria-labelledby="trh-tools-title">
+          <section className={`${styles.toolsPanel} ${styles.toolsPanelDesktop}`} aria-labelledby="trh-tools-title">
             <div className={styles.panelHeader}>
-              <h3 id="trh-tools-title" className={styles.panelTitle}>Tools</h3>
-              <button type="button" className={styles.panelMore} aria-label="Tool panel options">
-                ⋯
-              </button>
+              <h3 id="trh-tools-title" className={styles.panelTitle}><Icon iconName="Toolbox" aria-hidden="true" />Tools</h3>
             </div>
             <ul className={styles.toolsGrid} role="list">
               {TOOLS.map((tool) => {

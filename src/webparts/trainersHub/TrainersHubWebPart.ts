@@ -21,7 +21,7 @@ export default class TrainersHubWebPart extends BaseClientSideWebPart<ITrainersH
   protected async onInit(): Promise<void> {
     await super.onInit();
     // The Footer's Send Feedback button writes to the SiteFeedback list
-    // on IntranetRedesignSharepoint20 via the FeedbackService — its SPFI
+    // on IntranetRedesignSharepoint20 via the FeedbackService: its SPFI
     // instance has to be initialized for this web part to work standalone.
     initializeFeedbackSP(this.context);
   }

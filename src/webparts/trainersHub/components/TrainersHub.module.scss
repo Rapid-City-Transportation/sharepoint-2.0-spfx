@@ -158,42 +158,6 @@ $transition:      0.18s ease;
   }
 }
 
-.weeklyPillsRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.weeklyPill {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  border: 1px solid transparent;
-}
-
-.weeklyPill_amber {
-  background: rgba(210, 159, 28, 0.12);
-  color: $gold-accessible;
-  border-color: rgba(210, 159, 28, 0.35);
-}
-
-.weeklyPill_red {
-  background: rgba(155, 44, 44, 0.10);
-  color: $red;
-  border-color: rgba(155, 44, 44, 0.30);
-}
-
-.weeklyPill_blue {
-  background: rgba(31, 76, 127, 0.08);
-  color: $primary-blue;
-  border-color: rgba(31, 76, 127, 0.25);
-}
-
 .toolViewerCard {
   background: $text-inverse;
   border: 1px solid $border;
@@ -434,10 +398,6 @@ $transition:      0.18s ease;
   color: $text-inverse;
 
   .panelTitle { color: $text-inverse; }
-  .panelMore {
-    color: rgba(255, 255, 255, 0.7);
-    &:hover { color: $text-inverse; }
-  }
 
   .toolTile {
     background: rgba(255, 255, 255, 0.06);
@@ -477,6 +437,13 @@ $transition:      0.18s ease;
   .toolLabel { color: $text-inverse; }
 }
 
+.toolsPanelMobile { display: none; }
+
+@media (max-width: 1100px) {
+  .toolsPanelMobile { display: block; }
+  .toolsPanelDesktop { display: none; }
+}
+
 .panelHeader {
   display: flex;
   align-items: center;
@@ -489,20 +456,9 @@ $transition:      0.18s ease;
   font-size: 15px;
   font-weight: 700;
   color: var(--rct-text-primary, #{$text-primary});
-}
-
-.panelMore {
-  @extend %focus-ring;
-  background: none;
-  border: none;
-  font-size: 16px;
-  color: var(--rct-text-secondary, #{$text-muted});
-  cursor: pointer;
-  padding: 0 6px;
-  font-family: inherit;
-  line-height: 1;
-
-  &:hover { color: var(--rct-brand-blue-primary, #{$primary-blue}); }
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .toolsGrid {
@@ -563,4 +519,29 @@ $transition:      0.18s ease;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+// ---------------------------------------------------------------------------
+// Mobile / small-screen refinements. Scoped to max-width queries so the
+// desktop layout is unchanged.
+// ---------------------------------------------------------------------------
+@media (max-width: 640px) {
+  // Pull the page in less so content isn't squeezed into a narrow strip.
+  .hub { padding: 16px 16px 0; }
+
+  // Comfortable touch targets (>= 44px) for thumbs.
+  .toolContentClose { width: 40px; height: 40px; }
+  .toolViewerOpenFull { min-height: 44px; }
+
+  // A selected tool shouldn't swallow the whole phone screen.
+  .toolViewerBodyActive { height: 460px; }
+  .toolContentFrame { min-height: 360px; }
+}
+
+@media (max-width: 480px) {
+  .weeklyFocusTitle { font-size: 23px; }
+}
+
+@media (max-width: 400px) {
+  .hub { padding: 12px 12px 0; }
 }
