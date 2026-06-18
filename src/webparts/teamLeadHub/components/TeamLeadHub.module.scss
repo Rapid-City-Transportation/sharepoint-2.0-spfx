@@ -1,4 +1,4 @@
-// Team Lead Hub — SCSS Module
+// Team Lead Hub SCSS Module
 // Mirrors CustomerExperienceHub.module.scss for visual consistency
 // (same brand tokens, card shapes, tools panel treatment).
 
@@ -12,7 +12,7 @@
   }
 }
 
-// Local brand tokens — kept in lockstep with CustomerExperienceHub.module.scss
+// Local brand tokens: kept in lockstep with CustomerExperienceHub.module.scss
 // so colors/typography don't drift between the two hub pages.
 $primary-blue:    #1F4C7F;
 $dark-navy:       #262931;
@@ -48,7 +48,7 @@ $transition:      0.18s ease;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.5;
   // Generous horizontal padding so the main column and the Tools sidebar
-  // each pull inward from the page edges — the layout breathes more.
+  // each pull inward from the page edges so the layout breathes more.
   padding: 24px 56px 0;
 
   * { box-sizing: border-box; }
@@ -60,7 +60,7 @@ $transition:      0.18s ease;
   gap: 24px;
   align-items: start;
   margin: 24px auto 48px;
-  // The Team Lead Hub main column is sparser than the CX Hub's — capping
+  // The Team Lead Hub main column is sparser than the CX Hub's: capping
   // the max width keeps the Weekly Updates card from sprawling out and
   // prevents the Tools panel from being pushed past the viewport edge on
   // wide screens.
@@ -76,6 +76,29 @@ $transition:      0.18s ease;
   flex-direction: column;
   gap: 20px;
   min-width: 0;
+}
+
+.backLink {
+  @extend %focus-ring;
+  grid-column: 1 / -1;     /* full-width row above both columns so they line up */
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  border-radius: var(--rct-border-radius);
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rct-blue-accessible);
+  text-decoration: none;
+  transition: color var(--rct-transition);
+
+  &:hover {
+    color: var(--rct-primary);
+    text-decoration: underline;
+  }
 }
 
 .sidebar {
@@ -172,42 +195,6 @@ $transition:      0.18s ease;
   }
 }
 
-.weeklyPillsRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.weeklyPill {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  border: 1px solid transparent;
-}
-
-.weeklyPill_amber {
-  background: rgba(210, 159, 28, 0.12);
-  color: $gold-accessible;
-  border-color: rgba(210, 159, 28, 0.35);
-}
-
-.weeklyPill_red {
-  background: rgba(155, 44, 44, 0.10);
-  color: $red;
-  border-color: rgba(155, 44, 44, 0.30);
-}
-
-.weeklyPill_blue {
-  background: rgba(31, 76, 127, 0.08);
-  color: $primary-blue;
-  border-color: rgba(31, 76, 127, 0.25);
-}
-
 // Tool Viewer (mirrors the CX Hub welcome card / placeholder)
 .toolViewerCard {
   background: $text-inverse;
@@ -260,10 +247,10 @@ $transition:      0.18s ease;
   color: var(--rct-text-primary, #{$text-primary});
 }
 
-// Right-side cluster on the inner tool-content header — holds the
+// Right-side cluster on the inner tool-content header: holds the
 // Open-full pill and the close (X) button. The outer Tool Viewer
 // header stays static (no actions, no tool name) so the inner
-// "Now viewing" header is the only place the active tool is identified —
+// "Now viewing" header is the only place the active tool is identified,
 // same pattern as the CX Hub.
 .toolContentActions {
   display: inline-flex;
@@ -446,7 +433,7 @@ $transition:      0.18s ease;
   }
 }
 
-// Tools panel (sidebar) — identical visual treatment to CX Hub
+// Tools panel (sidebar): identical visual treatment to CX Hub
 .toolsPanel {
   background:
     linear-gradient(160deg, rgba(31, 76, 127, 0.96) 0%, rgba(38, 41, 49, 0.98) 100%);
@@ -458,10 +445,6 @@ $transition:      0.18s ease;
   color: $text-inverse;
 
   .panelTitle { color: $text-inverse; }
-  .panelMore {
-    color: rgba(255, 255, 255, 0.7);
-    &:hover { color: $text-inverse; }
-  }
 
   .toolTile {
     background: rgba(255, 255, 255, 0.06);
@@ -505,6 +488,12 @@ $transition:      0.18s ease;
   .toolLabel { color: $text-inverse; }
 }
 
+// Duplicate Tools panel rendered in the main column for the single-column
+// layout. Hidden on desktop; the desktop sidebar panel is the only one
+// visible above 1100px. The show/hide swap happens in the 1100px media
+// query below, matching the breakpoint where .layout collapses to one col.
+.toolsPanelMobile { display: none; }
+
 .panelHeader {
   display: flex;
   align-items: center;
@@ -517,20 +506,9 @@ $transition:      0.18s ease;
   font-size: 15px;
   font-weight: 700;
   color: var(--rct-text-primary, #{$text-primary});
-}
-
-.panelMore {
-  @extend %focus-ring;
-  background: none;
-  border: none;
-  font-size: 16px;
-  color: var(--rct-text-secondary, #{$text-muted});
-  cursor: pointer;
-  padding: 0 6px;
-  font-family: inherit;
-  line-height: 1;
-
-  &:hover { color: var(--rct-brand-blue-primary, #{$primary-blue}); }
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .toolsGrid {
@@ -546,7 +524,7 @@ $transition:      0.18s ease;
   @extend %focus-ring;
   width: 100%;
   height: 100%;
-  // Compact uniform tile dimensions — same value used by the CX Hub
+  // Compact uniform tile dimensions: same value used by the CX Hub
   // Tools panel so the two hubs render side-by-side at identical size.
   min-height: 92px;
   display: flex;
@@ -570,7 +548,7 @@ $transition:      0.18s ease;
   text-align: center;
 }
 
-// Active-tile treatment lives inside .toolsPanel above — it needs the
+// Active-tile treatment lives inside .toolsPanel above: it needs the
 // extra specificity to beat the sibling .toolsPanel .toolTile rule.
 
 .toolIcon {
@@ -597,4 +575,39 @@ $transition:      0.18s ease;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+// ---------------------------------------------------------------------------
+// Single-column swap. At the same 1100px breakpoint where .layout collapses
+// to one column, hide the desktop sidebar Tools panel and reveal the mobile
+// copy that lives directly above the Tool Viewer in the main column.
+// ---------------------------------------------------------------------------
+@media (max-width: 1100px) {
+  .toolsPanelDesktop { display: none; }
+  .toolsPanelMobile { display: block; }
+}
+
+// ---------------------------------------------------------------------------
+// Mobile / small-screen refinements. Scoped to max-width queries so the
+// desktop layout is unchanged.
+// ---------------------------------------------------------------------------
+@media (max-width: 640px) {
+  // Pull the page in less so content isn't squeezed into a narrow strip.
+  .hub { padding: 16px 16px 0; }
+
+  // Comfortable touch targets (>= 44px) for thumbs.
+  .toolContentClose { width: 40px; height: 40px; }
+  .toolViewerOpenFull { min-height: 44px; }
+
+  // A selected tool shouldn't swallow the whole phone screen.
+  .toolViewerBodyActive { height: 460px; }
+  .toolContentFrame { min-height: 360px; }
+}
+
+@media (max-width: 480px) {
+  .weeklyFocusTitle { font-size: 23px; }
+}
+
+@media (max-width: 400px) {
+  .hub { padding: 12px 12px 0; }
 }

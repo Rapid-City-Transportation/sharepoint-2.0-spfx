@@ -8,14 +8,16 @@ import {
 } from '../../rapidCityHomepage/theme/ThemeTokens';
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
+import { useAnnouncements } from '../../rapidCityHomepage/hooks/useAnnouncements';
+import { getCurrentWeek } from '../../rapidCityHomepage/services/weekUtils';
 
 interface ITool {
   label: string;
   icon: string;
-  /** Optional iframe URL — when set, clicking the tile loads the URL
+  /** Optional iframe URL: when set, clicking the tile loads the URL
    *  inline in the Tool Viewer instead of the "coming soon" message. */
   embedUrl?: string;
-  /** Optional external URL — when set, clicking the tile opens this URL
+  /** Optional external URL: when set, clicking the tile opens this URL
    *  in a popup window instead of loading it inline. Used for forms
    *  hosted outside SharePoint (e.g. Microsoft Forms) that don't iframe
    *  well due to X-Frame-Options. */
@@ -24,34 +26,41 @@ interface ITool {
 
 // Existing SharePoint list views wired into the Team Lead Hub.
 
-// Complaints reviewed by department managers — lives under /sites/Management.
+// Complaints reviewed by department managers: lives under /sites/Management.
 const COMPLAINTS_DEPT_MANAGERS_URL =
   'https://rapidcitytransport.sharepoint.com/sites/Management' +
   '/Lists/Complaints%20%20Department%20Managers/AllItems1.aspx' +
   '?viewid=814acf08-9639-490f-abe2-b1592e304aa6&env=Embedded';
 
-// QC Error Log — lives on the root site.
+// QC Error Log: lives on the root site.
 const QC_ERROR_LOG_URL =
   'https://rapidcitytransport.sharepoint.com' +
   '/Lists/QC%20Error%20Log/AllItems.aspx?env=Embedded';
 
-// Attendance Tracker — lives on the root site.
+// Attendance Tracker: lives on the root site.
 const ATTENDANCE_TRACKER_URL =
   'https://rapidcitytransport.sharepoint.com' +
   '/Lists/Attendance%20Tracker/AllItems.aspx?env=Embedded';
 
-// Call Monitoring — lives under /sites/Management.
+// Call Monitoring: lives under /sites/Management.
 const CALL_MONITORING_URL =
   'https://rapidcitytransport.sharepoint.com/sites/Management' +
   '/Lists/Call%20Monitoring/AllItems.aspx?env=Embedded';
 
-// One on One Form — Microsoft Forms link, opens in a popup window
+// CX Calendar: workbook (Excel Online) on the CSQCLeads site. action=embedview
+// renders it inline in the Tool Viewer; the Teams-only params (wdExp, TeamsCID)
+// are dropped. NOTE: currently the same workbook as the SPRQ Weekend Schedule.
+const CX_CALENDAR_URL =
+  'https://rapidcitytransport.sharepoint.com/sites/CSQCLeads/_layouts/15/Doc.aspx' +
+  '?sourcedoc=%7B8dcbaa54-16b7-43e6-837b-6c7b56fc3614%7D&action=embedview';
+
+// One on One Form: Microsoft Forms link, opens in a popup window
 // since MS Forms blocks iframe embedding via X-Frame-Options.
 const ONE_ON_ONE_FORM_URL =
   'https://forms.cloud.microsoft/Pages/ResponsePage.aspx' +
   '?id=l4y8NMNy7EWK6c1ZaWvyK4pA91Pih8lBtEvq1awi_ZxUNVdRRjhMVkVSRTk2RzdYUzJVWTc4TUFJOCQlQCN0PWcu';
 
-// Weekly Efficiency dashboard — Excel file on /sites/CSQCLeads.
+// Weekly Efficiency dashboard: Excel file on /sites/CSQCLeads.
 // Same SharePoint site as TL Assignment, so `&action=embedview` is
 // sufficient to make Office Online serve it inside our iframe.
 const WEEKLY_EFFICIENCY_URL =
@@ -60,7 +69,7 @@ const WEEKLY_EFFICIENCY_URL =
   '?wdExp=TEAMS-TREATMENT&web=1' +
   '&TeamsCID=c8bca27e-2e99-443f-9b0c-39f5a79b4f4b&action=embedview';
 
-// TL Assignments — Excel file on /sites/CSQCLeads. Same embedview trick
+// TL Assignments: Excel file on /sites/CSQCLeads. Same embedview trick
 // so the Office Online viewer serves it inside our iframe.
 const TL_ASSIGNMENTS_URL =
   'https://rapidcitytransport.sharepoint.com/:x:/s/CSQCLeads' +
@@ -69,7 +78,7 @@ const TL_ASSIGNMENTS_URL =
 
 const TOOLS: ITool[] = [
   { label: 'TL Assignment',        icon: 'AccountManagement', embedUrl: TL_ASSIGNMENTS_URL       },
-  { label: 'CX Calendar',          icon: 'Calendar'       },
+  { label: 'CX Calendar',          icon: 'Calendar',       embedUrl: CX_CALENDAR_URL          },
   { label: 'Complaints Log',       icon: 'Warning',        embedUrl: COMPLAINTS_DEPT_MANAGERS_URL },
   { label: 'Error Log',            icon: 'ErrorBadge',     embedUrl: QC_ERROR_LOG_URL            },
   { label: 'Productivity Report',  icon: 'ReportDocument' },
@@ -79,7 +88,7 @@ const TOOLS: ITool[] = [
   { label: 'Attendance Log',       icon: 'CalendarAgenda', embedUrl: ATTENDANCE_TRACKER_URL     },
 ];
 
-// Weekly updates — deliberately hyphen-free phrasing per the brief.
+// Weekly updates: deliberately hyphen-free phrasing per the brief.
 const WEEKLY_UPDATES: string[] = [
   'Team huddle Tuesday at 9 AM in the lounge.',
   'Attendance reports are due Friday by end of day.',
@@ -87,14 +96,7 @@ const WEEKLY_UPDATES: string[] = [
   'Refresh your knowledge base bookmarks this week.',
 ];
 
-// Pills sit below the bullet list. Keep them short and scannable.
-const WEEKLY_PILLS: Array<{ label: string; tone: 'amber' | 'red' | 'blue' }> = [
-  { label: '4 pending one on ones', tone: 'amber' },
-  { label: '2 reports outstanding', tone: 'red'   },
-  { label: 'Team sync Tue 9 AM',    tone: 'blue'  },
-];
-
-const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) => {
+const TeamLeadHub: React.FC<ITeamLeadHubProps> = () => {
   const themeVars = React.useMemo(
     () => getThemeCssVariables(defaultTheme) as React.CSSProperties,
     []
@@ -102,7 +104,13 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
 
   const [activeTool, setActiveTool] = React.useState<ITool | null>(null);
 
-  /** "Full" URL for the active tool — the same URL we embed, minus the
+  const { announcements } = useAnnouncements('Team Lead');
+  const weeklyUpdates = announcements.length > 0 ? announcements.map(a => a.title) : WEEKLY_UPDATES;
+
+  // Weekly Focus always shows the current week (Monday to Sunday).
+  const week = React.useMemo(() => getCurrentWeek(), []);
+
+  /** "Full" URL for the active tool: the same URL we embed, minus the
    *  iframe-only query params (env=Embedded, action=embedview). Opening
    *  with those stripped gives the normal SharePoint/Office experience
    *  (full chrome, editable Excel) instead of the embed-restricted view. */
@@ -142,16 +150,22 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
       <Navigation onSearch={handleNavSearch} activePage="departmentHub" />
 
       <div className={styles.layout}>
+        <a
+          href="https://rapidcitytransport.sharepoint.com/sites/CustomerService576/SitePages/Customer-Experience-Private-Hub.aspx"
+          className={styles.backLink}
+        >
+          ← Back to CX Hub
+        </a>
+
         <main className={styles.mainColumn}>
 
-          {/* Weekly Focus + Weekly Updates row */}
           <div className={styles.weeklyRow}>
             <article className={styles.weeklyFocusCard} aria-labelledby="tlh-focus-title">
               <span className={styles.weeklyFocusEyebrow}>Weekly Focus</span>
               <h2 id="tlh-focus-title" className={styles.weeklyFocusTitle}>
-                {weekTitle}
+                {week.title}
               </h2>
-              <p className={styles.weeklyFocusDate}>{weekDateRange}</p>
+              <p className={styles.weeklyFocusDate}>{week.range}</p>
             </article>
 
             <section className={styles.weeklyUpdatesCard} aria-labelledby="tlh-updates-title">
@@ -159,24 +173,56 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
                 Weekly updates
               </h3>
               <ul className={styles.weeklyUpdatesList}>
-                {WEEKLY_UPDATES.map((u, i) => (
+                {weeklyUpdates.map((u, i) => (
                   <li key={i}>{u}</li>
                 ))}
               </ul>
-              <div className={styles.weeklyPillsRow}>
-                {WEEKLY_PILLS.map((p) => (
-                  <span
-                    key={p.label}
-                    className={`${styles.weeklyPill} ${styles[`weeklyPill_${p.tone}`]}`}
-                  >
-                    {p.label}
-                  </span>
-                ))}
-              </div>
             </section>
           </div>
 
-          {/* Tool Viewer */}
+          {/* Tools panel, mobile only. Hidden above 1100px; shown here so
+              that when the layout collapses to one column the dark Tools
+              panel sits directly above the Tool Viewer instead of being
+              stranded at the bottom where the sidebar stacks. */}
+          <section className={`${styles.toolsPanel} ${styles.toolsPanelMobile}`} aria-labelledby="tlh-tools-title-m">
+            <div className={styles.panelHeader}>
+              <h3 id="tlh-tools-title-m" className={styles.panelTitle}><Icon iconName="Toolbox" aria-hidden="true" />Tools</h3>
+            </div>
+            <ul className={styles.toolsGrid} role="list">
+              {TOOLS.map((tool) => {
+                const isActive = activeTool?.label === tool.label;
+                return (
+                  <li key={tool.label}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (tool.href) {
+                          // Forms hosted outside SharePoint (e.g. MS Forms)
+                          // block iframe embedding via X-Frame-Options, so
+                          // open them in a popup window instead.
+                          window.open(
+                            tool.href,
+                            '_blank',
+                            'popup,width=900,height=900,scrollbars=yes,resizable=yes'
+                          );
+                        } else {
+                          setActiveTool(tool);
+                        }
+                      }}
+                      className={`${styles.toolTile} ${isActive ? styles.toolTileActive : ''}`}
+                      aria-pressed={isActive}
+                    >
+                      <span className={styles.toolIcon} aria-hidden="true">
+                        <Icon iconName={tool.icon} />
+                      </span>
+                      <span className={styles.toolLabel}>{tool.label}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+
           <section className={styles.toolViewerCard} aria-labelledby="tlh-viewer-title">
             <header className={styles.toolViewerHeader}>
               <div className={styles.toolViewerHeaderLeft}>
@@ -184,7 +230,7 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
                 <div>
                   <p className={styles.toolViewerEyebrow}>Tool Viewer</p>
                   <h3 id="tlh-viewer-title" className={styles.toolViewerTitle}>
-                    Select a tool from the right
+                    Select a tool
                   </h3>
                 </div>
               </div>
@@ -196,7 +242,7 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
             >
               {!activeTool && (
                 <span className={styles.placeholderHint}>
-                  Pick a tool from the right to view it here.
+                  Pick a tool to view it here.
                 </span>
               )}
 
@@ -254,12 +300,9 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = ({ weekTitle, weekDateRange }) 
         </main>
 
         <aside className={styles.sidebar} aria-label="Team lead tools">
-          <section className={styles.toolsPanel} aria-labelledby="tlh-tools-title">
+          <section className={`${styles.toolsPanel} ${styles.toolsPanelDesktop}`} aria-labelledby="tlh-tools-title">
             <div className={styles.panelHeader}>
-              <h3 id="tlh-tools-title" className={styles.panelTitle}>Tools</h3>
-              <button type="button" className={styles.panelMore} aria-label="Tool panel options">
-                ⋯
-              </button>
+              <h3 id="tlh-tools-title" className={styles.panelTitle}><Icon iconName="Toolbox" aria-hidden="true" />Tools</h3>
             </div>
             <ul className={styles.toolsGrid} role="list">
               {TOOLS.map((tool) => {
