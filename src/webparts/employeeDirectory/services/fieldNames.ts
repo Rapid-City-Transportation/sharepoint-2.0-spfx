@@ -1,4 +1,4 @@
-// Employee Highlight — SharePoint list column internal names.
+// Employee Highlight: SharePoint list column internal names.
 //
 // The directory used to source from "Employee Tracker" on /sites/Management,
 // but it now reads from "Employee Highlight" on the root site. The Highlight
@@ -15,24 +15,41 @@ export const ET = {
 
   // ── Core identity ────────────────────────────────────────────────
   Id: 'Id',
-  /** Display name — visible in the list view as the "Title" column. */
+  /** Display name, visible in the list view as the "Title" column. */
   Title: 'Title',
-  /** Person field — holds the M365 user object the row is associated with.
+  /** Person field holding the M365 user object the row is associated with.
    *  Expand to get Employee/Title (display name) and Employee/EMail (used
    *  to construct the SharePoint user-photo URL). */
   Employee: 'Employee',
 
   // ── Employment ───────────────────────────────────────────────────
   Department: 'Department_x0028_s_x0029_',
+  /** Job level / role, e.g. "CX Level 3", "Supervisor", "Trainer", "Team Lead". */
+  Level: 'Level',
   Shift: 'Shift',
 
   // ── Contact ──────────────────────────────────────────────────────
   PhoneLine: 'PhoneLine',
+  /** Alternate contact (cell / personal). Shown in the detail view's
+   *  Contact & Systems section only when present. */
+  AltContact: 'AltContact',
 
   // ── Cross-reference ──────────────────────────────────────────────
   /** Foreign key back to the Employee Tracker row, for code that needs
    *  to walk into the richer profile data (e.g. supervisor, team lead). */
   ETID: 'ETID',
+
+  // ── Display toggles ──────────────────────────────────────────────
+  /** Display name "FeatureOnPublicPage" (Yes/No). Opt-in to show this person
+   *  as a leader on their department's public page. Internal name is "Display"
+   *  (the column was renamed; its internal name kept the original value).
+   *  Department-agnostic: the public page scopes by Department(s), this gates
+   *  who appears. */
+  FeatureOnPublicPage: 'Display',
+  /** "Show In Dept Team" (Yes/No). Opt-in to show this person in their
+   *  department's private hub team panel. Department-agnostic: each hub
+   *  scopes by Department(s), this gates who appears. */
+  ShowInDeptTeam: 'ShowInDeptTeam',
 
   // ── Audit ────────────────────────────────────────────────────────
   Created: 'Created',
@@ -44,9 +61,13 @@ export const ET_GRID_SELECT_FIELDS: readonly string[] = [
   ET.Id,
   ET.Title,
   ET.Department,
+  ET.Level,
   ET.Shift,
   ET.PhoneLine,
+  ET.AltContact,
   ET.ETID,
+  ET.FeatureOnPublicPage,
+  ET.ShowInDeptTeam,
   `${ET.Employee}/Title`,
   `${ET.Employee}/EMail`,
 ];
@@ -55,7 +76,7 @@ export const ET_GRID_EXPAND_FIELDS: readonly string[] = [
   ET.Employee,
 ];
 
-/** Same set for detail — the Highlight list is flat enough that grid
+/** Same set for detail: the Highlight list is flat enough that grid
  *  and detail can share field lists. */
 export const ET_DETAIL_SELECT_FIELDS: readonly string[] = [
   ...ET_GRID_SELECT_FIELDS,

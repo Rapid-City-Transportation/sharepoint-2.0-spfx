@@ -12,7 +12,7 @@ export interface IUseEmployeesResult {
   clearDetail: () => void;
 }
 
-/** Mirrors useProtocolBook — fetches active employees on mount and exposes a
+/** Mirrors useProtocolBook: fetches active employees on mount and exposes a
  *  loader for the detail view. Cancellation guards prevent state writes after
  *  unmount, which matters when navigating away mid-fetch. */
 export function useEmployees(): IUseEmployeesResult {

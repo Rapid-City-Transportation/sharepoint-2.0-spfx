@@ -10,7 +10,7 @@ interface IEmployeeCardProps {
 }
 
 const EmployeeCard: React.FC<IEmployeeCardProps> = ({ employee, onClick }) => {
-  // Grouping by the first department keeps team colour-coding consistent —
+  // Grouping by the first department keeps team colour-coding consistent:
   // every member of the same department gets the same border accent.
   const accent = pickAccentFromString(employee.departments[0]);
   const initials = getEmployeeInitials(employee.name);
@@ -68,12 +68,6 @@ const EmployeeCard: React.FC<IEmployeeCardProps> = ({ employee, onClick }) => {
           style={{ color: accent, borderColor: accent }}
         >
           {deptLine}
-        </div>
-      )}
-
-      {employee.isTeamLead && (
-        <div className={styles.cardLeadBadge} aria-label="Team Lead">
-          Team Lead
         </div>
       )}
 

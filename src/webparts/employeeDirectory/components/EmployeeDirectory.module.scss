@@ -1,17 +1,17 @@
-// Employee Directory — SCSS Module
-// Brand: Rapid City Transportation (RCT) — 2025 palette
+// Employee Directory - SCSS Module
+// Brand: Rapid City Transportation (RCT) - 2025 palette
 // Mirrors the visual language of customerContactCards.module.scss
 // so the two surfaces feel like one product.
-// WCAG AA accessible throughout (all text ≥ 4.5:1 on white).
+// WCAG AA accessible throughout (all text >= 4.5:1 on white).
 
 // Brand tokens (WCAG-safe)
-$primary-blue:    #1F4C7F; // 8.71:1 on white — AAA
-$light-blue-acc:  #187389; // 5.45:1 on white — AA
+$primary-blue:    #1F4C7F; // 8.71:1 on white - AAA
+$light-blue-acc:  #187389; // 5.45:1 on white - AA
 $gold:            #D29F1C;
-$gold-acc:        #8A6A0C; // 5.09:1 on white — AA (text)
-$dark-navy:       #262931; // 14.54:1 on white — AAA
+$gold-acc:        #8A6A0C; // 5.09:1 on white - AA (text)
+$dark-navy:       #262931; // 14.54:1 on white - AAA
 $text-primary:    #262931;
-$text-secondary:  #4A5568; // 7.51:1 on white — AAA
+$text-secondary:  #4A5568; // 7.51:1 on white - AAA
 $text-muted:      #6B7280;
 
 $surface:         #F8F8F8;
@@ -24,7 +24,7 @@ $radius-card:     12px;
 $radius-btn:      8px;
 $transition:      0.18s ease;
 
-// Shared focus ring — keyboard-only via :focus-visible.
+// Shared focus ring: keyboard-only via :focus-visible.
 %focus-ring {
   outline: none;
   &:focus-visible {
@@ -182,6 +182,9 @@ $transition:      0.18s ease;
 .searchInput {
   @extend %focus-ring;
   flex: 1;
+  // Non-visual overflow guard: lets the flex input shrink below its content
+  // width so long typed text can't push the wrapper past its container.
+  min-width: 0;
   border: none;
   background: transparent;
   font-family: inherit;
@@ -300,7 +303,7 @@ $transition:      0.18s ease;
   font-size: 12px;
   color: $text-secondary;
   line-height: 1.35;
-  // One line max — the role line never needs to wrap
+  // One line max: the role line never needs to wrap
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -374,7 +377,7 @@ $transition:      0.18s ease;
   }
 }
 
-/** Muted state used when the phone or TL column is empty — keeps the
+/** Muted state used when the phone or TL column is empty: keeps the
  *  visual rhythm identical across cards without implying we have data. */
 .cardPhoneLineEmpty {
   background: transparent;
@@ -384,7 +387,7 @@ $transition:      0.18s ease;
   i { color: $text-muted; }
 }
 
-/** Team-lead chip — same chip shape as the phone chip, slightly tinted
+/** Team-lead chip: same chip shape as the phone chip, slightly tinted
  *  differently so the two pieces of metadata don't read as one line. */
 .cardTeamLead {
   display: inline-flex;
@@ -661,4 +664,193 @@ $transition:      0.18s ease;
   color: $text-primary;
   line-height: 1.55;
   white-space: pre-wrap;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Responsive: mobile + small-tablet pass
+// Desktop (>=1024px) render is intentionally untouched; every rule below is
+// scoped inside a max-width media query. The two non-visual overflow guards
+// added outside these blocks (min-width:0 on flex children) don't change
+// desktop appearance.
+// ─────────────────────────────────────────────────────────────────────────
+
+// Small tablet: keep multi-column but ease the wide page padding and stop
+// the filter bar / count group from crowding before phone width.
+@media (max-width: 820px) {
+  .pageHeadingRow {
+    padding: 22px 20px 0;
+  }
+
+  .gridView {
+    padding: 0 20px 24px;
+  }
+
+  .detailView {
+    padding: 20px 20px 32px;
+  }
+
+  .detailSection {
+    padding: 18px 20px;
+  }
+}
+
+// Crowded toolbar / filter bar: stack the search + count rows before they
+// squeeze on narrow tablets and large phones.
+@media (max-width: 600px) {
+  .filterBar {
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filterGroup {
+    flex-wrap: wrap;
+  }
+
+  .searchWrapper {
+    max-width: none;
+    width: 100%;
+    flex-basis: 100%;
+  }
+
+  // Drop the margin-left:auto so the count row sits naturally in the stack.
+  .countGroup {
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  // Detail header rows that sat side-by-side become a single stacked column.
+  .detailList {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+// Phone: single/two-column grid, tighter padding, larger touch targets.
+@media (max-width: 640px) {
+  // 3: reduce oversized horizontal page padding to ~16px.
+  .pageHeadingRow {
+    padding: 18px 16px 0;
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+
+  .gridView {
+    padding: 0 16px 20px;
+  }
+
+  .detailView {
+    padding: 16px 16px 28px;
+  }
+
+  .detailSection {
+    padding: 16px;
+  }
+
+  .emptyState {
+    padding: 36px 16px;
+  }
+
+  // 4: shrink oversized headings so they don't overflow.
+  .pageHeading {
+    font-size: 21px;
+  }
+
+  .detailName {
+    font-size: 20px;
+  }
+
+  // 1: collapse the auto-fill grid to a 2-up layout on phones so cards
+  // don't shrink below a readable width; min-width:0 lets them flex down.
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  // Let the fixed-height card grow to fit content at narrow widths instead
+  // of clipping it.
+  .card {
+    height: auto;
+    min-height: 230px;
+  }
+
+  // 5: touch targets >=44px on the filter/search/pagination controls.
+  // Let the department dropdown fill the row so it's easy to tap.
+  .filterChip {
+    width: 100%;
+  }
+
+  .filterSelect {
+    min-height: 44px;
+    font-size: 14px;
+    width: 100%;
+    flex: 1;
+  }
+
+  .searchInput {
+    min-height: 44px;
+    padding: 10px 0;
+    // 16px input keeps iOS Safari from auto-zooming on focus.
+    font-size: 16px;
+  }
+
+  .clearButton,
+  .showAllButton {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .pageBtn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .backButton {
+    min-height: 44px;
+    padding: 8px 16px;
+  }
+
+  // 2: profile hero stacks photo over text on phones.
+  .detailHero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 16px;
+  }
+
+  // Keep a comfortable phone body size for hero meta lines.
+  .detailRole,
+  .detailDept {
+    font-size: 14px;
+  }
+}
+
+// Extra-tight phones: single column grid and a touch less padding.
+@media (max-width: 400px) {
+  .pageHeadingRow {
+    padding: 16px 12px 0;
+  }
+
+  .gridView {
+    padding: 0 12px 18px;
+  }
+
+  .detailView {
+    padding: 14px 12px 24px;
+  }
+
+  .detailSection {
+    padding: 14px 12px;
+  }
+
+  // 1: single column once two cards would be too cramped to read.
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  // With one card per row the fixed height is unnecessary; let it size to
+  // its content for full readability.
+  .card {
+    min-height: 0;
+  }
 }

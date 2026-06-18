@@ -31,6 +31,11 @@ function readChoiceArray(row: SPRow, field: string): string[] {
   return [];
 }
 
+function readBool(row: SPRow, field: string): boolean {
+  const val = row[field];
+  return val === true || val === 1 || val === '1';
+}
+
 function readPerson(row: SPRow, field: string): SPPersonField | undefined {
   const val = row[field] as SPPersonField | undefined;
   if (!val) return undefined;
@@ -48,7 +53,7 @@ function buildUserPhotoUrl(email: string | undefined): string | undefined {
 
 /** Map one Employee Highlight row to an IEmployee. Fields the Highlight
  *  list doesn't carry (level, working status, supervisor, etc.) are left
- *  undefined — downstream UI already handles missing values gracefully. */
+ *  undefined; downstream UI already handles missing values gracefully. */
 export function mapRowToEmployee(row: SPRow): IEmployee {
   const idRaw = row[ET.Id] ?? row['id'];
   const id = idRaw != null ? String(idRaw) : '';
@@ -61,16 +66,28 @@ export function mapRowToEmployee(row: SPRow): IEmployee {
     person?.Title ||
     '';
 
+  const level = readString(row, ET.Level);
+
   return {
     id,
     name,
-    // Highlight list has no Active column — every highlighted row is
+    email: person?.EMail,
+    // Highlight list has no Active column; every highlighted row is
     // assumed active by curation.
     active: true,
 
+    level,
+    // A person is flagged as a team lead when their Level is "Team Lead".
+    isTeamLead: !!level && level.trim().toLowerCase() === 'team lead',
+
     departments: readChoiceArray(row, ET.Department),
     shift: readString(row, ET.Shift),
+
+    featureOnPublicPage: readBool(row, ET.FeatureOnPublicPage),
+    showInDeptTeam: readBool(row, ET.ShowInDeptTeam),
+
     phoneLine: readString(row, ET.PhoneLine),
+    altContact: readString(row, ET.AltContact),
 
     photoUrl: buildUserPhotoUrl(person?.EMail),
     photoAlt: name ? `Photo of ${name}` : undefined,

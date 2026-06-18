@@ -3,7 +3,9 @@ import styles from './EmployeeDirectory.module.scss';
 import { IEmployee, DepartmentFilter } from './types';
 import EmployeeCard from './EmployeeCard';
 
-const PAGE_SIZE = 15;
+// Target items per page. The real page size is rounded to a whole multiple of
+// the rendered column count so every page shows complete rows.
+const BASE_PAGE_SIZE = 18;
 
 interface IEmployeeGridViewProps {
   allEmployees: IEmployee[];
@@ -20,9 +22,11 @@ const EmployeeGridView: React.FC<IEmployeeGridViewProps> = ({
   const [searchText, setSearchText]   = React.useState('');
   const [currentPage, setCurrentPage] = React.useState(1);
   const [showAll, setShowAll]         = React.useState(false);
+  // Columns the responsive grid currently renders; the page size is derived from
+  // this so each page fills complete rows instead of leaving a ragged last row.
+  const [columns, setColumns]         = React.useState(6);
+  const gridRef                       = React.useRef<HTMLDivElement>(null);
 
-  // Derive department options from the data — these can change as employees
-  // are added/removed without code changes.
   const departmentOptions = React.useMemo(() => {
     const set = new Set<string>();
     for (const emp of allEmployees) {
@@ -64,11 +68,30 @@ const EmployeeGridView: React.FC<IEmployeeGridViewProps> = ({
     setShowAll(false);
   }, [filterDept, searchText]);
 
-  const totalPages      = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  // Round the target page size to a whole multiple of the column count so every
+  // page shows complete rows; the overflow flows onto the next page.
+  const itemsPerPage    = Math.max(columns, Math.round(BASE_PAGE_SIZE / columns) * columns);
+  const totalPages      = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const safePage        = Math.min(currentPage, totalPages);
-  const pageStart       = (safePage - 1) * PAGE_SIZE;
-  const pageItems       = showAll ? filtered : filtered.slice(pageStart, pageStart + PAGE_SIZE);
-  const needsPagination = filtered.length > PAGE_SIZE;
+  const pageStart       = (safePage - 1) * itemsPerPage;
+  const pageItems       = showAll ? filtered : filtered.slice(pageStart, pageStart + itemsPerPage);
+  const needsPagination = filtered.length > itemsPerPage;
+
+  // Keep columns in sync with what the grid actually renders (it respects the
+  // responsive breakpoints) so itemsPerPage always matches the visible layout.
+  const hasItems = pageItems.length > 0;
+  React.useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return undefined;
+    const measure = (): void => {
+      const count = getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length;
+      if (count > 0) setColumns(prev => (prev === count ? prev : count));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [hasItems]);
 
   const countLabel = React.useMemo(() => {
     const n = filtered.length;
@@ -162,6 +185,7 @@ const EmployeeGridView: React.FC<IEmployeeGridViewProps> = ({
 
       {pageItems.length > 0 ? (
         <div
+          ref={gridRef}
           className={styles.cardGrid}
           role="list"
           aria-label={`Employee directory — ${countLabel}`}

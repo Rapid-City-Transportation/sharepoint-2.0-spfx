@@ -65,7 +65,7 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({ title }) => {
   }, [clearDetail]);
 
   // The shared Navigation component dispatches search results through
-  // onCustomerSelect / onSearch — we don't have customer-style search here,
+  // onCustomerSelect / onSearch. We don't have customer-style search here,
   // so we just use the search box to filter the grid by passing the query in.
   const handleNavSearch = React.useCallback((query: string) => {
     setSearchQuery(query);
@@ -83,7 +83,6 @@ const EmployeeDirectory: React.FC<IEmployeeDirectoryProps> = ({ title }) => {
       <Navigation
         onSearch={handleNavSearch}
         activePage="employeeDirectory"
-        homeUrl="https://rapidcitytransport.sharepoint.com/sites/HomeTest"
       />
 
       {view === 'grid' && (

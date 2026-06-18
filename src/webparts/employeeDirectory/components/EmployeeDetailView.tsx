@@ -65,9 +65,6 @@ const EmployeeDetailView: React.FC<IEmployeeDetailViewProps> = ({ employee, onBa
           {roleLine && <p className={styles.detailRole}>{roleLine}</p>}
           {deptLine && <p className={styles.detailDept}>{deptLine}</p>}
           <div className={styles.detailPillRow}>
-            {employee.isTeamLead && (
-              <span className={styles.detailLeadPill}>Team Lead</span>
-            )}
             {employee.shift && (
               <span className={styles.detailShiftPill}>{employee.shift} shift</span>
             )}
@@ -108,6 +105,14 @@ const EmployeeDetailView: React.FC<IEmployeeDetailViewProps> = ({ employee, onBa
       <section className={styles.detailSection} aria-labelledby="ed-detail-contact">
         <h2 id="ed-detail-contact" className={styles.detailSectionTitle}>Contact &amp; Systems</h2>
         <dl className={styles.detailList}>
+          <DetailRow
+            label="Email"
+            value={
+              employee.email
+                ? <a href={`mailto:${employee.email}`}>{employee.email}</a>
+                : undefined
+            }
+          />
           <DetailRow label="RCT user" value={employee.rctUser} />
           <DetailRow label="Phone line" value={employee.phoneLine} />
           <DetailRow label="Alt contact / cell" value={employee.altContact} />

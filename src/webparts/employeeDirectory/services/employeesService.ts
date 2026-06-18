@@ -27,7 +27,7 @@ function isFresh<T>(entry: ICacheEntry<T> | undefined): entry is ICacheEntry<T> 
  * Fetch every highlighted employee for the directory grid.
  *
  * The Highlight list is curated, so there's no "Active Only" filter to
- * apply — every row is considered visible. Sorting happens client-side
+ * apply: every row is considered visible. Sorting happens client-side
  * since the display name comes from Title (sortable, but kept consistent
  * with the previous service shape).
  */

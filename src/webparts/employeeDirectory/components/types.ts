@@ -8,25 +8,30 @@ export interface IPerson {
 
 export interface IEmployee {
   id: string;
-  /** Display name. Prefers the explicit "Staff" column; falls back to Title. */
+  /** Display name. Prefers the Title column; falls back to the linked person's name. */
   name: string;
-  /** "Yes" / "No" — pre-filtered to "Yes" by the service, but kept on the model
-   *  so downstream UI can display it without re-fetching. */
+  /** Email of the linked M365 user, from the "Employee" person column. */
+  email?: string;
+  /** Always true: the Highlight list is curated and has no Active column. */
   active: boolean;
 
   workingStatus?: string;
-  /** Multi-choice column — array of department labels. */
+  /** Multi-choice column: array of department labels. */
   departments: string[];
   level?: string;
   shift?: string;
 
+  /** "Feature On Public Page" (Yes/No). Opt-in gate for the department public
+   *  page leaders. */
+  featureOnPublicPage?: boolean;
+  /** "Show In Dept Team" (Yes/No). Opt-in gate for a private hub team panel. */
+  showInDeptTeam?: boolean;
+
   manager?: IPerson;
   teamLead?: IPerson;
 
-  /** Derived flag. True when this employee's Id is listed as the TeamLead
-   *  on at least one other active employee — i.e. they ARE someone's team
-   *  lead. Set by employeesService after the full roster is loaded so the
-   *  whole graph is available for the cross-reference. */
+  /** Derived flag, set by the mapper: true when this employee's Level is
+   *  "Team Lead". */
   isTeamLead?: boolean;
 
   // Grid-only fields stop here. Detail-view-only fields below.
@@ -38,7 +43,7 @@ export interface IEmployee {
 
   /** Server-relative URL of the first attachment (used as the photo). */
   photoUrl?: string;
-  /** Friendly photo alt text — typically "Photo of <name>". */
+  /** Friendly photo alt text, typically "Photo of <name>". */
   photoAlt?: string;
 }
 
