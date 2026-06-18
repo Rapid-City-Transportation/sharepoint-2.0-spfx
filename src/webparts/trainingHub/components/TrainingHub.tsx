@@ -48,7 +48,8 @@ function isManagement(emp: IEmployee): boolean {
 }
 
 function isTrainingTeamMember(emp: IEmployee): boolean {
-  return isManagement(emp) && (inCustomerExperience(emp) || inIT(emp));
+  // The training team is everyone whose Level (Employee Highlight) is "Trainer".
+  return !!emp.level && emp.level.trim().toLowerCase() === 'trainer';
 }
 
 function teamSortRank(emp: IEmployee): number {
@@ -57,8 +58,8 @@ function teamSortRank(emp: IEmployee): number {
   return 3;
 }
 
-/** Render departments in a consistent order — non-Management first,
- *  Management last — to match the CX Hub's team cards. */
+/** Render departments in a consistent order: non-Management first,
+ *  Management last, to match the CX Hub's team cards. */
 function orderTeamScope(departments: string[]): string[] {
   const nonMgmt = departments.filter(d => d.toLowerCase() !== 'management');
   const mgmt    = departments.filter(d => d.toLowerCase() === 'management');
@@ -99,7 +100,7 @@ const TrainingHub: React.FC<ITrainingHubProps> = ({ title, subtitle }) => {
 
   return (
     <div className={styles.hub} style={themeVars}>
-      <Navigation onSearch={handleNavSearch} activePage="departmentHub" />
+      <Navigation onSearch={handleNavSearch} activePage="training" />
 
       <div className={styles.layout}>
         <main className={styles.mainColumn}>
@@ -160,7 +161,7 @@ const TrainingHub: React.FC<ITrainingHubProps> = ({ title, subtitle }) => {
 
             {!teamLoading && teamMembers.length === 0 && (
               <p className={styles.teamMemberRole}>
-                No training team members found yet. Tag the relevant people with Management on the Employee Highlight list.
+                No training team members found yet. Set a person&#39;s Level to &quot;Trainer&quot; on the Employee Highlight list.
               </p>
             )}
 

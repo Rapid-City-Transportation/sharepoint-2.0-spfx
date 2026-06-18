@@ -431,3 +431,19 @@ $transition:      0.18s ease;
     text-decoration: underline;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Mobile / small-screen refinements. Scoped to max-width queries so the
+// desktop layout is unchanged.
+// ---------------------------------------------------------------------------
+@media (max-width: 640px) {
+  // Pull the page in less so content isn't squeezed into a narrow strip.
+  .hub { padding: 16px 16px 0; }
+}
+
+@media (max-width: 400px) {
+  .hub { padding: 12px 12px 0; }
+
+  // One dept tile per row on the smallest phones so labels stay legible.
+  .trainerHubGrid { grid-template-columns: 1fr; }
+}
