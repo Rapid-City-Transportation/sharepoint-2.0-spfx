@@ -2,21 +2,21 @@
  * CSS custom-property (design token) system for Rapid City Transportation Hub.
  *
  * ┌──────────────────────────────────────────────────────────────────────────┐
- * │  BRAND PALETTE — Rapid City Transportation (2025 refresh)               │
+ * │  BRAND PALETTE: Rapid City Transportation (2025 refresh)                │
  * ├──────────────────────┬────────────┬───────────────────────────────────── │
  * │  Name                │  HEX       │  Notes                               │
  * ├──────────────────────┼────────────┼───────────────────────────────────── │
  * │  Light Gray          │  #F8F8F8   │  Surface / background                │
- * │  Light Blue          │  #62A9B8   │  Brand accent — decorative / icons   │
+ * │  Light Blue          │  #62A9B8   │  Brand accent: decorative / icons    │
  * │  Primary Blue        │  #1F4C7F   │  Primary interactive (8.71:1 / AAA)  │
  * │  Dark Navy           │  #262931   │  Darkest surfaces (14.54:1 / AAA)    │
  * │  Gold Accent         │  #D29F1C   │  Buttons / highlights (dark text)    │
  * ├──────────────────────┼────────────┼───────────────────────────────────── │
  * │  ACCESSIBLE VARIANTS (adjusted for WCAG 2.1 AA / AODA)                  │
  * ├──────────────────────┼────────────┼───────────────────────────────────── │
- * │  Blue Accessible     │  #187389   │  ~5.45:1 on white — AA ✓             │
- * │  Gold Accessible     │  #8A6A0C   │  ~5.09:1 on white — AA ✓             │
- * │  Text Secondary      │  #4A5568   │  ~7.51:1 on white — AAA ✓            │
+ * │  Blue Accessible     │  #187389   │  ~5.45:1 on white, AA ✓              │
+ * │  Gold Accessible     │  #8A6A0C   │  ~5.09:1 on white, AA ✓              │
+ * │  Text Secondary      │  #4A5568   │  ~7.51:1 on white, AAA ✓             │
  * └──────────────────────┴────────────┴──────────────────────────────────────┘
  *
  * Values match ThemeTokens.ts; use in CSS modules via var(--rct-*).
@@ -36,8 +36,8 @@
   --rct-secondary-active: #0E4D5A;
 
   /* ── Brand colours ─────────────────────────────────────────────────────── */
-  --rct-brand-gold:       #D29F1C; /* Gold — buttons, CTA (dark text req.)    */
-  --rct-brand-blue:       #62A9B8; /* Light Blue — decorative / icons         */
+  --rct-brand-gold:       #D29F1C; /* Gold: buttons, CTA (dark text req.)     */
+  --rct-brand-blue:       #62A9B8; /* Light Blue: decorative / icons          */
   --rct-gold-accessible:  #8A6A0C; /* darkened gold safe for text on white    */
   --rct-blue-accessible:  #187389; /* darkened light blue safe for interactive */
 
@@ -48,7 +48,7 @@
 
   /* ── Backgrounds ─────────────────────────────────────────────────────── */
   --rct-background:       #FFFFFF;
-  --rct-surface:          #F8F8F8; /* Light Gray — card / panel bg             */
+  --rct-surface:          #F8F8F8; /* Light Gray: card / panel bg              */
   --rct-surface-alt:      #EFF1F3; /* slightly darker surface                 */
   --rct-surface-dark:     #1F4C7F; /* dark section bg (Primary Blue)          */
   --rct-surface-midnight: #262931; /* darkest section bg (Dark Navy)          */

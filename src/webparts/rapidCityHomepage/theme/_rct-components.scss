@@ -1,12 +1,12 @@
 /**
  * RCT Component Design System
- * Rapid City Transportation — SharePoint SPFx / WCAG 2.1 AA / AODA
+ * Rapid City Transportation: SharePoint SPFx / WCAG 2.1 AA / AODA
  *
  * Import this file inside any SCSS module that needs reusable component styles:
  *   @import '../../theme/_rct-components';
  *
  * All components consume CSS custom properties defined in themeVariables.module.scss.
- * SPFx CSS Modules scope class names automatically — these are plain class
+ * SPFx CSS Modules scope class names automatically; these are plain class
  * patterns that can be applied in .tsx files directly.
  */
 
@@ -23,7 +23,7 @@
   justify-content: center;
   gap:             var(--rct-spacing-xs);
   padding:         10px var(--rct-spacing-lg);
-  min-height:      44px;          // WCAG 2.5.5 — 44×44 px touch target
+  min-height:      44px;          // WCAG 2.5.5: 44x44 px touch target
   min-width:       44px;
   font-family:     'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size:       16px;
@@ -55,7 +55,7 @@
   }
 }
 
-// ── Primary button — Gold bg, Dark Navy text (6.06:1 → AA) ─────────────
+// ── Primary button: Gold bg, Dark Navy text (6.06:1 AA) ─────────────
 .btnPrimary {
   @extend %btnBase;
   background: var(--rct-brand-gold);
@@ -76,7 +76,7 @@
   }
 }
 
-// ── Secondary button — Primary Blue bg, white text (8.71:1 → AAA) ──────
+// ── Secondary button: Primary Blue bg, white text (8.71:1 AAA) ──────
 .btnSecondary {
   @extend %btnBase;
   background:   var(--rct-primary);
@@ -96,8 +96,8 @@
   }
 }
 
-// ── Ghost / Outline button — transparent bg, blue border + text ─────────
-// Primary Blue text on white: 8.71:1 → AAA
+// ── Ghost / Outline button: transparent bg, blue border + text ─────────
+// Primary Blue text on white: 8.71:1, AAA
 .btnGhost {
   @extend %btnBase;
   background:   transparent;
@@ -115,7 +115,7 @@
   }
 }
 
-// ── Ghost Light Blue variant — blue border + text on white (~5.45:1 → AA)
+// ── Ghost Light Blue variant: blue border + text on white (~5.45:1 AA)
 .btnGhostBlue {
   @extend %btnBase;
   background:   transparent;
@@ -264,7 +264,7 @@
   min-height:      100px;
   background:      var(--rct-surface-dark);   // Primary Blue
   border-radius:   var(--rct-border-radius-lg);
-  color:           var(--rct-text-inverse);   // White — 8.71:1 on blue → AAA
+  color:           var(--rct-text-inverse);   // White, 8.71:1 on blue, AAA
   text-decoration: none;
   font-weight:     600;
   font-size:       14px;
@@ -327,7 +327,7 @@
   text-align:       center;
 }
 
-// Dark gradient overlay on hero images — keeps white text readable
+// Dark gradient overlay on hero images: keeps white text readable
 .heroOverlay {
   position: absolute;
   inset:    0;
@@ -398,7 +398,7 @@
   line-height: 1.5;
 }
 
-// ── Informational — blue accent, text on surface ─────────────────────────
+// ── Informational: blue accent, text on surface ─────────────────────────
 .bannerInfo {
   @extend %bannerBase;
   background:  var(--rct-surface-alt);
