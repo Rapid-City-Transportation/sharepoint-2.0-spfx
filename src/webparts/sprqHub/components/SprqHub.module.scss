@@ -44,6 +44,153 @@ $transition:      0.18s ease;
   }
 }
 
+// ── SPRQ team roster (mirrors the CX Hub "Senior & Support Team") ────────────
+.teamCard {
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  padding: 20px 22px 22px;
+  box-shadow: $shadow-card;
+}
+
+.teamHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.teamEyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rct-text-secondary, #{$text-muted});
+  margin-bottom: 2px;
+}
+
+.teamTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+}
+
+.teamGrid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.teamMember {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-tile;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.teamMemberTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teamAvatar {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  object-fit: cover;       // circular crop when rendering a real photo
+  color: $text-inverse;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.teamMemberInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.teamMemberName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rct-text-primary, #{$text-primary});
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamMemberRole {
+  font-size: 12px;
+  color: var(--rct-text-secondary, #{$text-secondary});
+}
+
+.teamMemberFooter {
+  display: flex;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid $border;
+}
+
+.teamMemberShift {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rct-text-secondary, #{$text-muted});
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.teamMemberContact {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;   // contacts stay on the right; shift sits on the left
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  font-size: 13px;
+
+  span {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(24, 115, 137, 0.08);
+  }
+}
+
+.teamMemberContactLink {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(24, 115, 137, 0.08);
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  text-decoration: none;
+  transition: background 0.15s ease;
+
+  &:hover { background: rgba(24, 115, 137, 0.18); }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-brand-blue-primary, #{$primary-blue});
+    outline-offset: 2px;
+  }
+}
+
 // Flex column + min-height keeps the Footer pinned to the bottom even when
 // the page content is short (the Footer itself uses margin-top: auto).
 .hub {
@@ -501,6 +648,15 @@ $transition:      0.18s ease;
   display: block;
 }
 
+// Wrapper for custom-rendered tools (e.g. the Daily Task board). Scroll viewport
+// inside the fixed-height Tool Viewer, with breathing room from the edges.
+.toolContentCustom {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+}
+
 // Inline lists shown in the Tool Viewer (client accounts, master lists, forms).
 .toolContentList {
   list-style: none;
@@ -742,123 +898,12 @@ $transition:      0.18s ease;
   max-width: 100%;
 }
 
-/* ----------------------------------------------------------------------- */
-/* Task Schedule                                                            */
-/* ----------------------------------------------------------------------- */
-
-.tasksCard,
 .statsCard {
   background: $text-inverse;
   border: 1px solid $border;
   border-radius: $radius-card;
   padding: 16px 18px 18px;
   box-shadow: $shadow-card;
-}
-
-.tasksList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.taskRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  border-top: 1px solid $border;
-
-  &:first-child { border-top: none; padding-top: 2px; }
-  &:last-child { padding-bottom: 2px; }
-}
-
-.taskAvatar {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  color: $text-inverse;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-}
-
-.taskInfo {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.taskTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--rct-text-primary, #{$text-primary});
-  line-height: 1.3;
-}
-
-.taskMeta {
-  font-size: 11.5px;
-  color: var(--rct-text-secondary, #{$text-muted});
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.statusBadge {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  border: 1px solid transparent;
-}
-
-.statusDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  flex-shrink: 0;
-}
-
-.statusBadge_inprogress {
-  background: rgba(31, 76, 127, 0.10);
-  color: $primary-blue;
-  border-color: rgba(31, 76, 127, 0.26);
-}
-
-.statusBadge_duesoon {
-  background: rgba(193, 120, 23, 0.12);
-  color: $orange-acc;
-  border-color: rgba(193, 120, 23, 0.30);
-}
-
-.statusBadge_pending {
-  background: rgba(210, 159, 28, 0.14);
-  color: $gold-accessible;
-  border-color: rgba(210, 159, 28, 0.34);
-}
-
-.statusBadge_done {
-  background: rgba(46, 125, 50, 0.12);
-  color: $green-acc;
-  border-color: rgba(46, 125, 50, 0.30);
-}
-
-.statusBadge_blocked {
-  background: rgba(155, 44, 44, 0.10);
-  color: $red;
-  border-color: rgba(155, 44, 44, 0.28);
 }
 
 /* ----------------------------------------------------------------------- */

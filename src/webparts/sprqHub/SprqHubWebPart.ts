@@ -11,6 +11,9 @@ import SprqHub from './components/SprqHub';
 import { ISprqHubProps } from './components/ISprqHubProps';
 import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
 import { initializeSP as initializeRootSP } from './services/spConfig';
+import { initializeSP as initializeCxSP } from '../customerExperienceHub/services/spConfig';
+import { initializeSP as initializeAnnouncementsSP } from '../rapidCityHomepage/services/announcementsSpConfig';
+import { initializeSP as initializeEmployeesSP } from '../employeeDirectory/services/spConfig';
 
 export interface ISprqHubWebPartProps {
   bannerEyebrow: string;
@@ -27,6 +30,12 @@ export default class SprqHubWebPart extends BaseClientSideWebPart<ISprqHubWebPar
     initializeFeedbackSP(this.context);
     // Root-site SPFI for reading the master lists / trackers behind At a Glance.
     initializeRootSP(this.context);
+    // CX site SPFI for the read-only Daily Task list shown in Task Schedule.
+    initializeCxSP(this.context);
+    // CX site SPFI for the CX Announcements list (updates).
+    initializeAnnouncementsSP(this.context);
+    // Root-site SPFI for the Employee Highlight list (SPRQ team roster).
+    initializeEmployeesSP(this.context);
   }
 
   public render(): void {

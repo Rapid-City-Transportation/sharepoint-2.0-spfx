@@ -10,6 +10,13 @@ import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
 import { useAnnouncements } from '../../rapidCityHomepage/hooks/useAnnouncements';
 import { useAtAGlance } from '../hooks/useAtAGlance';
+import { DailyTaskBoard } from '../../customerExperienceHub/components/DailyTaskBoard/DailyTaskBoard';
+import { useEmployees } from '../../employeeDirectory/hooks/useEmployees';
+import { IEmployee } from '../../employeeDirectory/components/types';
+import {
+  getEmployeeInitials,
+  pickAccentFromString,
+} from '../../employeeDirectory/utils/employeeFormatting';
 
 interface ITool {
   label: string;
@@ -24,6 +31,8 @@ interface ITool {
   items?: string[];
   /** When true, links open as a popup window instead of a new tab (forms). */
   linksAsPopup?: boolean;
+  /** Optional custom React content rendered inline in the Tool Viewer body. */
+  customRender?: () => React.ReactNode;
 }
 
 // ── SPRQ client accounts (names list shown inline) ──────────────────────────
@@ -91,7 +100,6 @@ const HOTEL_FINDER_URL          = 'https://rapidcitytransport.sharepoint.com/:l:
 const SCHOOL_BOOKINGS_URL       = 'https://rapidcitytransport.sharepoint.com/:l:/g/JADYJPEv6T67RbdTCSOh9GfIAcRaMwDd_Faz5fL_vy_e-sw?e=TJtXN1';
 const YRDSB_TRIP_PLANNER_URL    = 'https://rapidcitytransport.sharepoint.com/:x:/s/SpecialtyRequestGroup/IQBBm-2BMtaaTaJhx_pea6ipAV_0YZ2FFGSUslJWv6BCLhE?e=3zvn4I';
 const QUOTE_CALCULATORS_URL     = 'https://rapidcitytransport.sharepoint.com/:f:/r/Customer%20Service/Reference/Calculators?csf=1&web=1&e=IO0jQY';
-const DAILY_TASK_URL            = 'https://rapidcitytransport.sharepoint.com/:x:/g/IQAND0sL3jcOQ4p5_0uUs8-lAWYyeQ2EIb1hJx1eERkaRxc?e=GiVrv7';
 const REGULARS_LIST_URL         = 'https://rapidcitytransport.sharepoint.com/:x:/g/IQAK7S4W235HT5QFgAoxya6fAX8P4kI6biknm0ecwdcjWVY?e=c7XB5L';
 
 const TOOLS: ITool[] = [
@@ -103,9 +111,9 @@ const TOOLS: ITool[] = [
   { label: 'YRDSB Trip Planner',      icon: 'MapDirections', embedUrl: YRDSB_TRIP_PLANNER_URL },
   { label: 'Quote Calculators',       icon: 'Calculator',    embedUrl: QUOTE_CALCULATORS_URL },
   { label: 'Booking Forms',           icon: 'TextDocument',  links: BOOKING_FORMS, linksAsPopup: true },
-  { label: 'Daily Task',              icon: 'TaskGroup',     embedUrl: DAILY_TASK_URL },
+  { label: 'Daily Task',              icon: 'TaskGroup',     customRender: () => <DailyTaskBoard scope="sprq" /> },
   { label: 'Regulars List',           icon: 'People',        embedUrl: REGULARS_LIST_URL },
-];
+].sort((a, b) => a.label.localeCompare(b.label));
 
 type UpdateTone = 'pause' | 'school' | 'change' | 'info';
 
@@ -148,26 +156,6 @@ const UPDATES: IUpdate[] = [
   },
 ];
 
-type TaskStatus = 'inprogress' | 'duesoon' | 'pending' | 'done' | 'blocked';
-
-interface ITask {
-  initials: string;
-  /** Avatar background: each value clears 4.5:1 against white initials. */
-  accent: string;
-  title: string;
-  meta: string;
-  status: TaskStatus;
-  statusLabel: string;
-}
-
-const TASKS: ITask[] = [
-  { initials: 'YT', accent: '#1F4C7F', title: 'Calling schools: June bell times', meta: 'Yvette T. · District 51 & 7',  status: 'inprogress', statusLabel: 'In progress' },
-  { initials: 'AV', accent: '#187389', title: 'Hotel block: Summit HS finals',    meta: 'Adele V. · deposit due Jun 17', status: 'duesoon',    statusLabel: 'Due soon'    },
-  { initials: 'MR', accent: '#8A6A0C', title: 'Driver assign: Roosevelt trip',    meta: 'Marco R. · booking #B2041',    status: 'pending',    statusLabel: 'Pending'     },
-  { initials: 'LC', accent: '#2E7D32', title: 'Update Regulars: holds & new',     meta: 'Lin C. · weekly',              status: 'done',       statusLabel: 'Done'        },
-  { initials: 'DP', accent: '#9B2C2C', title: 'Robotics flights: get approval',   meta: 'Devon P. · RAP → ORD',         status: 'blocked',    statusLabel: 'Blocked'     },
-];
-
 type StatTone = 'blue' | 'gold' | 'green';
 type StatKey = 'routes' | 'flight' | 'bookings';
 
@@ -183,6 +171,12 @@ const STATS: IStat[] = [
   { key: 'flight',   icon: 'Airplane',  label: 'Flight & hotel quotes', tone: 'gold'  },
   { key: 'bookings', icon: 'Completed', label: 'School booking quotes', tone: 'green' },
 ];
+
+/** The SPRQ team lead is flagged by "Team Lead" in the Level column: they sort
+ *  first and show a "Team Lead" role label. Everyone else shows name only. */
+function isSprqLead(emp: IEmployee): boolean {
+  return (emp.level || '').toLowerCase().indexOf('team lead') !== -1;
+}
 
 const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
   const themeVars = React.useMemo(
@@ -227,6 +221,19 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
 
   const { counts, loading: statsLoading } = useAtAGlance();
 
+  const { employees, gridLoading: teamLoading } = useEmployees();
+  // SPRQ team = anyone whose Agent Title contains "SPRQ"; the Team Lead sorts first.
+  const sprqMembers = React.useMemo<IEmployee[]>(() => {
+    return employees
+      .filter(e => (e.agentTitle || '').toUpperCase().indexOf('SPRQ') !== -1)
+      .sort((a, b) => {
+        const aLead = isSprqLead(a) ? 0 : 1;
+        const bLead = isSprqLead(b) ? 0 : 1;
+        if (aLead !== bLead) return aLead - bLead;
+        return a.name.localeCompare(b.name);
+      });
+  }, [employees]);
+
   const pageId = activeTool ? `SPRQ Hub: ${activeTool.label}` : 'SPRQ Hub Page';
 
   return (
@@ -235,7 +242,7 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
 
       <div className={styles.layout}>
         <a
-          href="https://rapidcitytransport.sharepoint.com/sites/CustomerService576/SitePages/Customer-Experience-Private-Hub.aspx"
+          href="https://rapidcitytransport.sharepoint.com/sites/CustomerService576/SitePages/Home.aspx"
           className={styles.backLink}
         >
           ← Back to CX Hub
@@ -366,7 +373,9 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
                     </button>
                   </header>
 
-                  {activeTool.items ? (
+                  {activeTool.customRender ? (
+                    <div className={styles.toolContentCustom}>{activeTool.customRender()}</div>
+                  ) : activeTool.items ? (
                     <ul className={styles.toolContentList}>
                       {activeTool.items.map((item, i) => (
                         <li key={i}>{item}</li>
@@ -427,6 +436,90 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
               )}
             </div>
           </section>
+
+          <section className={styles.teamCard} aria-labelledby="sprq-team">
+            <div className={styles.teamHeader}>
+              <div>
+                <h2 id="sprq-team" className={styles.teamTitle}>SPRQ Team</h2>
+              </div>
+            </div>
+            {teamLoading && sprqMembers.length === 0 && (
+              <p className={styles.teamMemberRole} role="status" aria-live="polite">
+                Loading team…
+              </p>
+            )}
+            {!teamLoading && sprqMembers.length === 0 && (
+              <p className={styles.teamMemberRole}>
+                No SPRQ members found yet. In the Employee Highlight list, add SPRQ to the Agent Title of the people you want here.
+              </p>
+            )}
+            {sprqMembers.length > 0 && (
+              <ul className={styles.teamGrid} role="list">
+                {sprqMembers.map((member) => {
+                  const accent = pickAccentFromString(member.name);
+                  const initials = getEmployeeInitials(member.name);
+                  const role = isSprqLead(member) ? 'Team Lead' : '';
+
+                  return (
+                    <li key={member.id} className={styles.teamMember}>
+                      <div className={styles.teamMemberTop}>
+                        {member.photoUrl ? (
+                          <img
+                            src={member.photoUrl}
+                            alt=""
+                            className={styles.teamAvatar}
+                          />
+                        ) : (
+                          <span
+                            className={styles.teamAvatar}
+                            style={{ background: accent }}
+                            aria-hidden="true"
+                          >
+                            {initials}
+                          </span>
+                        )}
+                        <div className={styles.teamMemberInfo}>
+                          <span className={styles.teamMemberName}>{member.name}</span>
+                          {role && <span className={styles.teamMemberRole}>{role}</span>}
+                        </div>
+                      </div>
+                      <div className={styles.teamMemberFooter}>
+                        {member.shift && (
+                          <span className={styles.teamMemberShift}>{member.shift}</span>
+                        )}
+                        <div className={styles.teamMemberContact}>
+                          {member.email ? (
+                            <a
+                              href={`mailto:${member.email}`}
+                              className={styles.teamMemberContactLink}
+                              aria-label={`Email ${member.name}`}
+                            >
+                              <Icon iconName="Mail" />
+                            </a>
+                          ) : (
+                            <span aria-hidden="true"><Icon iconName="Mail" /></span>
+                          )}
+                          {member.email ? (
+                            <a
+                              href={`https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(member.email)}`}
+                              className={styles.teamMemberContactLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label={`Chat with ${member.name} in Teams`}
+                            >
+                              <Icon iconName="Chat" />
+                            </a>
+                          ) : (
+                            <span aria-hidden="true"><Icon iconName="Chat" /></span>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
         </main>
 
         <aside className={styles.sidebar} aria-label="Tools, tasks, and stats">
@@ -460,38 +553,6 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
                   </li>
                 );
               })}
-            </ul>
-          </section>
-
-          <section className={styles.tasksCard} aria-labelledby="sprq-tasks-title">
-            <div className={styles.panelHeader}>
-              <h3 id="sprq-tasks-title" className={styles.panelTitle}>
-                <span className={styles.panelTitleIcon} aria-hidden="true">
-                  <Icon iconName="TaskManager" />
-                </span>
-                Task Schedule
-              </h3>
-            </div>
-            <ul className={styles.tasksList} role="list">
-              {TASKS.map((task, i) => (
-                <li key={i} className={styles.taskRow}>
-                  <span
-                    className={styles.taskAvatar}
-                    style={{ background: task.accent }}
-                    aria-hidden="true"
-                  >
-                    {task.initials}
-                  </span>
-                  <div className={styles.taskInfo}>
-                    <span className={styles.taskTitle}>{task.title}</span>
-                    <span className={styles.taskMeta}>{task.meta}</span>
-                  </div>
-                  <span className={`${styles.statusBadge} ${styles[`statusBadge_${task.status}`]}`}>
-                    <span className={styles.statusDot} aria-hidden="true" />
-                    {task.statusLabel}
-                  </span>
-                </li>
-              ))}
             </ul>
           </section>
 
