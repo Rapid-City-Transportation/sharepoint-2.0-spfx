@@ -26,6 +26,7 @@ const TABS: ITabConfig[] = [
   { id: 'schools', label: 'Schools', category: 'School' },
   { id: 'insurance', label: 'Insurance', category: 'Insurance Company' },
   { id: 'autoAlerts', label: 'Auto Alerts', category: 'Auto Alert' },
+  { id: 'travelTimes', label: 'Travel Times', category: 'Travel Time Guidelines' },
 ];
 
 const ACTIVE_CATEGORIES: ResourceCategory[] = [
@@ -35,9 +36,14 @@ const ACTIVE_CATEGORIES: ResourceCategory[] = [
   'School',
   'Insurance Company',
   'Auto Alert',
+  'Travel Time Guidelines',
 ];
 
 const COLLAPSIBLE_GROUP_TABS = new Set(['schools']);
+
+// Single-item reference tabs (e.g. the travel-time table) show one item, so the
+// search box and result count are just noise; hide them.
+const REFERENCE_TABS = new Set(['travelTimes']);
 
 const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({ isOpen, onClose, triggerRef }) => {
   const [activeTab, setActiveTab] = React.useState<string>('airports');
@@ -239,19 +245,21 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({ isOpen, onClose, tri
 
           {isActiveCategory && (
             <>
-              <div className={styles.searchWrapper}>
-                <span className={styles.searchIcon} aria-hidden="true">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                </span>
-                <input
-                  type="search"
-                  className={styles.searchInput}
-                  placeholder={`Search ${currentTab?.label.toLowerCase() || ''}...`}
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  aria-label={`Search ${currentTab?.label || ''}`}
-                />
-              </div>
+              {!REFERENCE_TABS.has(activeTab) && (
+                <div className={styles.searchWrapper}>
+                  <span className={styles.searchIcon} aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  </span>
+                  <input
+                    type="search"
+                    className={styles.searchInput}
+                    placeholder={`Search ${currentTab?.label.toLowerCase() || ''}...`}
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    aria-label={`Search ${currentTab?.label || ''}`}
+                  />
+                </div>
+              )}
 
               {error && (
                 <div className={styles.errorBanner} role="alert">
@@ -278,9 +286,11 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({ isOpen, onClose, tri
 
               {!loading && !error && visibleItems.length > 0 && (
                 <>
-                  <div className={styles.countLabel} aria-live="polite">
-                    {visibleItems.length} result{visibleItems.length !== 1 ? 's' : ''}
-                  </div>
+                  {!REFERENCE_TABS.has(activeTab) && (
+                    <div className={styles.countLabel} aria-live="polite">
+                      {visibleItems.length} result{visibleItems.length !== 1 ? 's' : ''}
+                    </div>
+                  )}
 
                   {groupedItems.map(([groupName, items]) => {
                     const useCollapse = isCollapsibleTab && hasAnyGroup && groupName && !isSearching;
@@ -332,11 +342,26 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({ isOpen, onClose, tri
                                 </span>
                               </button>
                               {isExpanded && (
-                                <div
-                                  id={panelId}
-                                  className={styles.itemContent}
-                                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content) }}
-                                />
+                                <div id={panelId} className={styles.itemContent}>
+                                  {item.content && (
+                                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content) }} />
+                                  )}
+                                  {item.attachments.length > 0 && (
+                                    <div className={styles.downloadList}>
+                                      {item.attachments.map((att) => (
+                                        <a
+                                          key={att.url}
+                                          href={att.url}
+                                          download={att.name}
+                                          className={styles.downloadLink}
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                          Download {att.name}
+                                        </a>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
                               )}
                             </div>
                           );

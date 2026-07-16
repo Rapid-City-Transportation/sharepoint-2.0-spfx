@@ -1,5 +1,5 @@
 import { getSP } from './spConfig';
-import { SR } from './fieldNames';
+import { SR, SR_SELECT_FIELDS } from './fieldNames';
 
 export type ResourceCategory =
   | 'Airport'
@@ -9,7 +9,13 @@ export type ResourceCategory =
   | 'School'
   | 'Insurance Company'
   | 'Auto Alert'
+  | 'Accommodations'
   | 'FAQ';
+
+export interface ISiteResourceAttachment {
+  name: string;
+  url: string;
+}
 
 export interface ISiteResource {
   id: number;
@@ -17,6 +23,8 @@ export interface ISiteResource {
   category: ResourceCategory;
   group: string;
   content: string;
+  /** Downloadable files on the item (e.g. Flight & Hotel .docx templates). */
+  attachments: ISiteResourceAttachment[];
 }
 
 type RawItem = Record<string, unknown>;
@@ -39,6 +47,8 @@ export async function fetchResourcesByCategory(
   const items: RawItem[] = await sp.web.lists
     .getByTitle(SR.LIST_TITLE)
     .items
+    .select(...SR_SELECT_FIELDS, 'AttachmentFiles/FileName', 'AttachmentFiles/ServerRelativeUrl')
+    .expand('AttachmentFiles')
     .filter(filter)
     .top(500)();
 
@@ -56,7 +66,23 @@ function mapRawToResource(raw: RawItem): ISiteResource | null {
     return null;
   }
 
-  return { id, title, category: categoryRaw, group, content };
+  return { id, title, category: categoryRaw, group, content, attachments: mapAttachments(raw) };
+}
+
+interface RawAttachment {
+  FileName?: string;
+  ServerRelativeUrl?: string;
+}
+
+/** Read the item's attachments (downloadable files such as .docx templates). */
+function mapAttachments(raw: RawItem): ISiteResourceAttachment[] {
+  const att = raw['AttachmentFiles'];
+  const list = Array.isArray(att)
+    ? att
+    : (att && (att as { results?: unknown[] }).results) || [];
+  return (list as RawAttachment[])
+    .filter(a => a && !!a.ServerRelativeUrl)
+    .map(a => ({ name: a.FileName || 'template', url: a.ServerRelativeUrl as string }));
 }
 
 function isValidResource(x: ISiteResource | null): x is ISiteResource {
@@ -72,6 +98,7 @@ function isKnownCategory(value: string): value is ResourceCategory {
     value === 'School' ||
     value === 'Insurance Company' ||
     value === 'Auto Alert' ||
+    value === 'Accommodations' ||
     value === 'FAQ'
   );
 }
