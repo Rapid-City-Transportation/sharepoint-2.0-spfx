@@ -14,6 +14,12 @@ import {
   getEmployeeInitials,
   pickAccentFromString,
 } from '../../employeeDirectory/utils/employeeFormatting';
+import { WeekendCalendar } from './WeekendCalendar/WeekendCalendar';
+import { DailyTaskBoard } from './DailyTaskBoard/DailyTaskBoard';
+
+// Reuse the department public page's hero backdrop so the private hub banner
+// matches the public CX page.
+const HEADER_BACKDROP = require('../../departmentPublicPage/assets/dept-header-backdrop.png');
 
 interface ITool {
   label: string;
@@ -30,6 +36,8 @@ interface ITool {
    *  shorter than the default. The QC Error Log PowerApp, for instance,
    *  doesn't need the full placeholder height. */
   compactEmbed?: boolean;
+  /** Optional custom React content rendered inline in the Tool Viewer body. */
+  customRender?: () => React.ReactNode;
 }
 
 const PASSENGER_FEEDBACK_FORM_URL =
@@ -62,16 +70,23 @@ const LUNCH_SCHEDULE_URL =
   'https://rapidcitytransport.sharepoint.com/sites/CSQCLeads/_layouts/15/Doc.aspx' +
   '?sourcedoc=%7B08870003-5f40-4cb5-9cb0-86e248de022b%7D&action=embedview';
 
-// Weekend schedule workbook (Excel Online) on the CSQCLeads site. action=embedview
-// renders an interactive embed in the Tool Viewer; the Teams-only params
-// (wdExp, TeamsCID) are dropped. "Open full" opens the editable workbook.
-const WEEKEND_SCHEDULE_URL =
-  'https://rapidcitytransport.sharepoint.com/sites/CSQCLeads/_layouts/15/Doc.aspx' +
-  '?sourcedoc=%7B8dcbaa54-16b7-43e6-837b-6c7b56fc3614%7D&action=embedview';
-
 // Procedure Guides (CS) page: opens directly in a new tab, not the Tool Viewer.
 const PROCEDURE_GUIDES_URL =
   'https://rapidcitytransport.sharepoint.com/SitePages/Procedure-Guides(CS).aspx';
+
+// CONFIRMATIONS folder in the CX site's Shared Documents library; opens in a new tab.
+const CONFIRMATIONS_URL =
+  'https://rapidcitytransport.sharepoint.com/sites/CustomerService576/Shared%20Documents/Forms/AllItems.aspx' +
+  '?id=%2Fsites%2FCustomerService576%2FShared%20Documents%2FCONFIRMATIONS' +
+  '&viewid=4a56a26f%2Dbcd6%2D4dc8%2Da06d%2Dd68e83a15d57';
+
+// New Lost Item list form (compass); opens in a new tab.
+const NEW_LOST_ITEM_URL =
+  'https://rapidcitytransport.sharepoint.com/sites/compass/_layouts/15/listforms.aspx?cid=Nzk4OWYxZjUtYTgzZS00YjJlLTliNzctMzEwMmFkZjFiMDJm&ct=1782741736795&or=OWA-NTB-Mail&cid=f557994b-acfa-c95b-66a9-853f032fc868&nav=NzY1Zjg5MzAtZDQ1Ny00ZDBjLTg1YzQtMmM1ZWI3OTQ1MzVl';
+
+// QC Hourly Counts list form; opens in a new tab.
+const QC_HOURLY_COUNTS_URL =
+  'https://rapidcitytransport.sharepoint.com/_layouts/15/listforms.aspx?cid=OTdhOWRiZmMtNTI3YS00NjdkLTk3NWQtZmYwMDFhNzYwZTM0&nav=ZWY1MjAyYjctMGYyZi00NWRkLTg4ODEtOTkxODUyNDEyMTA3';
 
 const TOOLS: ITool[] = [
   {
@@ -84,9 +99,13 @@ const TOOLS: ITool[] = [
   { label: 'Errors',           icon: 'ErrorBadge',  embedUrl: ERRORS_POWER_APP_URL, compactEmbed: true },
   { label: 'Left in Monitor',  icon: 'ViewList',    embedUrl: LEFT_IN_MONITOR_LOG_URL },
   { label: 'Procedure Guides', icon: 'ReadingMode', externalUrl: PROCEDURE_GUIDES_URL },
+  { label: 'Confirmations',    icon: 'DocumentApproval', externalUrl: CONFIRMATIONS_URL },
+  { label: 'Log Lost Item',    icon: 'ReportDocument', externalUrl: NEW_LOST_ITEM_URL },
+  { label: 'QC Hourly Counts', icon: 'Clock',          externalUrl: QC_HOURLY_COUNTS_URL },
   { label: 'Lunch Schedule',   icon: 'Calendar',   embedUrl: LUNCH_SCHEDULE_URL },
-  { label: 'Weekend Schedule', icon: 'DateTime', embedUrl: WEEKEND_SCHEDULE_URL },
-];
+  { label: 'Weekend Calendar', icon: 'CalendarWeek', customRender: () => <WeekendCalendar /> },
+  { label: 'Daily Task',       icon: 'TaskManager',  customRender: () => <DailyTaskBoard scope="cx" /> },
+].sort((a, b) => a.label.localeCompare(b.label));
 
 interface IHub {
   label: string;
@@ -237,6 +256,11 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
     return employees
       .filter(isCxTeamMember)
       .sort((a, b) => {
+        // Members featured on the public page lead the list, so they sit
+        // together in the top row of the team grid.
+        const aFeat = a.featureOnPublicPage ? 0 : 1;
+        const bFeat = b.featureOnPublicPage ? 0 : 1;
+        if (aFeat !== bFeat) return aFeat - bFeat;
         const diff = teamSortRank(a) - teamSortRank(b);
         return diff !== 0 ? diff : a.name.localeCompare(b.name);
       });
@@ -262,8 +286,8 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
         </a>
 
         <main className={styles.mainColumn}>
-          {/* Page title banner: keeps the blue hero, no featured announcement */}
-          <header className={styles.newsCard}>
+          {/* Page title banner (blue hero) */}
+          <header className={styles.newsCard} style={{ backgroundImage: `url(${HEADER_BACKDROP})` }}>
             <div className={styles.newsBody}>
               <h1 className={styles.newsTitle}>Customer Experience Department Hub</h1>
             </div>
@@ -350,7 +374,9 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
                     </div>
                   </header>
 
-                  {activeTool.embedUrl ? (
+                  {activeTool.customRender ? (
+                    <div className={styles.toolContentCustom}>{activeTool.customRender()}</div>
+                  ) : activeTool.embedUrl ? (
                     <iframe
                       title={`${activeTool.label} — embedded view`}
                       src={activeTool.embedUrl}
@@ -412,9 +438,6 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
               <div>
                 <span className={styles.teamEyebrow}>Customer Experience</span>
                 <h2 id="cx-team" className={styles.teamTitle}>Senior &amp; Support Team</h2>
-              </div>
-              <div className={styles.teamHeaderActions}>
-                <a href="#team-all" className={styles.teamViewAll}>View all</a>
               </div>
             </div>
             {teamLoading && teamMembers.length === 0 && (

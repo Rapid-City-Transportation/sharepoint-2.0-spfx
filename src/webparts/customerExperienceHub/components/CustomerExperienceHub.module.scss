@@ -103,15 +103,32 @@ $transition:      0.18s ease;
 // News hero card (dark blue)
 .newsCard {
   position: relative;
-  background:
-    linear-gradient(135deg, rgba(38, 41, 49, 0.92) 0%, rgba(31, 76, 127, 0.88) 100%),
-    radial-gradient(circle at 80% 20%, rgba(210, 159, 28, 0.15), transparent 50%);
-  background-color: $dark-navy;
+  background-color: $dark-navy;   // fallback behind the backdrop image
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   color: $text-inverse;
   border-radius: $radius-card;
-  padding: 18px 28px 36px;
+  padding: 44px 28px 52px;
   box-shadow: $shadow-card;
   overflow: hidden;
+
+  // Blue accent scrim over the backdrop image: heaviest on the left (behind the
+  // title) so white text stays >= 4.5:1 (AODA), lighter on the right so the
+  // image reads through. Mirrors the public CX page hero.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(
+      100deg,
+      rgba(31, 76, 127, 0.95) 0%,
+      rgba(31, 76, 127, 0.92) 65%,
+      rgba(31, 76, 127, 0.68) 88%,
+      rgba(31, 76, 127, 0.52) 100%
+    );
+  }
 }
 
 .newsHeader {
@@ -168,32 +185,12 @@ $transition:      0.18s ease;
 }
 
 .newsBody {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 14px;
   max-width: 560px;
-}
-
-.featuredBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  align-self: flex-start;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.featuredDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: $gold;
 }
 
 .newsTitle {
@@ -429,6 +426,16 @@ $transition:      0.18s ease;
 .toolContentBody {
   padding: 18px 22px 22px;
   overflow-y: auto;
+}
+
+// Wrapper for custom-rendered tools (e.g. the Weekend Calendar). Becomes the
+// scroll viewport inside the fixed-height Tool Viewer (flex + min-height: 0)
+// and insets the content from the edges for breathing room.
+.toolContentCustom {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 22px 24px 24px;
 }
 
 // Lunch Schedule specific rendering
@@ -817,39 +824,6 @@ $engage-header-crop:  50px;
   font-size: 18px;
   font-weight: 700;
   color: var(--rct-text-primary, #{$text-primary});
-}
-
-.teamHeaderActions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.teamAddBtn {
-  @extend %focus-ring;
-  background: $text-inverse;
-  border: 1px solid $border;
-  border-radius: 999px;
-  padding: 5px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--rct-blue-accessible, #{$blue-accessible});
-  cursor: pointer;
-  font-family: inherit;
-  transition: border-color $transition;
-
-  &:hover { border-color: var(--rct-blue-accessible, #{$blue-accessible}); }
-
-  span { margin-right: 2px; }
-}
-
-.teamViewAll {
-  color: var(--rct-blue-accessible, #{$blue-accessible});
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-
-  &:hover { text-decoration: underline; }
 }
 
 .teamGrid {

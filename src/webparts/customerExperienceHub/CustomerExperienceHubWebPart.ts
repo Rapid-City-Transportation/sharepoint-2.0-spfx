@@ -11,6 +11,7 @@ import CustomerExperienceHub from './components/CustomerExperienceHub';
 import { ICustomerExperienceHubProps } from './components/ICustomerExperienceHubProps';
 import { initializeSP as initializeEmployeesSP } from '../employeeDirectory/services/spConfig';
 import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
+import { initializeSP as initializeWeekendSP } from './services/spConfig';
 
 export interface ICustomerExperienceHubWebPartProps {
   title: string;
@@ -26,6 +27,8 @@ export default class CustomerExperienceHubWebPart extends BaseClientSideWebPart<
     // Each spConfig is a separate SPFI singleton targeting its own site.
     initializeEmployeesSP(this.context);
     initializeFeedbackSP(this.context);
+    // CX site SPFI for the read-only Weekend Calendar list.
+    initializeWeekendSP(this.context);
   }
 
   public render(): void {
