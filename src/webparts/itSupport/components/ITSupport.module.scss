@@ -1,0 +1,378 @@
+.page {
+  background: var(--rct-surface-page, #F4F6FA);
+  min-height: 100vh;
+  color: var(--rct-text-primary, #262931);
+}
+
+// Visible only when focused (keyboard skip link).
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 10px 16px;
+  background: #ffffff;
+  color: var(--rct-brand-blue, #1F4C7F);
+  font-weight: 700;
+  border-radius: 0 0 8px 0;
+
+  &:focus {
+    left: 0;
+  }
+}
+
+.main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 24px 8px;
+}
+
+// ── Hero band ───────────────────────────────────────────────────────────────
+.hero {
+  background:
+    linear-gradient(135deg, var(--rct-brand-blue, #1F4C7F) 0%, #173B62 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 28px 32px 32px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  text-decoration: none;
+  opacity: 0.92;
+
+  &:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.heroTitle {
+  margin: 14px 0 8px;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.heroIntro {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.heroEmail {
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: underline;
+
+  &:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+}
+
+// ── Two-column content ──────────────────────────────────────────────────────
+.grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.ticketCard,
+.faqCard {
+  min-width: 0;
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #E2E8F0);
+  border-radius: 14px;
+  padding: 24px 24px 26px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 18px;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+}
+
+.sectionIcon {
+  font-size: 18px;
+  color: var(--rct-brand-blue, #1F4C7F);
+}
+
+// ── Ticket form ─────────────────────────────────────────────────────────────
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rct-text-primary, #262931);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 16px; // 16px stops iOS auto-zoom on focus
+  color: var(--rct-text-primary, #262931);
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #CBD5E1);
+  border-radius: 8px;
+  padding: 11px 12px;
+  min-height: 44px; // touch target
+
+  &::placeholder {
+    color: #94A3B8;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-brand-blue, #1F4C7F);
+    outline-offset: 1px;
+    border-color: var(--rct-brand-blue, #1F4C7F);
+  }
+}
+
+.textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.priorityRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.priorityChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--rct-border, #CBD5E1);
+  background: #ffffff;
+  color: var(--rct-text-secondary, #4A5568);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--rct-brand-blue, #1F4C7F);
+  }
+
+  // Focus ring driven by the visually-hidden radio inside the label.
+  &:focus-within {
+    outline: 3px solid var(--rct-brand-blue, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+.priorityChipActive {
+  background: var(--rct-brand-blue, #1F4C7F);
+  border-color: var(--rct-brand-blue, #1F4C7F);
+  color: #ffffff;
+}
+
+// Keep the radio operable + focusable for screen readers / keyboard, but hidden.
+.priorityInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  overflow: hidden;
+}
+
+.submitBtn {
+  align-self: flex-start;
+  margin-top: 2px;
+  min-height: 44px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--rct-brand-gold, #D29F1C);
+  color: var(--rct-brand-navy, #262931);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--rct-gold-hover, #B98A14);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-brand-navy, #262931);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.errorText {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #9B2C2C;
+}
+
+// ── Success state ───────────────────────────────────────────────────────────
+.successBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+  background: #F0FAF3;
+  border: 1px solid #BBE7C8;
+  border-radius: 12px;
+}
+
+.successIcon {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: #2E7D32;
+}
+
+.successTitle {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+}
+
+.successText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.linkButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--rct-blue-accessible, #187389);
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-brand-blue, #1F4C7F);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+}
+
+// ── FAQ accordion ───────────────────────────────────────────────────────────
+.faqList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.faqItem {
+  border-top: 1px solid var(--rct-border, #E2E8F0);
+
+  &:first-child {
+    border-top: 0;
+  }
+}
+
+.faqQuestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 2px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  color: var(--rct-text-primary, #262931);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--rct-brand-blue, #1F4C7F);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-brand-blue, #1F4C7F);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.faqAnswer {
+  margin: 0;
+  padding: 0 2px 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+// ── Responsive ──────────────────────────────────────────────────────────────
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .main {
+    padding: 18px 16px 8px;
+  }
+
+  .hero {
+    padding: 22px 20px 24px;
+    border-radius: 14px;
+  }
+
+  .heroTitle {
+    font-size: 27px;
+  }
+
+  .ticketCard,
+  .faqCard {
+    padding: 20px 18px 22px;
+  }
+}
