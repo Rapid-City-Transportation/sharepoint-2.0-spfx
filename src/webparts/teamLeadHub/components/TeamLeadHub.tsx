@@ -10,6 +10,7 @@ import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
 import { useAnnouncements } from '../../rapidCityHomepage/hooks/useAnnouncements';
 import { getCurrentWeek } from '../../rapidCityHomepage/services/weekUtils';
+import { WeekendCalendar } from '../../customerExperienceHub/components/WeekendCalendar/WeekendCalendar';
 
 interface ITool {
   label: string;
@@ -22,6 +23,9 @@ interface ITool {
    *  hosted outside SharePoint (e.g. Microsoft Forms) that don't iframe
    *  well due to X-Frame-Options. */
   href?: string;
+  /** Optional custom React content rendered inline in the Tool Viewer body
+   *  (e.g. the read-only Weekend Calendar). */
+  customRender?: () => React.ReactNode;
 }
 
 // Existing SharePoint list views wired into the Team Lead Hub.
@@ -65,9 +69,8 @@ const ONE_ON_ONE_FORM_URL =
 // sufficient to make Office Online serve it inside our iframe.
 const WEEKLY_EFFICIENCY_URL =
   'https://rapidcitytransport.sharepoint.com/:x:/s/CSQCLeads' +
-  '/IQDGIMKKaZq2RIQvJ5DpsajfAZyCq0zTf7VjBBlNlmEbl3I' +
-  '?wdExp=TEAMS-TREATMENT&web=1' +
-  '&TeamsCID=c8bca27e-2e99-443f-9b0c-39f5a79b4f4b&action=embedview';
+  '/IQAvRmwu7nKZQ4aIRyopLUUTARpkMGEFGKSh5_S-fIawW3Q' +
+  '?e=eMhYSw&action=embedview';
 
 // TL Assignments: Excel file on /sites/CSQCLeads. Same embedview trick
 // so the Office Online viewer serves it inside our iframe.
@@ -79,6 +82,7 @@ const TL_ASSIGNMENTS_URL =
 const TOOLS: ITool[] = [
   { label: 'TL Assignment',        icon: 'AccountManagement', embedUrl: TL_ASSIGNMENTS_URL       },
   { label: 'CX Calendar',          icon: 'Calendar',       embedUrl: CX_CALENDAR_URL          },
+  { label: 'Weekend Calendar',     icon: 'CalendarWeek',   customRender: () => <WeekendCalendar /> },
   { label: 'Complaints Log',       icon: 'Warning',        embedUrl: COMPLAINTS_DEPT_MANAGERS_URL },
   { label: 'Error Log',            icon: 'ErrorBadge',     embedUrl: QC_ERROR_LOG_URL            },
   { label: 'Productivity Report',  icon: 'ReportDocument' },
@@ -86,7 +90,7 @@ const TOOLS: ITool[] = [
   { label: 'One on One Form',      icon: 'Group',          href: ONE_ON_ONE_FORM_URL             },
   { label: 'Weekly Efficiency',    icon: 'AreaChart',      embedUrl: WEEKLY_EFFICIENCY_URL       },
   { label: 'Attendance Log',       icon: 'CalendarAgenda', embedUrl: ATTENDANCE_TRACKER_URL     },
-];
+].sort((a, b) => a.label.localeCompare(b.label));
 
 // Weekly updates: deliberately hyphen-free phrasing per the brief.
 const WEEKLY_UPDATES: string[] = [
@@ -151,7 +155,7 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = () => {
 
       <div className={styles.layout}>
         <a
-          href="https://rapidcitytransport.sharepoint.com/sites/CustomerService576/SitePages/Customer-Experience-Private-Hub.aspx"
+          href="https://rapidcitytransport.sharepoint.com/sites/CustomerService576/SitePages/Home.aspx"
           className={styles.backLink}
         >
           ← Back to CX Hub
@@ -275,7 +279,9 @@ const TeamLeadHub: React.FC<ITeamLeadHubProps> = () => {
                     </div>
                   </header>
 
-                  {activeTool.embedUrl ? (
+                  {activeTool.customRender ? (
+                    <div className={styles.toolContentCustom}>{activeTool.customRender()}</div>
+                  ) : activeTool.embedUrl ? (
                     <iframe
                       title={`${activeTool.label} — embedded view`}
                       src={activeTool.embedUrl}

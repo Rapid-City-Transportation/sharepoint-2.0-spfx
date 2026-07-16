@@ -10,6 +10,8 @@ import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import TeamLeadHub from './components/TeamLeadHub';
 import { ITeamLeadHubProps } from './components/ITeamLeadHubProps';
 import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
+import { initializeSP as initializeAnnouncementsSP } from '../rapidCityHomepage/services/announcementsSpConfig';
+import { initializeSP as initializeWeekendCalendarSP } from '../customerExperienceHub/services/spConfig';
 
 export interface ITeamLeadHubWebPartProps {
   weekTitle: string;
@@ -24,6 +26,10 @@ export default class TeamLeadHubWebPart extends BaseClientSideWebPart<ITeamLeadH
     // on IntranetRedesignSharepoint20 via the FeedbackService: that SPFI
     // instance has to be initialized for this web part to work standalone.
     initializeFeedbackSP(this.context);
+    // CX site SPFI for the CX Announcements list (weekly updates).
+    initializeAnnouncementsSP(this.context);
+    // CX site SPFI backing the read-only Weekend Calendar tool (view-only for TLs).
+    initializeWeekendCalendarSP(this.context);
   }
 
   public render(): void {
