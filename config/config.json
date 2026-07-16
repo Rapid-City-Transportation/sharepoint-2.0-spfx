@@ -73,6 +73,14 @@
           "manifest": "./src/webparts/sprqHub/SprqHubWebPart.manifest.json"
         }
       ]
+    },
+    "it-support-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/itSupport/ITSupportWebPart.js",
+          "manifest": "./src/webparts/itSupport/ITSupportWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
