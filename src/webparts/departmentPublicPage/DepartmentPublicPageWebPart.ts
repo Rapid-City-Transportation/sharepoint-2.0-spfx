@@ -18,6 +18,7 @@ import {
 import { initializeSP } from './services/spConfig';
 import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
 import { initializeSP as initializeDirectorySP } from '../employeeDirectory/services/spConfig';
+import { initializeSP as initializeAnnouncementsSP } from '../rapidCityHomepage/services/announcementsSpConfig';
 
 export interface IDepartmentPublicPageWebPartProps {
   /** Department key: determines which department's content is rendered. */
@@ -43,6 +44,8 @@ export default class DepartmentPublicPageWebPart extends BaseClientSideWebPart<I
     // Leaders now source from the Employee Highlight list (root site) via the
     // Employee Directory reader, so its SPFI must be initialized too.
     initializeDirectorySP(this.context);
+    // CX site SPFI for the CX Announcements list (What's New).
+    initializeAnnouncementsSP(this.context);
   }
 
   public render(): void {

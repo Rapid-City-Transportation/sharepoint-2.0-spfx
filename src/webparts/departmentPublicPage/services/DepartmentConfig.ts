@@ -23,6 +23,12 @@ export interface IDepartmentConfig {
   subtitle: string;
   /** Short "About the Team" blurb shown in the hero. */
   about: string;
+  /** Announcements list `Page` value this department's What's New filters on
+   *  (e.g. "IT"). Falls back to "<displayName> Public" when omitted. */
+  announcementPage?: string;
+  /** Optional support-page URL. When set, the public page shows a
+   *  "Need help? Visit Support" button (used by IT). */
+  supportPageUrl?: string;
   contactEmail: string;
   contactPhone: string;
   contactHours: string;
@@ -59,11 +65,15 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
       { email: 'info@rapidcitytransport.com', scope: 'External' },
       { email: 'quality@rapidcitytransport.com', scope: 'External' },
       { email: 'customerexperience@rapidcitytransport.com', scope: 'Internal' },
+      { email: 'accommodations@rapidcitytransport.com', scope: 'Accommodations' },
+      { email: 'schoolbookings@rapidcitytransport.com', scope: 'School Bookings' },
+      { email: 'clientcare@rapidcitytransport.com', scope: 'School Bookings' },
     ],
     phoneNumbers: [
       { label: 'Main', number: '+1 905-831-1500' },
       { label: 'Other', number: '+1 416-266-1500' },
       { label: 'WSIB', number: '+1 833-567-9742' },
+      { label: 'Toll Free', number: '+1 888-202-3923' },
     ],
     hoursGroups: [
       {
@@ -74,7 +84,7 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
         ],
       },
     ],
-    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/CustomerService576/SitePages/Customer-Experience-Private-Hub.aspx',
+    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/CustomerService576/SitePages/Home.aspx',
     groupId: '00000000-0000-0000-0000-000000000001', // Replace with real GUID
     accentColor:      '#1F4C7F', // Primary Blue: 8.71:1 on white (AAA)
     accentColorHover: '#173B62',
@@ -127,9 +137,11 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     displayName: 'Information Technology',
     subtitle: 'About the Team',
     about: 'Information Technology keeps our systems running: support, security, and the tools every team relies on each day.',
+    announcementPage: 'IT',
+    supportPageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/ITSupport.aspx',
     contactEmail: 'support@rapidcitytransport.com',
-    contactPhone: '605-394-4179',
-    contactHours: '8:00 AM - 5:00 PM',
+    contactPhone: '',
+    contactHours: '',
     resourcePageUrl: '/SitePages/DeptHub-Information-Technology.aspx',
     groupId: '00000000-0000-0000-0000-000000000005', // Replace with real GUID
     accentColor:      '#4A5568', // Slate: 7.51:1 on white (AAA)

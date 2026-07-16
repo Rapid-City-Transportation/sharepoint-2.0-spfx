@@ -6,6 +6,9 @@ import { IDepartmentPublicPageProps } from '../models/IDepartmentPublicPageProps
 import { getDepartmentConfig } from '../services/DepartmentConfig';
 import { useDepartmentLeaders } from '../hooks/useDepartmentLeaders';
 import { useAnnouncements } from '../../rapidCityHomepage/hooks/useAnnouncements';
+import { Dialog, DialogType, DialogFooter } from '@fluentui/react/lib/Dialog';
+import { DefaultButton } from '@fluentui/react/lib/Button';
+import { sanitizeHtml } from '../../customerContactCards/utils/sanitize';
 import styles from './DepartmentPublicPage.module.scss';
 
 // ── Placeholder data (static until real data sources are wired up) ──────────
@@ -97,8 +100,10 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
   const deptName  = config?.displayName || 'Department Name';
   const about     = config?.about       || '';
   const email     = props.contactEmail  || config?.contactEmail  || 'department@example.com';
-  const phone     = props.contactPhone  || config?.contactPhone  || '123-456-7890';
-  const hours     = props.contactHours  || config?.contactHours  || '8:00 AM - 5:00 PM';
+  // No placeholder fallback: an empty phone/hours hides that line entirely
+  // rather than showing a fake number (e.g. IT is email-only).
+  const phone     = props.contactPhone  || config?.contactPhone  || '';
+  const hours     = props.contactHours  || config?.contactHours  || '';
   const resourceUrl = props.resourcePageUrl || config?.resourcePageUrl || '#';
   const groupId     = props.allowedGroupId  || config?.groupId        || '';
 
@@ -123,11 +128,13 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
   // "See all" toggle for the What's New section.
   const [showAllNews, setShowAllNews] = React.useState(false);
 
+  // The News announcement opened in the "Read more" modal (null = closed).
+  const [openNews, setOpenNews] = React.useState<
+    null | { title: string; date: string; author: string; bodyHtml: string; linkUrl?: string }
+  >(null);
+
   const { leaders, loading: leadersLoading } = useDepartmentLeaders(config?.displayName);
 
-  // ── What's New: live for Customer Experience, placeholder elsewhere ───────
-  // This page renders for several departments; only the Customer Experience
-  // department reads live items from the CX Announcements list.
   const isCX =
     props.departmentKey === 'customerExperience' ||
     config?.key === 'customerExperience';
@@ -138,15 +145,31 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
     ? 'View CX Department Hub'
     : `View ${deptName} Department Hub`;
 
-  const { announcements } = useAnnouncements('Customer Experience Public');
+  // Each department reads its own announcements, filtered by the Page value set
+  // in its config (e.g. IT uses "IT"), defaulting to "<Department> Public".
+  const announcementPage =
+    config?.announcementPage || (config ? `${config.displayName} Public` : 'Customer Experience Public');
+  const { announcements } = useAnnouncements(announcementPage);
 
-  const allNews: Array<{ title: string; date: string; author: string; imageUrl?: string }> =
-    isCX && announcements.length > 0
+  const allNews: Array<{
+    title: string;
+    date: string;
+    author: string;
+    imageUrl?: string;
+    isNews?: boolean;
+    bodyHtml?: string;
+    linkUrl?: string;
+  }> =
+    announcements.length > 0
       ? announcements.map(a => ({
           title: a.title,
           date: a.time,
           author: a.author || '[Name]',
           imageUrl: a.imageUrl,
+          // Only News items with body text get a "Read more" modal.
+          isNews: a.category.toLowerCase() === 'news' && !!a.bodyHtml.trim(),
+          bodyHtml: a.bodyHtml,
+          linkUrl: a.linkUrl,
         }))
       : PLACEHOLDER_NEWS;
   const newsItems   = showAllNews ? allNews : allNews.slice(0, 3);
@@ -201,7 +224,7 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
             </h1>
             {about && <p className={styles.heroAbout}>{about}</p>}
 
-            {/* Contact + Office Hours: white text directly on the hero, no boxes */}
+            {/* Contact (emails + phones) beside Office Hours: white text on the hero. */}
             <div className={styles.heroMeta}>
               <div className={styles.heroMetaCol}>
                 <h2 className={styles.heroMetaTitle}>Contact</h2>
@@ -234,24 +257,31 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
                     ))}
                   </ul>
                 )}
+                {config?.supportPageUrl && (
+                  <a href={config.supportPageUrl} className={styles.supportInlineBtn}>
+                    Need IT help? Visit IT Support
+                  </a>
+                )}
               </div>
 
-              <div className={styles.heroMetaCol}>
-                <h2 className={styles.heroMetaTitle}>Standard Office Hours</h2>
-                {officeHours.map((group, gi) => (
-                  <div key={gi} className={styles.hoursGroup}>
-                    {group.title && <p className={styles.hoursGroupTitle}>{group.title}</p>}
-                    <ul className={styles.hoursList}>
-                      {group.rows.map((r, ri) => (
-                        <li key={ri} className={styles.hoursRow}>
-                          {r.days && <span className={styles.hoursDays}>{r.days}</span>}
-                          <span className={styles.hoursTime}>{r.time}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
+              {officeHours.length > 0 && (
+                <div className={styles.heroMetaCol}>
+                  <h2 className={styles.heroMetaTitle}>Standard Office Hours</h2>
+                  {officeHours.map((group, gi) => (
+                    <div key={gi} className={styles.hoursGroup}>
+                      {group.title && <p className={styles.hoursGroupTitle}>{group.title}</p>}
+                      <ul className={styles.hoursList}>
+                        {group.rows.map((r, ri) => (
+                          <li key={ri} className={styles.hoursRow}>
+                            {r.days && <span className={styles.hoursDays}>{r.days}</span>}
+                            <span className={styles.hoursTime}>{r.time}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {showResourceButton && (
@@ -306,6 +336,26 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
                     <p className={styles.newsMeta}>
                       Posted {item.date} by {item.author}
                     </p>
+                    {item.isNews && item.bodyHtml && (
+                      <div className={styles.newsActions}>
+                        <button
+                          type="button"
+                          className={styles.newsReadMore}
+                          onClick={() =>
+                            setOpenNews({
+                              title: item.title,
+                              date: item.date,
+                              author: item.author,
+                              bodyHtml: item.bodyHtml as string,
+                              linkUrl: item.linkUrl,
+                            })
+                          }
+                          aria-label={`Read more: ${item.title}`}
+                        >
+                          Read more <span aria-hidden="true">&rarr;</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </article>
               ))}
@@ -382,6 +432,40 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
       </main>
 
       <Footer pageIdentifier={`${deptName} Department Page`} />
+
+      {openNews && (
+        <Dialog
+          hidden={false}
+          onDismiss={() => setOpenNews(null)}
+          minWidth={480}
+          maxWidth={680}
+          dialogContentProps={{ type: DialogType.normal, title: openNews.title }}
+          modalProps={{ isBlocking: false, styles: { main: { borderRadius: 8, overflow: 'hidden' } } }}
+        >
+          <p className={styles.newsModalMeta}>
+            Posted {openNews.date} by {openNews.author}
+          </p>
+          <div
+            className={styles.newsModalBody}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(openNews.bodyHtml) }}
+          />
+          {openNews.linkUrl && (
+            <p className={styles.newsModalLinkWrap}>
+              <a
+                className={styles.newsModalLink}
+                href={openNews.linkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Learn more <span aria-hidden="true">&rarr;</span>
+              </a>
+            </p>
+          )}
+          <DialogFooter>
+            <DefaultButton onClick={() => setOpenNews(null)} text="Close" />
+          </DialogFooter>
+        </Dialog>
+      )}
     </div>
   );
 }
