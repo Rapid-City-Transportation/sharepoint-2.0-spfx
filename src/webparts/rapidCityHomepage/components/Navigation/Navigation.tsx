@@ -37,6 +37,7 @@ const CONTACT_CARDS_URL =
   'https://rapidcitytransport.sharepoint.com/sites/ContactCards/SitePages/Home.aspx';
 const EMPLOYEE_DIRECTORY_URL = `${COMPASS}/SitePages/EmployeeDirectory.aspx`;
 const TRAINING_HUB_URL = `${COMPASS}/SitePages/TrainingHub.aspx`;
+const IT_SUPPORT_URL = `${COMPASS}/SitePages/ITSupport.aspx`;
 const CX_PUBLIC_URL = `${COMPASS}/SitePages/CustomerExperience.aspx`;
 // RISE Hub lives in Viva Engage (same community deep link the CX Hub embeds).
 const RISE_HUB_URL =
@@ -54,7 +55,7 @@ function buildEmployeeSupportOptions(
     { label: 'ADP Web Clock', href: ADP_WEB_CLOCK_URL, newTab: true },
     { label: 'Employee Directory', href: employeeDirectoryUrl },
     { label: 'Human Resources Support', href: '#' },
-    { label: 'Information Technology Support', href: '#' },
+    { label: 'Information Technology Support', href: IT_SUPPORT_URL },
     { label: 'Rise Hub', href: RISE_HUB_URL, newTab: true },
     { label: 'Training Hub', href: trainingHubUrl },
     // Update remaining hrefs as those pages come online.
@@ -76,7 +77,8 @@ export type NavPage =
   | 'contactCards'
   | 'training'
   | 'departmentHub'
-  | 'employeeDirectory';
+  | 'employeeDirectory'
+  | 'itSupport';
 
 export interface INavigationProps {
   onSearch: (query: string) => void;
@@ -97,7 +99,7 @@ export interface INavigationProps {
 export const Navigation: React.FC<INavigationProps> = (props) => {
   const activePage = props.activePage || 'home';
   const isSupportActive =
-    activePage === 'training' || activePage === 'employeeDirectory';
+    activePage === 'training' || activePage === 'employeeDirectory' || activePage === 'itSupport';
   const homeUrl = props.homeUrl || HOME_URL;
   const contactCardsUrl = props.contactCardsUrl || CONTACT_CARDS_URL;
   const employeeDirectoryUrl = props.employeeDirectoryUrl || EMPLOYEE_DIRECTORY_URL;
@@ -265,7 +267,7 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     {
       key: 'support',
       label: 'Employee Support',
-      active: activePage === 'training' || activePage === 'employeeDirectory',
+      active: activePage === 'training' || activePage === 'employeeDirectory' || activePage === 'itSupport',
       links: supportLinks,
     },
   ];
