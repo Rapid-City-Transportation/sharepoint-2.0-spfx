@@ -1,9 +1,9 @@
-// Reuses the Contact Cards SPFI singleton, which already targets
-// IntranetRedesignSharepoint20 (where the CX Announcements list lives) and is
-// initialized in every hub web part's onInit via initializeFeedbackSP.
-import { getSP } from '../../customerContactCards/services/spConfig';
+// Reads the Announcements list, which lives on the compass intranet site (so
+// every department's public page can render it for all staff). Each consuming
+// web part initializes this SPFI in its onInit via initializeAnnouncementsSP.
+import { getSP } from './announcementsSpConfig';
 
-const LIST_TITLE = 'CX Announcements';
+const LIST_TITLE = 'Announcements';
 const TENANT_ORIGIN = 'https://rapidcitytransport.sharepoint.com';
 
 /** One announcement, shaped for the cards that render it. */
@@ -11,11 +11,15 @@ export interface IAnnouncement {
   /** Badge text e.g. "PAUSE"; empty for News items (which render with no badge). */
   tag: string;
   tone: 'pause' | 'school' | 'change' | 'info';
+  /** Raw category value (e.g. "News"), used to decide card behavior. */
+  category: string;
   title: string;
+  /** Plain-text body, for one-line previews. */
   body: string;
+  /** Raw rich-text body HTML, for a "Read more" modal (sanitize before render). */
+  bodyHtml: string;
   /** Friendly relative timestamp, e.g. "Today · 8:10 AM". */
   time: string;
-  featured: boolean;
   /** Optional "Read more" target. */
   linkUrl?: string;
   /** Created-by display name, for pages that show "Posted by". */
@@ -24,20 +28,18 @@ export interface IAnnouncement {
   imageUrl?: string;
 }
 
-interface IRawAnnouncement {
-  Title?: string;
-  // "Page" is a multi-select Choice, so SharePoint returns an array of values.
-  Page?: string[] | string;
-  Category?: string;
-  Body?: string;
-  Active?: boolean;
-  Featured?: boolean;
-  LinkUrl?: { Url?: string } | null;
-  // Card image is now an uploaded Image column, which SharePoint stores as a
-  // list-item attachment. We read it from AttachmentFiles instead of a URL.
-  AttachmentFiles?: { ServerRelativeUrl?: string }[];
-  Created?: string;
-  Author?: { Title?: string } | null;
+interface IFieldDef {
+  Title: string;
+  InternalName: string;
+}
+
+// Internal names of the custom columns, resolved at read time (see below).
+interface IResolvedFields {
+  page?: string;
+  category?: string;
+  body?: string;
+  active?: string;
+  linkUrl?: string;
 }
 
 const TONE_BY_CATEGORY: Record<string, IAnnouncement['tone']> = {
@@ -50,45 +52,94 @@ const TONE_BY_CATEGORY: Record<string, IAnnouncement['tone']> = {
 
 /**
  * Fetch the active announcements tagged for a page (the `Page` column, e.g.
- * "SPRQ", "Trainers", "Customer Experience"). Page is multi-select, so one item
- * can appear on several pages. Returns [] on any error so callers can fall back
- * to their built-in defaults and never render a blank card.
+ * "SPRQ", "Trainers", "Customer Experience Public"). Page is multi-select, so
+ * one item can appear on several pages. Returns [] on any error so callers can
+ * fall back to their built-in defaults and never render a blank card.
+ *
+ * The list was moved between sites and can lose its original column internal
+ * names on import, so the custom columns are resolved by their display Title
+ * (or internal name) at read time and any the list no longer has are skipped,
+ * rather than hardcoding a name that 400s the whole query.
  */
 export async function fetchAnnouncements(page: string): Promise<IAnnouncement[]> {
   const sp = getSP();
-  const items: IRawAnnouncement[] = await sp.web.lists
+
+  const fields: IFieldDef[] = await sp.web.lists
     .getByTitle(LIST_TITLE)
-    .items
-    .select('Title', 'Page', 'Category', 'Body', 'Active', 'Featured', 'LinkUrl', 'Created', 'Author/Title', 'AttachmentFiles/ServerRelativeUrl')
-    .expand('Author', 'AttachmentFiles')
-    .orderBy('Created', true)
-    .top(200)();
+    .fields.select('Title', 'InternalName')();
+  const find = (...names: string[]): string | undefined => {
+    for (const name of names) {
+      const lc = name.trim().toLowerCase();
+      const match = fields.find(
+        f =>
+          (f.Title || '').trim().toLowerCase() === lc ||
+          (f.InternalName || '').toLowerCase() === lc
+      );
+      if (match) return match.InternalName;
+    }
+    return undefined;
+  };
+  const f: IResolvedFields = {
+    page: find('Page'),
+    category: find('Category'),
+    body: find('Body'),
+    active: find('Active'),
+    linkUrl: find('LinkUrl', 'Link Url'),
+  };
+
+  const selects = ['Title', 'Created', 'Author/Title'];
+  [f.page, f.category, f.body, f.active, f.linkUrl].forEach(name => {
+    if (name) selects.push(name);
+  });
+
+  let items: Record<string, unknown>[];
+  try {
+    items = await sp.web.lists
+      .getByTitle(LIST_TITLE)
+      .items.select(...selects, 'AttachmentFiles/ServerRelativeUrl')
+      .expand('Author', 'AttachmentFiles')
+      .orderBy('Created', true)
+      .top(200)();
+  } catch {
+    // Attachments (the card image) may be disabled on the list after the
+    // import; retry without them so the rest of the card still renders.
+    items = await sp.web.lists
+      .getByTitle(LIST_TITLE)
+      .items.select(...selects)
+      .expand('Author')
+      .orderBy('Created', true)
+      .top(200)();
+  }
 
   return items
-    .filter(it => it.Active !== false)
-    .filter(it => pageMatches(it.Page, page))
-    .map(mapItem);
+    .filter(it => (f.active ? it[f.active] !== false : true))
+    .filter(it => pageMatches(f.page ? it[f.page] : undefined, page))
+    .map(it => mapItem(it, f));
 }
 
-function pageMatches(value: string[] | string | undefined, page: string): boolean {
+function pageMatches(value: unknown, page: string): boolean {
   if (Array.isArray(value)) return value.indexOf(page) !== -1;
   return value === page;
 }
 
-function mapItem(it: IRawAnnouncement): IAnnouncement {
-  const category = (it.Category || '').toString();
+function mapItem(it: Record<string, unknown>, f: IResolvedFields): IAnnouncement {
+  const category = f.category ? String(it[f.category] || '') : '';
   const lower = category.toLowerCase();
+  const rawBody = f.body ? String(it[f.body] || '') : '';
+  const link = f.linkUrl ? (it[f.linkUrl] as { Url?: string } | null) : null;
+  const author = it.Author as { Title?: string } | null | undefined;
   return {
     // News items have no badge - they read as a plain line.
     tag: lower && lower !== 'news' ? category.toUpperCase() : '',
     tone: TONE_BY_CATEGORY[lower] || 'info',
-    title: it.Title || '',
-    body: stripHtml(it.Body || ''),
-    time: formatRelative(it.Created),
-    featured: it.Featured === true,
-    linkUrl: it.LinkUrl && it.LinkUrl.Url ? it.LinkUrl.Url : undefined,
-    author: it.Author && it.Author.Title ? it.Author.Title : undefined,
-    imageUrl: resolveAttachmentImage(it.AttachmentFiles),
+    category,
+    title: String(it.Title || ''),
+    body: stripHtml(rawBody),
+    bodyHtml: rawBody,
+    time: formatRelative(it.Created as string | undefined),
+    linkUrl: link && link.Url ? link.Url : undefined,
+    author: author && author.Title ? author.Title : undefined,
+    imageUrl: resolveAttachmentImage(it.AttachmentFiles as { ServerRelativeUrl?: string }[] | undefined),
   };
 }
 
