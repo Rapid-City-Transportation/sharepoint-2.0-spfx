@@ -19,6 +19,8 @@ export interface IEmployee {
   /** Multi-choice column: array of department labels. */
   departments: string[];
   level?: string;
+  /** "Agent Title" column. Contains "SPRQ" for SPRQ team members. */
+  agentTitle?: string;
   shift?: string;
 
   /** "Feature On Public Page" (Yes/No). Opt-in gate for the department public

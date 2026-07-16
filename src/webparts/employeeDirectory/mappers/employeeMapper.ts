@@ -54,7 +54,7 @@ function buildUserPhotoUrl(email: string | undefined): string | undefined {
 /** Map one Employee Highlight row to an IEmployee. Fields the Highlight
  *  list doesn't carry (level, working status, supervisor, etc.) are left
  *  undefined; downstream UI already handles missing values gracefully. */
-export function mapRowToEmployee(row: SPRow): IEmployee {
+export function mapRowToEmployee(row: SPRow, agentTitleField?: string): IEmployee {
   const idRaw = row[ET.Id] ?? row['id'];
   const id = idRaw != null ? String(idRaw) : '';
 
@@ -77,6 +77,8 @@ export function mapRowToEmployee(row: SPRow): IEmployee {
     active: true,
 
     level,
+    // Internal name resolved at read time (unreliable, like other Highlight cols).
+    agentTitle: agentTitleField ? readString(row, agentTitleField) : undefined,
     // A person is flagged as a team lead when their Level is "Team Lead".
     isTeamLead: !!level && level.trim().toLowerCase() === 'team lead',
 
@@ -94,6 +96,6 @@ export function mapRowToEmployee(row: SPRow): IEmployee {
   };
 }
 
-export function mapRowsToEmployees(rows: SPRow[]): IEmployee[] {
-  return rows.map(mapRowToEmployee);
+export function mapRowsToEmployees(rows: SPRow[], agentTitleField?: string): IEmployee[] {
+  return rows.map(row => mapRowToEmployee(row, agentTitleField));
 }
