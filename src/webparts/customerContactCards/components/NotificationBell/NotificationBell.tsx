@@ -356,13 +356,13 @@ function renderDiff(parts: IDiffPart[]): JSX.Element {
 
   return (
     <div className={styles.diffWrapper}>
-      <div className={styles.diffWasLine}>
-        <span className={styles.diffLineLabel}>Was:</span>
-        <span className={styles.diffLineContent}>{wasLine}</span>
-      </div>
       <div className={styles.diffNowLine}>
         <span className={styles.diffLineLabel}>Now:</span>
         <span className={styles.diffLineContent}>{nowLine}</span>
+      </div>
+      <div className={styles.diffWasLine}>
+        <span className={styles.diffLineLabel}>Was:</span>
+        <span className={styles.diffLineContent}>{wasLine}</span>
       </div>
     </div>
   );
