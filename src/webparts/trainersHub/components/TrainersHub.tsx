@@ -45,7 +45,7 @@ const TOOLS: ITool[] = [
   { label: 'Training Planner',   icon: 'ReadingMode',    href:     TRAINING_PLANNER_URL },
   { label: 'Training Stages',    icon: 'Education',      customRender: () => <QuizzesPanel /> },
   { label: 'Quiz Results',       icon: 'AnalyticsReport' },
-];
+].sort((a, b) => a.label.localeCompare(b.label));
 
 const WEEKLY_UPDATES: string[] = [
   'Trainer huddle Tuesday at 10 AM in the training room.',

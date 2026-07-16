@@ -10,6 +10,7 @@ import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import TrainersHub from './components/TrainersHub';
 import { ITrainersHubProps } from './components/ITrainersHubProps';
 import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
+import { initializeSP as initializeAnnouncementsSP } from '../rapidCityHomepage/services/announcementsSpConfig';
 
 export interface ITrainersHubWebPartProps {
   weekTitle: string;
@@ -24,6 +25,8 @@ export default class TrainersHubWebPart extends BaseClientSideWebPart<ITrainersH
     // on IntranetRedesignSharepoint20 via the FeedbackService: its SPFI
     // instance has to be initialized for this web part to work standalone.
     initializeFeedbackSP(this.context);
+    // CX site SPFI for the CX Announcements list (weekly updates).
+    initializeAnnouncementsSP(this.context);
   }
 
   public render(): void {
