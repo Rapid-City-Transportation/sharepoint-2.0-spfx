@@ -319,6 +319,61 @@ $trigger-offset: 70px;
   letter-spacing: 0.04em;
 }
 
+// SPRQ / Accommodations section, pinned at the top of the Booking tab as a
+// highlighted box so agents notice it without scrolling past the templates.
+.accSection {
+  margin-bottom: 18px;
+  padding: 12px 14px 8px;
+  background: rgba(31, 76, 127, 0.06);
+  border: 1px solid #D3DEEC;
+  border-radius: 8px;
+
+  // Uniform row height so one- and two-line names sit on an even grid; the
+  // download button stays centered (no stretch) with visible row dividers.
+  .templateRow {
+    align-items: center;
+    min-height: 54px;
+  }
+
+  .templateItem {
+    border-bottom-color: #CDD9E9;
+  }
+}
+
+.accHeading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1F4C7F;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.accHeadingIcon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.accInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+}
+
+.accNoFile {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 12px;
+  color: #718096;
+}
+
 .templateList {
   list-style: none;
   margin: 0;

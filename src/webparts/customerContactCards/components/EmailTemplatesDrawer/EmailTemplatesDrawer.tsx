@@ -5,6 +5,7 @@ import {
   IEmailTemplate,
   EmailTemplateCategory,
 } from '../../services/emailTemplatesService';
+import { fetchResourcesByCategory, ISiteResource } from '../../services/resourcesService';
 import { sanitizeHtml } from '../../utils/sanitize';
 
 interface IEmailTemplatesDrawerProps {
@@ -36,6 +37,7 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
   const [search, setSearch] = React.useState('');
   const [toast, setToast] = React.useState<IToast | null>(null);
   const [expandedIds, setExpandedIds] = React.useState<Set<number>>(new Set());
+  const [accommodations, setAccommodations] = React.useState<ISiteResource[]>([]);
   const toastTimerRef = React.useRef<number | null>(null);
 
   const toggleExpand = React.useCallback((id: number) => {
@@ -65,6 +67,15 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
         setLoading(false);
       });
   }, [isOpen, templates.length, loading]);
+
+  // The SPRQ / Accommodations booking templates are downloadable .docx files
+  // kept in the SiteResources list; surfaced as a section inside the Booking tab.
+  React.useEffect(() => {
+    if (!isOpen || accommodations.length > 0) return;
+    fetchResourcesByCategory(['Accommodations'])
+      .then(setAccommodations)
+      .catch(() => { /* non-fatal: the section just won't render */ });
+  }, [isOpen, accommodations.length]);
 
   // Only return focus to the trigger after a real close, not on initial mount.
   const wasOpenRef = React.useRef(false);
@@ -178,6 +189,14 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
     return list.sort((a, b) => a.name.localeCompare(b.name));
   }, [templates, currentTab, search]);
 
+  // SPRQ / Accommodations downloads show only inside the Booking tab.
+  const visibleAccommodations = React.useMemo(() => {
+    if (currentTab?.id !== 'booking') return [];
+    if (!search.trim()) return accommodations;
+    const q = search.toLowerCase();
+    return accommodations.filter(a => a.title.toLowerCase().indexOf(q) !== -1);
+  }, [accommodations, currentTab, search]);
+
   return (
     <aside
       ref={drawerRef}
@@ -262,6 +281,46 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
           />
         </div>
 
+        {visibleAccommodations.length > 0 && (
+          <section className={styles.accSection} aria-labelledby="acc-heading">
+            <h3 id="acc-heading" className={styles.accHeading}>
+              <svg className={styles.accHeadingIcon} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Accommodations / SPRQ
+            </h3>
+            <ul className={styles.templateList} role="list">
+              {visibleAccommodations.map((item) => (
+                <li key={`acc-${item.id}`} className={styles.templateItem}>
+                  <div className={styles.templateRow}>
+                    <div className={styles.accInfo}>
+                      <span className={styles.templateIcon} aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                      </span>
+                      <span className={styles.templateName}>{item.title}</span>
+                    </div>
+                    {item.attachments.length > 0 ? (
+                      item.attachments.map((att) => (
+                        <a
+                          key={att.url}
+                          href={att.url}
+                          download={att.name}
+                          className={styles.copyButton}
+                          aria-label={`Download ${item.title}`}
+                          title="Download template"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                          <span>Download</span>
+                        </a>
+                      ))
+                    ) : (
+                      <span className={styles.accNoFile}>No file</span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {error && (
           <div className={styles.errorBanner} role="alert">
             {error}
@@ -274,7 +333,7 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
           </div>
         )}
 
-        {!loading && !error && visibleItems.length === 0 && (
+        {!loading && !error && visibleItems.length === 0 && visibleAccommodations.length === 0 && (
           <div className={styles.placeholder} role="status">
             <p className={styles.placeholderTitle}>No templates</p>
             <p className={styles.placeholderText}>
