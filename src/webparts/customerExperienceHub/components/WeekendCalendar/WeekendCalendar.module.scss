@@ -1,0 +1,249 @@
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.monthNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 2px 0 4px;
+}
+
+.monthNavBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--rct-border, #E2E8F0);
+  background: #FFFFFF;
+  color: var(--rct-brand-blue-primary, #1F4C7F);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--rct-surface-page, #F1F4F9);
+    border-color: var(--rct-blue-accessible, #187389);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-brand-blue-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+.monthLabel {
+  min-width: 156px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+}
+
+// Subtle outer container that groups one weekend's day cards together.
+.weekendGroup {
+  background: var(--rct-surface-page, #F1F4F9);
+  border: 1px solid var(--rct-border, #E2E8F0);
+  border-radius: 14px;
+  padding: 14px 16px 16px;
+}
+
+.weekendHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px 12px;
+}
+
+.weekendIcon {
+  font-size: 15px;
+  color: var(--rct-blue-accessible, #187389);
+}
+
+.weekendEyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rct-blue-accessible, #187389);
+}
+
+.weekendLabel {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+}
+
+.weekendCount {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rct-text-secondary, #4A5568);
+  white-space: nowrap;
+}
+
+// The two day cards sit close together inside the weekend container.
+.weekendDays {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  align-items: start;
+  gap: 12px;
+}
+
+.dayCard {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #FFFFFF;
+  border: 1px solid var(--rct-border, #E2E8F0);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background:
+    linear-gradient(135deg, rgba(31, 76, 127, 0.96) 0%, rgba(38, 41, 49, 0.97) 100%);
+  color: #FFFFFF;
+}
+
+.dayHeading {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dayWeekday {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.dayDate {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.dayCount {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+.shiftList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: #FFFFFF;
+  flex: 1;
+}
+
+.shiftRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--rct-border, #E2E8F0);
+
+  &:first-child {
+    border-top: none;
+  }
+}
+
+.shiftAgent {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rct-text-primary, #262931);
+}
+
+.shiftSkill {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+}
+
+.skill_checking {
+  background: rgba(31, 76, 127, 0.10);
+  color: var(--rct-brand-blue-primary, #1F4C7F);
+  border-color: rgba(31, 76, 127, 0.26);
+}
+
+.skill_booking {
+  background: rgba(107, 33, 168, 0.10);
+  color: #6B21A8;
+  border-color: rgba(107, 33, 168, 0.26);
+}
+
+.skill_wsib {
+  background: rgba(210, 159, 28, 0.16);
+  color: var(--rct-gold-accessible, #8A6A0C);
+  border-color: rgba(210, 159, 28, 0.36);
+}
+
+.skill_vet {
+  background: rgba(46, 125, 50, 0.10);
+  color: #2E7D32;
+  border-color: rgba(46, 125, 50, 0.28);
+}
+
+.skill_default {
+  background: rgba(74, 85, 104, 0.10);
+  color: var(--rct-text-secondary, #4A5568);
+  border-color: rgba(74, 85, 104, 0.24);
+}
+
+.shiftTime {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--rct-text-secondary, #4A5568);
+  white-space: nowrap;
+}
+
+.state {
+  padding: 32px 20px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+@media (max-width: 600px) {
+  .weekendDays {
+    grid-template-columns: 1fr;
+  }
+
+  .shiftRow {
+    padding: 12px 16px;
+  }
+}
