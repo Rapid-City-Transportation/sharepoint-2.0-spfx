@@ -81,6 +81,14 @@
           "manifest": "./src/webparts/itSupport/ITSupportWebPart.manifest.json"
         }
       ]
+    },
+    "it-hub-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/itHub/ItHubWebPart.js",
+          "manifest": "./src/webparts/itHub/ItHubWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},

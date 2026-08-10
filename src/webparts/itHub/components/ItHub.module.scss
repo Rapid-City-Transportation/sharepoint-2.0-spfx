@@ -1,0 +1,968 @@
+// IT Team Hub: private department hub. Layout, tokens, and component styles
+// mirror the Customer Experience hub so both read as the same COMPASS page
+// family; only the content differs.
+
+@import '../../rapidCityHomepage/theme/themeVariables.module.scss';
+
+// Break out of SharePoint's default canvas max-width so the hub
+// can render edge-to-edge like other top-level web parts.
+:global {
+  #workbenchPageContent,
+  .CanvasComponent.LCS .CanvasZone {
+    max-width: 100% !important;
+  }
+}
+
+// Local brand tokens (used as fallbacks when the CSS custom
+// properties from rapidCityHomepage's theme aren't loaded).
+$primary-blue:    #1F4C7F;
+$dark-navy:       #262931;
+$blue-accessible: #187389;
+$gold:            #D29F1C;
+$surface:         #F8F8F8;
+$surface-page:    #F1F4F9;
+$text-primary:    #262931;
+$text-secondary:  #4A5568;
+$text-muted:      #6B7280;
+$text-inverse:    #FFFFFF;
+$border:          #E2E8F0;
+$radius-card:     12px;
+$radius-tile:     8px;
+$shadow-card:     0 1px 3px rgba(15, 23, 42, 0.04), 0 2px 8px rgba(15, 23, 42, 0.06);
+$transition:      0.18s ease;
+
+%focus-ring {
+  outline: none;
+  &:focus-visible {
+    outline: 3px solid var(--rct-brand-blue-primary, #{$primary-blue});
+    outline-offset: 2px;
+  }
+}
+
+.hub {
+  background: $surface-page;
+  color: var(--rct-text-primary, #{$text-primary});
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.5;
+
+  * { box-sizing: border-box; }
+}
+
+// Visible only when focused (keyboard skip link).
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 10px 16px;
+  background: #ffffff;
+  color: var(--rct-brand-blue-primary, #{$primary-blue});
+  font-weight: 700;
+  border-radius: 0 0 8px 0;
+
+  &:focus {
+    left: 0;
+  }
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 28px;
+  align-items: start;
+  margin-top: 24px;
+  margin-bottom: 48px;
+  padding: 0 32px;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.backLink {
+  @extend %focus-ring;
+  grid-column: 1 / -1;     /* full-width row above both columns so they line up */
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  border-radius: var(--rct-border-radius);
+  padding: 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rct-blue-accessible);
+  text-decoration: none;
+  transition: color var(--rct-transition);
+
+  &:hover {
+    color: var(--rct-primary);
+    text-decoration: underline;
+  }
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ── Access / loading / error states ─────────────────────────────────────────
+.stateMain {
+  min-height: 55vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+}
+
+.stateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.stateIcon {
+  font-size: 34px;
+  color: var(--rct-brand-blue-primary, #{$primary-blue});
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+}
+
+.stateText {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--rct-text-secondary, #{$text-secondary});
+}
+
+.stateLink {
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  font-weight: 600;
+  text-decoration: underline;
+
+  &:focus-visible {
+    outline: var(--rct-focus-outline);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+}
+
+.retryBtn {
+  @extend %focus-ring;
+  margin-top: 4px;
+  min-height: 44px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: $radius-tile;
+  background: var(--rct-brand-gold, #{$gold});
+  color: var(--rct-brand-navy, #{$dark-navy});
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--rct-gold-hover, #B98A14);
+  }
+}
+
+// ── Banner (dark blue hero card) ────────────────────────────────────────────
+.newsCard {
+  position: relative;
+  background-color: $dark-navy;   // fallback behind the backdrop image
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: $text-inverse;
+  border-radius: $radius-card;
+  padding: 44px 28px 52px;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+
+  // Blue accent scrim over the backdrop image: heaviest on the left (behind the
+  // title) so white text stays >= 4.5:1 (AODA), lighter on the right so the
+  // image reads through. Mirrors the CX hub banner.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: linear-gradient(
+      100deg,
+      rgba(31, 76, 127, 0.95) 0%,
+      rgba(31, 76, 127, 0.92) 65%,
+      rgba(31, 76, 127, 0.68) 88%,
+      rgba(31, 76, 127, 0.52) 100%
+    );
+  }
+}
+
+.newsBody {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 560px;
+}
+
+.newsTitle {
+  font-size: 28px;
+  line-height: 1.18;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 4px 0 0;
+}
+
+// ── Welcome card / Tool Viewer ──────────────────────────────────────────────
+.welcomeCard {
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  padding: 18px 22px 22px;
+  box-shadow: $shadow-card;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.welcomeHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.welcomeHeaderLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.welcomeHeaderIcon {
+  font-size: 18px;
+  color: var(--rct-brand-blue-primary, #{$primary-blue});
+  background: rgba(31, 76, 127, 0.08);
+  padding: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.welcomeEyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rct-text-secondary, #{$text-muted});
+}
+
+.welcomeTitle {
+  margin: 2px 0 2px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+}
+
+.welcomeSubtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--rct-text-secondary, #{$text-secondary});
+  max-width: 540px;
+}
+
+.welcomePlaceholder {
+  position: relative;
+  min-height: 220px;
+  background:
+    linear-gradient(135deg, #F8FAFC 0%, #EEF2F7 100%);
+  border: 1px dashed #D6DCE5;
+  border-radius: $radius-tile;
+  display: grid;
+  padding: 16px;
+  transition: background $transition, border-color $transition;
+}
+
+// When a tool is active, swap the dashed placeholder for a clean
+// content surface so the loaded tool reads as real content.
+.welcomePlaceholderActive {
+  background: $text-inverse;
+  border: 1px solid $border;
+  display: block;
+  padding: 0;
+  height: 650px;
+  overflow: hidden;
+}
+
+.placeholderHint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  padding: 0 16px;
+  // #4A5568 not the muted gray: this is instructional text and must hit 4.5:1
+  // on the placeholder gradient (AODA).
+  color: var(--rct-text-secondary, #4A5568);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+// Idle state with folder chips: replaces the bare hint when the library's
+// folders are known, turning the empty placeholder into the folder launcher.
+.placeholderIdle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.idleHint {
+  color: var(--rct-text-secondary, #{$text-secondary});
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.folderChips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  max-width: 640px;
+}
+
+.folderChip {
+  @extend %focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 18px;
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rct-brand-blue-primary, #{$primary-blue});
+  cursor: pointer;
+  transition: border-color $transition, background $transition, transform $transition;
+
+  &:hover {
+    border-color: var(--rct-brand-blue-primary, #{$primary-blue});
+    background: rgba(31, 76, 127, 0.06);
+    transform: translateY(-1px);
+  }
+
+  i { font-size: 15px; }
+}
+
+.toolContent {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.toolContentHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid $border;
+  background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
+}
+
+.toolContentTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.toolContentEyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--rct-text-secondary, #{$text-muted});
+}
+
+.toolContentTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+  line-height: 1.2;
+}
+
+.toolContentActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.toolContentOpenFull {
+  @extend %focus-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color $transition, color $transition;
+
+  &:hover {
+    border-color: var(--rct-blue-accessible, #{$blue-accessible});
+    color: var(--rct-brand-blue-primary, #{$primary-blue});
+  }
+
+  i { font-size: 12px; }
+}
+
+.toolContentClose {
+  @extend %focus-ring;
+  background: none;
+  border: 1px solid $border;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--rct-text-secondary, #{$text-muted});
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: border-color $transition, color $transition, background $transition;
+
+  &:hover {
+    border-color: var(--rct-brand-blue-primary, #{$primary-blue});
+    color: var(--rct-brand-blue-primary, #{$primary-blue});
+    background: rgba(31, 76, 127, 0.06);
+  }
+
+  i { font-size: 12px; }
+}
+
+// Iframe that hosts the embedded library views.
+.toolContentFrame {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  border: 0;
+  border-radius: $radius-tile;
+  background: #ffffff;
+  display: block;
+}
+
+// Coming soon state for tools without a real backing yet
+.toolContentComingSoon {
+  padding: 32px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.comingSoonIcon {
+  font-size: 36px;
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  background: rgba(24, 115, 137, 0.08);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.comingSoonText {
+  margin: 0;
+  max-width: 380px;
+  font-size: 13px;
+  color: var(--rct-text-secondary, #{$text-secondary});
+  line-height: 1.5;
+
+  strong {
+    color: var(--rct-text-primary, #{$text-primary});
+    font-weight: 700;
+  }
+}
+
+// ── Recently updated documents ──────────────────────────────────────────────
+.recentCard {
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  padding: 20px 22px 22px;
+  box-shadow: $shadow-card;
+}
+
+.recentList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.recentRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 2px;
+  border-top: 1px solid $border;
+
+  &:first-child {
+    border-top: 0;
+  }
+}
+
+.recentIcon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: $radius-tile;
+  font-size: 17px;
+  background: rgba(31, 76, 127, 0.06);
+  color: var(--rct-brand-blue-primary, #{$primary-blue});
+}
+
+.recentMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.recentName {
+  @extend %focus-ring;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rct-brand-blue-primary, #{$primary-blue});
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  border-radius: 3px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.recentMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: 12px;
+  color: var(--rct-text-secondary, #{$text-secondary});
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 12px;
+  color: var(--rct-text-secondary, #{$text-secondary});
+}
+
+// ── Senior & Support Team ───────────────────────────────────────────────────
+.teamCard {
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  padding: 20px 22px 22px;
+  box-shadow: $shadow-card;
+}
+
+.teamHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.teamEyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--rct-text-secondary, #{$text-muted});
+  margin-bottom: 2px;
+}
+
+.teamTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+}
+
+.teamGrid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.teamMember {
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-tile;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.teamMemberTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teamAvatar {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  object-fit: cover;       // circular crop when rendering a real photo
+  color: $text-inverse;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.teamMemberInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.teamMemberName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rct-text-primary, #{$text-primary});
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teamMemberRole {
+  font-size: 12px;
+  color: var(--rct-text-secondary, #{$text-secondary});
+}
+
+.teamMemberFooter {
+  display: flex;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid $border;
+}
+
+.teamMemberShift {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rct-text-secondary, #{$text-muted});
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.teamMemberContact {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;   // contacts stay on the right; shift sits on the left
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  font-size: 13px;
+
+  span {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(24, 115, 137, 0.08);
+  }
+}
+
+.teamMemberContactLink {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(24, 115, 137, 0.08);
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  text-decoration: none;
+  transition: background 0.15s ease;
+
+  &:hover { background: rgba(24, 115, 137, 0.18); }
+
+  &:focus-visible {
+    outline: var(--rct-focus-outline);
+    outline-offset: 2px;
+  }
+}
+
+// ── Tools panel (dark navy, matches the CX hub toolbox) ─────────────────────
+.toolsPanel {
+  background:
+    linear-gradient(160deg, rgba(31, 76, 127, 0.96) 0%, rgba(38, 41, 49, 0.98) 100%);
+  background-color: $dark-navy;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $radius-card;
+  padding: 16px 18px 18px;
+  box-shadow: $shadow-card;
+  color: $text-inverse;
+
+  .panelTitle {
+    color: $text-inverse;
+  }
+
+  .toolTile {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    // The default blue focus outline is near-invisible on this dark navy/blue
+    // panel (below 3:1). A white ring reads on both the dark tiles and the
+    // gold selected tile.
+    &:focus-visible {
+      outline: 3px solid #ffffff;
+      outline-offset: 2px;
+    }
+  }
+
+  // Selected/pressed tile: solid brand gold so it pops against the dark panel
+  // AND is visually distinct from the white hover state. Dark navy text on
+  // gold = 6.06:1 (AA). Pairs with aria-pressed for screen readers.
+  .toolTileActive,
+  .toolTileActive:hover {
+    background: var(--rct-brand-gold, #{$gold});
+    border-color: var(--rct-brand-gold, #{$gold});
+    color: $dark-navy;
+    box-shadow: 0 4px 16px rgba(210, 159, 28, 0.4);
+
+    .toolIcon {
+      background: rgba(38, 41, 49, 0.18);
+      border-color: rgba(38, 41, 49, 0.28);
+      color: $dark-navy;
+    }
+
+    .toolLabel {
+      color: $dark-navy;
+    }
+  }
+
+  .toolIcon {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: $text-inverse;
+  }
+
+  .toolLabel {
+    color: $text-inverse;
+  }
+}
+
+// The Tools panel is rendered twice: a desktop copy in the sidebar and a
+// mobile copy at the top of the main column. Default state hides the mobile
+// copy; the 1100px media block below flips which one is visible so the dark
+// Tools panel sits above the Tool Viewer once the layout collapses to 1 col.
+.toolsPanelMobile { display: none; }
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #{$text-primary});
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolsGrid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  // Force every row to the same height so tiles never look asymmetrical when
+  // one label wraps to 3 lines and another fits on 1.
+  grid-auto-rows: 1fr;
+  gap: 10px;
+}
+
+.toolTile {
+  @extend %focus-ring;
+  width: 100%;
+  height: 100%;
+  // Compact uniform tile size: same value used by the CX hub Tools panel so
+  // the hubs render side-by-side at identical dimensions.
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $radius-tile;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+  transition: transform $transition, box-shadow $transition,
+              border-color $transition, background $transition;
+  text-align: center;
+  font-weight: 600;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--rct-brand-blue-primary, #{$primary-blue});
+    box-shadow: 0 6px 14px rgba(31, 76, 127, 0.18);
+    background: #ffffff;
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  }
+}
+
+.toolTileActive {
+  background: $gold;
+  border-color: $gold;
+  box-shadow: 0 4px 14px rgba(210, 159, 28, 0.35);
+
+  .toolIcon {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: $dark-navy;
+  }
+
+  .toolLabel {
+    color: $dark-navy;
+  }
+}
+
+.toolIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: $radius-tile;
+  display: grid;
+  place-items: center;
+  background: $text-inverse;
+  border: 1px solid $border;
+  color: var(--rct-brand-blue-primary, #{$primary-blue});
+  font-size: 16px;
+}
+
+.toolLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rct-text-primary, #{$text-primary});
+  line-height: 1.25;
+}
+
+// ---------------------------------------------------------------------------
+// Mobile / small-screen refinements. Scoped to max-width queries so the
+// desktop layout is unchanged.
+// ---------------------------------------------------------------------------
+
+// At the same breakpoint where the 2-col layout collapses to 1 col, swap the
+// stranded sidebar Tools panel for the in-column mobile copy so Tools sits
+// directly above the Tool Viewer card.
+@media (max-width: 1100px) {
+  .toolsPanelDesktop { display: none; }
+  .toolsPanelMobile { display: block; }
+
+  // Hide the whole aside, not just the panel, so screen-reader landmark
+  // navigation doesn't list an empty "IT tools" region on small screens.
+  .sidebar { display: none; }
+}
+
+@media (max-width: 640px) {
+  // Pull the page in less so content isn't squeezed into a narrow strip.
+  .layout { padding: 0 16px; }
+
+  // Comfortable touch targets (>= 44px) for thumbs.
+  .toolContentClose { width: 44px; height: 44px; }
+  .toolContentOpenFull { min-height: 44px; }
+
+  // A selected tool shouldn't swallow the whole phone screen.
+  .welcomePlaceholderActive { height: 460px; }
+
+  // Grow the recent file links' tap area without shifting the row layout.
+  .recentName {
+    display: inline-block;
+    padding: 10px 0;
+    margin: -10px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .newsTitle { font-size: 23px; }
+}
+
+@media (max-width: 400px) {
+  .layout { padding: 0 12px; }
+}

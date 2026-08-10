@@ -1,0 +1,30 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "3b8f2d61-9c4a-4e7b-b5d2-8a1f6c0e9d47",
+  "alias": "ItHubWebPart",
+  "componentType": "WebPart",
+  "version": "1.0.0",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": [
+    "SharePointWebPart",
+    "SharePointFullPage"
+  ],
+  "supportsThemeVariants": true,
+  "supportsFullBleed": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Advanced" },
+      "title": { "default": "IT Team Hub" },
+      "description": {
+        "default": "Private IT department workspace: document categories, recent files, and the team notebook."
+      },
+      "officeFabricIconFontName": "System",
+      "properties": {
+        "notebookUrl": "",
+        "allowedGroupId": ""
+      }
+    }
+  ]
+}
