@@ -25,3 +25,6 @@ Thumbs.db
 # Local tooling / scratch — not part of the SPFx solution
 scripts/
 .claude/
+
+# Windows Explorer folder settings
+desktop.ini
