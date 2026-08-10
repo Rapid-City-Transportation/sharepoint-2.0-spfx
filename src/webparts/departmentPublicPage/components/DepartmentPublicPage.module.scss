@@ -208,33 +208,6 @@
   }
 }
 
-// Secondary "Need help? Visit Support" link in the hero contact column (IT).
-.supportInlineBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 16px;
-  padding: 9px 18px;
-  border-radius: 999px;
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
-  background: transparent;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: background 0.15s ease, color 0.15s ease;
-
-  &:hover {
-    background: #ffffff;
-    color: var(--dept-accent, #1F4C7F);
-  }
-
-  &:focus-visible {
-    outline: 3px solid #ffffff;
-    outline-offset: 2px;
-  }
-}
-
 .heroRight {
   display: flex;
   align-items: center;

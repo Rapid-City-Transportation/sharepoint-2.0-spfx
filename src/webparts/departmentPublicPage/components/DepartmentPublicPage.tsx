@@ -3,7 +3,7 @@ import { Navigation } from '../../rapidCityHomepage/components/Navigation/Naviga
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
 import { defaultTheme, getThemeCssVariables } from '../../rapidCityHomepage/theme/ThemeTokens';
 import { IDepartmentPublicPageProps } from '../models/IDepartmentPublicPageProps';
-import { getDepartmentConfig } from '../services/DepartmentConfig';
+import { getDepartmentConfig, DepartmentKey } from '../services/DepartmentConfig';
 import { useDepartmentLeaders } from '../hooks/useDepartmentLeaders';
 import { useAnnouncements } from '../../rapidCityHomepage/hooks/useAnnouncements';
 import { Dialog, DialogType, DialogFooter } from '@fluentui/react/lib/Dialog';
@@ -15,6 +15,12 @@ import styles from './DepartmentPublicPage.module.scss';
 
 /** Neutral dark hero backdrop; tinted per-department by the accent scrim. */
 const HEADER_BACKDROP = require('../assets/dept-header-backdrop.png');
+
+/** Per-department hero banners: departments with a bespoke banner override the
+ *  neutral backdrop above; the rest fall back to it. */
+const HEADER_BACKDROPS: Partial<Record<DepartmentKey, string>> = {
+  informationTechnology: require('../assets/it-external-banner.png'),
+};
 
 const PLACEHOLDER_NEWS = [
   { title: 'Example Update Title', date: '[Date]', author: '[Name]' },
@@ -106,6 +112,7 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
   const hours     = props.contactHours  || config?.contactHours  || '';
   const resourceUrl = props.resourcePageUrl || config?.resourcePageUrl || '#';
   const groupId     = props.allowedGroupId  || config?.groupId        || '';
+  const headerBackdrop = (config && HEADER_BACKDROPS[config.key]) || HEADER_BACKDROP;
 
   // Richer contact emails + structured hours (CX); fall back to single values.
   const emailList = config?.contactEmails && config.contactEmails.length > 0
@@ -216,7 +223,7 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
         <section
           className={styles.heroSection}
           aria-labelledby="dept-title"
-          style={{ backgroundImage: `url(${HEADER_BACKDROP})` }}
+          style={{ backgroundImage: `url(${headerBackdrop})` }}
         >
           <div className={styles.heroInner}>
             <h1 id="dept-title" className={styles.heroTitle}>
@@ -256,11 +263,6 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
                       </li>
                     ))}
                   </ul>
-                )}
-                {config?.supportPageUrl && (
-                  <a href={config.supportPageUrl} className={styles.supportInlineBtn}>
-                    Need IT help? Visit IT Support
-                  </a>
                 )}
               </div>
 
@@ -367,7 +369,7 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
         <section className={styles.leadersSection} aria-labelledby="leaders-title">
           <div className={styles.sectionInner}>
             <h2 id="leaders-title" className={styles.sectionTitle}>
-              Meet the Department Leaders
+              {config?.teamSectionTitle || 'Meet the Department Leaders'}
             </h2>
 
             {leadersLoading && (
@@ -429,6 +431,7 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
             )}
           </div>
         </section>
+
       </main>
 
       <Footer pageIdentifier={`${deptName} Department Page`} />

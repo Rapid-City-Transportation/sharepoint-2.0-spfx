@@ -26,9 +26,10 @@ export interface IDepartmentConfig {
   /** Announcements list `Page` value this department's What's New filters on
    *  (e.g. "IT"). Falls back to "<displayName> Public" when omitted. */
   announcementPage?: string;
-  /** Optional support-page URL. When set, the public page shows a
-   *  "Need help? Visit Support" button (used by IT). */
-  supportPageUrl?: string;
+  /** Heading for the featured-people section. Defaults to "Meet the
+   *  Department Leaders"; small departments that feature the whole team
+   *  (e.g. IT) override it so the label matches who's actually shown. */
+  teamSectionTitle?: string;
   contactEmail: string;
   contactPhone: string;
   contactHours: string;
@@ -138,11 +139,21 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     subtitle: 'About the Team',
     about: 'Information Technology keeps our systems running: support, security, and the tools every team relies on each day.',
     announcementPage: 'IT',
-    supportPageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/ITSupport.aspx',
+    teamSectionTitle: 'Meet the Team',
     contactEmail: 'support@rapidcitytransport.com',
     contactPhone: '',
     contactHours: '',
-    resourcePageUrl: '/SitePages/DeptHub-Information-Technology.aspx',
+    hoursGroups: [
+      {
+        title: '',
+        rows: [
+          { days: 'Monday to Friday', time: '9:00 AM to 5:00 PM' },
+        ],
+      },
+    ],
+    // Private IT hub page, hosted on the RCT-ITTeam site so site permissions
+    // gate it (page must be named exactly ITHub).
+    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/RCT-ITTeam/SitePages/ITHub.aspx',
     groupId: '00000000-0000-0000-0000-000000000005', // Replace with real GUID
     accentColor:      '#4A5568', // Slate: 7.51:1 on white (AAA)
     accentColorHover: '#2D3748',
