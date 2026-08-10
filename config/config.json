@@ -89,6 +89,14 @@
           "manifest": "./src/webparts/itHub/ItHubWebPart.manifest.json"
         }
       ]
+    },
+    "outsource-contact-cards-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/outsourceContactCards/OutsourceContactCardsWebPart.js",
+          "manifest": "./src/webparts/outsourceContactCards/OutsourceContactCardsWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},

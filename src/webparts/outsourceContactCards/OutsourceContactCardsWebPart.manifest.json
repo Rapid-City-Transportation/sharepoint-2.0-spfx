@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "9d4e7a25-6b3c-48f1-a2d8-5c7e9f0b1a36",
+  "alias": "OutsourceContactCardsWebPart",
+  "componentType": "WebPart",
+  "version": "1.0.0",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": [
+    "SharePointWebPart",
+    "SharePointFullPage"
+  ],
+  "supportsThemeVariants": true,
+  "supportsFullBleed": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Advanced" },
+      "title": { "default": "Outsource Contact Cards" },
+      "description": {
+        "default": "Outsource vendor directory for dispatch: zones, cities, vehicle types, priority, and dispatch instructions."
+      },
+      "officeFabricIconFontName": "Car",
+      "properties": {
+        "title": "Outsource Contact Cards"
+      }
+    }
+  ]
+}
