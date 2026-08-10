@@ -11,35 +11,24 @@ const SUPPORT_EMAIL = 'support@rapidcitytransport.com';
 
 const PRIORITIES = ['Low', 'Medium', 'High'];
 
-interface IFaq {
-  q: string;
-  a: string;
+interface ITool {
+  label: string;
+  icon: string;
+  docUrl?: string;
 }
 
-const FAQS: IFaq[] = [
-  {
-    q: 'Five9 opens to a login page instead of loading. How do I fix it?',
-    a: 'This happens most often in Microsoft Edge. Switch to Google Chrome and open Five9 there; it usually loads straight into the app.',
-  },
-  {
-    q: 'I keep missing calls in Five9. How can I catch them?',
-    a: 'Keep your headset on and close to your ear, since a missed call drops you into Not Ready. Turn on incoming-call alerts in Plus Applications (Enable Notification Banner or Toast Notification), and turn on Ring on Computer Speakers so you hear the phone ring. The speaker option may not work on office monitors that have no speakers.',
-  },
-  {
-    q: 'My Five9 audio cut out, or the caller cannot hear me. What should I do?',
-    a: 'Restart the device first. If that does not fix it, log out of Five9, turn your headset off and back on, then log back in. For one-way audio, where you can hear them but they cannot hear you or the reverse, it is usually a network or headset issue; check the Five9 troubleshooting guide on the agent community.',
-  },
-  {
-    q: 'I cannot transfer a Five9 call to an extension like x700 or a Bell number. Why?',
-    a: 'Wait until AFTER the French prompt finishes, then dial # on the dial pad to enter the extension. For x700 specifically, do not dial #, just dial 700 after the French prompt. If a caller hits this, remind them to wait for the French prompt before dialing any extension.',
-  },
-  {
-    q: 'How do I transfer a call in Microsoft Teams?',
-    a: 'On the call, select More options (the three dots) or Transfer. Use Consult then Transfer to speak with the person first, which is a warm transfer; internal staff show a colour indicator for whether they are free. Use Transfer to send the call straight through, which is a cold transfer and leaves you immediately. For Customer Service, Quality, or Accounting, transfer to the main line at 1-888-202-3923.',
-  },
-];
+// Guides live in the RCT-ITTeam "IT Pages" library; action=embedview renders
+// them read-only in the viewer, and Open full swaps it for the real doc.
+const DOC_BASE =
+  'https://rapidcitytransport.sharepoint.com/sites/RCT-ITTeam/_layouts/15/Doc.aspx';
+const TOOLS: ITool[] = [
+  { label: 'ButterflyMX (Door Access)', icon: 'Permissions', docUrl: `${DOC_BASE}?sourcedoc=%7BB743A82B-1D72-44C1-B580-0C67F8E15012%7D&action=embedview` },
+  { label: 'Five9',                     icon: 'Headset',     docUrl: `${DOC_BASE}?sourcedoc=%7B5B925B22-1901-4452-AF7B-5E90D3742486%7D&action=embedview` },
+  { label: 'System Slowdowns',          icon: 'Broom',       docUrl: `${DOC_BASE}?sourcedoc=%7BE477AB25-1DF0-478B-90EB-0F4654C103A7%7D&action=embedview` },
+  { label: 'Teams Calling',             icon: 'TeamsLogo',   docUrl: `${DOC_BASE}?sourcedoc=%7B5D5CB8A4-7B63-4902-992D-7C7EFC211895%7D&action=embedview` },
+].sort((a, b) => a.label.localeCompare(b.label));
 
-type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error';
+type SubmitStatus = 'idle' | 'submitting' | 'success' | 'error' | 'invalid';
 
 const ITSupport: React.FC<IITSupportProps> = (props) => {
   const themeVars = React.useMemo(
@@ -51,7 +40,25 @@ const ITSupport: React.FC<IITSupportProps> = (props) => {
   const [description, setDescription] = React.useState('');
   const [priority, setPriority] = React.useState('Medium');
   const [status, setStatus] = React.useState<SubmitStatus>('idle');
-  const [openFaq, setOpenFaq] = React.useState<number | null>(null);
+  const [activeTool, setActiveTool] = React.useState<ITool | null>(null);
+
+  // Swap the embed action so the doc opens normally in a new tab.
+  const activeDocFullUrl = activeTool?.docUrl
+    ? activeTool.docUrl.replace('action=embedview', 'action=default')
+    : undefined;
+
+  // Closing unmounts the focused button, so put focus back on the heading.
+  const handleCloseTool = React.useCallback((): void => {
+    setActiveTool(null);
+    document.getElementById('it-tools-heading')?.focus();
+  }, []);
+
+  // Submit unmounts its own button, so move focus to the confirmation.
+  React.useEffect(() => {
+    if (status === 'success') {
+      document.getElementById('ticket-success')?.focus();
+    }
+  }, [status]);
 
   const handleNavSearch = React.useCallback((query: string): void => {
     const q = (query || '').trim();
@@ -62,7 +69,11 @@ const ITSupport: React.FC<IITSupportProps> = (props) => {
   }, []);
 
   const doSubmit = async (): Promise<void> => {
-    if (!summary.trim() || !description.trim()) return;
+    // Whitespace passes the browser's required check, so say something.
+    if (!summary.trim() || !description.trim()) {
+      setStatus('invalid');
+      return;
+    }
     setStatus('submitting');
     try {
       await submitTicket({
@@ -91,23 +102,145 @@ const ITSupport: React.FC<IITSupportProps> = (props) => {
 
       <main id="it-support-main" className={styles.main} role="main" tabIndex={-1}>
         <section className={styles.hero} aria-labelledby="it-support-title">
-          <h1 id="it-support-title" className={styles.heroTitle}>IT Support</h1>
-          <p className={styles.heroIntro}>
-            Trouble with your laptop, login, email, or anything tech? Submit a ticket below and the IT
-            team will follow up. You can also email us at{' '}
-            <a className={styles.heroEmail} href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
-          </p>
+          <div className={styles.heroText}>
+            <h1 id="it-support-title" className={styles.heroTitle}>IT Support</h1>
+            <p className={styles.heroIntro}>
+              Trouble with your laptop, login, email, or anything tech? Browse the self-help
+              guides below to fix common issues fast, or submit a ticket and the IT team will
+              follow up.
+            </p>
+          </div>
+          <div className={styles.heroActions}>
+            <a href="#it-ticket" className={styles.heroPrimaryBtn}>
+              Submit a ticket
+            </a>
+            <a
+              href={`mailto:${SUPPORT_EMAIL}`}
+              className={styles.heroSecondaryBtn}
+              aria-label={`Email support at ${SUPPORT_EMAIL}`}
+            >
+              Email support
+            </a>
+          </div>
         </section>
 
-        <div className={styles.grid}>
-          <section className={styles.ticketCard} aria-labelledby="ticket-title">
+        <section className={styles.toolboxSection} aria-labelledby="it-tools-heading">
+          <h2 id="it-tools-heading" className={styles.sectionTitle} tabIndex={-1}>
+            <Icon iconName="Toolbox" className={styles.sectionIcon} aria-hidden="true" />
+            Self-help guides
+          </h2>
+          <p className={styles.toolboxIntro}>
+            Step-by-step guides for common IT tasks. Select a tool to open its guide.
+          </p>
+
+          <div className={styles.toolboxLayout}>
+            <section className={styles.toolsPanel} aria-labelledby="it-tools-title">
+              <div className={styles.panelHeader}>
+                <h3 id="it-tools-title" className={styles.panelTitle}>
+                  <Icon iconName="Toolbox" aria-hidden="true" />Tools
+                </h3>
+              </div>
+              <ul className={styles.toolsGrid} role="list">
+                {TOOLS.map((tool) => {
+                  const isActive = activeTool?.label === tool.label;
+                  return (
+                    <li key={tool.label}>
+                      <button
+                        type="button"
+                        className={`${styles.toolTile} ${isActive ? styles.toolTileActive : ''}`}
+                        onClick={() => setActiveTool(tool)}
+                        aria-pressed={isActive}
+                      >
+                        <span className={styles.toolIcon} aria-hidden="true">
+                          <Icon iconName={tool.icon} />
+                        </span>
+                        <span className={styles.toolLabel}>{tool.label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+
+            <div className={styles.toolViewer} aria-live="polite">
+              {!activeTool && (
+                <div className={styles.toolViewerEmpty}>
+                  <Icon
+                    iconName="ViewList"
+                    className={styles.toolViewerEmptyIcon}
+                    aria-hidden="true"
+                  />
+                  <p className={styles.toolViewerEmptyText}>
+                    Select a tool to view its guide here.
+                  </p>
+                </div>
+              )}
+
+              {activeTool && (
+                <div className={styles.toolViewerContent}>
+                  <header className={styles.toolViewerHeader}>
+                    <div>
+                      <p className={styles.toolViewerEyebrow}>Now viewing</p>
+                      <h3 className={styles.toolViewerTitle}>{activeTool.label}</h3>
+                    </div>
+                    <div className={styles.toolViewerActions}>
+                      {activeDocFullUrl && (
+                        <button
+                          type="button"
+                          className={styles.toolViewerOpen}
+                          onClick={() => window.open(activeDocFullUrl, '_blank', 'noopener,noreferrer')}
+                          aria-label={`Open full ${activeTool.label} guide in a new tab`}
+                        >
+                          Open full <Icon iconName="OpenInNewTab" aria-hidden="true" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className={styles.toolViewerClose}
+                        onClick={handleCloseTool}
+                        aria-label="Close tool"
+                      >
+                        <Icon iconName="Cancel" />
+                      </button>
+                    </div>
+                  </header>
+
+                  {activeTool.docUrl ? (
+                    <iframe
+                      title={`${activeTool.label} guide`}
+                      src={activeTool.docUrl}
+                      className={styles.toolDocFrame}
+                      loading="lazy"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                    />
+                  ) : (
+                    <div className={styles.toolComingSoon}>
+                      <Icon
+                        iconName="ConstructionCone"
+                        className={styles.toolComingSoonIcon}
+                        aria-hidden="true"
+                      />
+                      <p className={styles.toolComingSoonText}>
+                        The guide for <strong>{activeTool.label}</strong> is being
+                        prepared and will appear here once it is uploaded.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section id="it-ticket" className={styles.ticketSection} aria-labelledby="ticket-title">
+          <div className={styles.ticketCard}>
             <h2 id="ticket-title" className={styles.sectionTitle}>
               <Icon iconName="EditNote" className={styles.sectionIcon} aria-hidden="true" />
-              Submit a ticket
+              Still need help? Submit a ticket
             </h2>
 
             {status === 'success' ? (
-              <div className={styles.successBox} role="status" aria-live="polite">
+              <div id="ticket-success" className={styles.successBox} role="status" aria-live="polite" tabIndex={-1}>
                 <Icon iconName="CompletedSolid" className={styles.successIcon} aria-hidden="true" />
                 <div>
                   <p className={styles.successTitle}>Your ticket has been submitted.</p>
@@ -176,42 +309,22 @@ const ITSupport: React.FC<IITSupportProps> = (props) => {
                   </p>
                 )}
 
+                {status === 'invalid' && (
+                  <p className={styles.errorText} role="alert">
+                    Please fill in the summary and description before submitting.
+                  </p>
+                )}
+
                 <button type="submit" className={styles.submitBtn} disabled={status === 'submitting'}>
                   {status === 'submitting' ? 'Submitting...' : 'Submit ticket'}
                 </button>
               </form>
             )}
-          </section>
-
-          <section className={styles.faqCard} aria-labelledby="faq-title">
-            <h2 id="faq-title" className={styles.sectionTitle}>
-              <Icon iconName="Help" className={styles.sectionIcon} aria-hidden="true" />
-              Common questions
-            </h2>
-            <ul className={styles.faqList} role="list">
-              {FAQS.map((faq, i) => {
-                const isOpen = openFaq === i;
-                return (
-                  <li key={i} className={styles.faqItem}>
-                    <button
-                      type="button"
-                      className={styles.faqQuestion}
-                      aria-expanded={isOpen}
-                      onClick={() => setOpenFaq(isOpen ? null : i)}
-                    >
-                      <span>{faq.q}</span>
-                      <Icon iconName={isOpen ? 'ChevronUp' : 'ChevronDown'} aria-hidden="true" />
-                    </button>
-                    {isOpen && <p className={styles.faqAnswer}>{faq.a}</p>}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        </div>
+          </div>
+        </section>
       </main>
 
-      <Footer pageIdentifier="IT Support Page" />
+      <Footer pageIdentifier={activeTool ? `IT Support - ${activeTool.label}` : 'IT Support Page'} />
     </div>
   );
 };
