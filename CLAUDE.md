@@ -89,11 +89,15 @@ Within a web part: `services/` (PnP + business logic), `hooks/` (React data hook
 | Training Hub (public) | `trainingHub/` | `/SitePages/TrainingHub.aspx` | linked from nav Employee Support |
 | Department Public Page | `departmentPublicPage/` | `/SitePages/DeptHub-*.aspx` | `departmentKey` selects config; Graph group gating |
 | Employee Directory | `employeeDirectory/` | `/sites/Management/SitePages/EmployeeDirectory.aspx` | Employee Highlight list (root site) |
+| IT Support (public) | `itSupport/` | `/SitePages/ITSupport.aspx` | self-help toolbox (docs on RCT-ITTeam) + ticket form |
+| IT Team Hub (private) | `itHub/` | page TBD (host on RCT-ITTeam) | mirrors the CX hub layout (banner, Tool Viewer, dark toolbox, team card); Documents library on `/sites/RCT-ITTeam` (delegated); Graph group gate; content only renders after access is proven |
+| Outsource Contact Cards | `outsourceContactCards/` | page TBD (`OutsourceContactCards.aspx`) | frontend-only MVP on mock data (`mock/mockVendors.ts` via `services/vendorService.ts`, the SharePoint swap point); one card per vendor, zone tabs in detail; imports `AccordionSection` from customerContactCards |
 
 Cross-page coupling to remember:
-- **`Navigation` (in rapidCityHomepage) imports from `customerContactCards`** (`useSearchCustomers`, `ICustomer`, `NotificationBell`) and from `WeatherWidget`. Every page that renders Navigation transitively depends on Contact Cards services.
+- **`Navigation` (in rapidCityHomepage) imports from `customerContactCards`** (`NotificationBell`, `useSearchCustomers`) **and `outsourceContactCards`** (`useSearchVendors`) plus `WeatherWidget`. Every page that renders Navigation transitively depends on both Contact Cards web parts. The nav search bar renders ONLY on the two card pages (`activePage` contactCards/outsourceCards) with a typeahead over that page's own data (customers vs vendors, via `onCustomerSelect`/`onVendorSelect`); all other pages have no nav search. "Contact Cards" in the nav is a dropdown (Customer / Outsource).
 - **`Footer` -> `FeedbackModal` -> `FeedbackService` -> SiteFeedback list.** FeedbackService reuses the Contact Cards SPFI (same site), so any web part with a Footer must initialize that SP config in `onInit()` (the hubs call `initializeFeedbackSP`). If feedback submit fails, check that init.
-- The hub pages (CX, SPRQ, Trainers, Team Lead, Training) share the same layout DNA: full-bleed Navigation, a grid `main + sidebar` that collapses at 1100px, a dark "Tools" panel, and a Footer. `trainersHub` or `sprqHub` is the cleanest reference.
+- **`itHub` imports `DEPARTMENT_CONFIGS` from `departmentPublicPage/services/DepartmentConfig`** (single source of truth for the IT AAD group GUID) and the IT banner asset from `departmentPublicPage/assets`. Renaming/moving DepartmentConfig breaks itHub.
+- The hub pages (CX, SPRQ, Trainers, Team Lead, Training, IT) share the same layout DNA: full-bleed Navigation, a grid `main + sidebar` that collapses at 1100px, a dark "Tools" panel, and a Footer. `trainersHub` or `sprqHub` is the cleanest reference; `itHub` is a deliberate structural copy of `customerExperienceHub` (banner, Tool Viewer, team card) with an access gate in front.
 
 ## SharePoint / Microsoft 365 specifics
 
@@ -105,6 +109,7 @@ Cross-page coupling to remember:
 | `/sites/Management` | Employee Tracker list |
 | `/sites/IntranetRedesignSharepoint20` | Contact Cards data + SiteFeedback (the "Protocol Book" site) |
 | `/sites/CSQCLeads` | Trainee Progress + TL Assignments (embedded via iframe in hubs, not PnP) |
+| `/sites/RCT-ITTeam` | Private IT group site: `Documents` library (IT Team Hub categories/recent, IT Support guide docs) + team notebook |
 
 **Lists** (titles are exact; defined as `LIST_TITLE` in each web part's `services/fieldNames.ts`):
 
