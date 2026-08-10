@@ -4,14 +4,15 @@ import '@pnp/sp/lists';
 import '@pnp/sp/items';
 import '@pnp/sp/fields';
 import { getSP } from './spConfig';
-import { addDailyTaskRows, fetchDailyTasks, IDailyTaskInput } from './dailyTaskService';
+import { addDailyTaskRows, fetchDailyTasks, IDailyTaskInput, parseKey } from './dailyTaskService';
 
 // Roster lists mirror the eligibility spreadsheet (one row per person). They
 // live on the same site as the CX Daily Task List, so getSP() reaches them.
 const CHECKING_LIST = 'CX Task Roster - Checking';
 const BOOKING_LIST = 'CX Task Roster - Booking';
+const SPRQ_LIST = 'SPRQ Task Roster';
 
-type Status = 'priority' | 'scheduled' | 'backup';
+type Status = 'priority' | 'scheduled' | 'backup' | 'all';
 
 interface IFieldDef {
   Title: string;
@@ -38,6 +39,20 @@ const BOOKING_TASKS: ITaskSpec[] = [
   { name: 'Ontario Shores', match: c => c.indexOf('ontario') !== -1 },
   { name: 'Emails', match: c => c.indexOf('email') !== -1 },
 ];
+
+// SPRQ uses the same eligibility model as Checking (words + Work Time shift).
+const SPRQ_TASKS: ITaskSpec[] = [
+  { name: 'Email Monitor - SPRQ Items', match: c => c.indexOf('monitor') !== -1 },
+  { name: 'CTC', match: c => c.indexOf('ctc') !== -1 },
+  { name: 'College Trips', match: c => c.indexOf('college') !== -1 },
+  { name: 'School Bookings Inbox', match: c => c.indexOf('school') !== -1 },
+  { name: 'Accommodations', match: c => c.indexOf('accommodation') !== -1 },
+  { name: 'Dispatch Alerts', match: c => c.indexOf('dispatch') !== -1 },
+  { name: 'SPRQ Checking Emails', match: c => c.indexOf('checking') !== -1 },
+  { name: 'SPRQ Reminding', match: c => c.indexOf('remind') !== -1 },
+];
+
+const SPRQ_TASK_NAMES = SPRQ_TASKS.map(s => s.name);
 
 const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
 
@@ -87,6 +102,7 @@ function classifyStatus(raw: string): Status | undefined {
   if (v.indexOf('n/a') !== -1 || v === 'na') return undefined;
   if (v.indexOf('do not') !== -1) return undefined;
   if (v.indexOf('leave') !== -1) return undefined;
+  if (v.indexOf('all agent') !== -1) return 'all';
   if (v.indexOf('priority') !== -1) return 'priority';
   if (v.indexOf('backup') !== -1) return 'backup';
   return 'scheduled';
@@ -117,15 +133,8 @@ interface IBookingPerson {
   tasks: Map<string, IBookingTaskInfo>;
 }
 
-interface ISlot {
-  label: string;
-  start: number;
-  end: number;
-}
-
 interface ITaskTemplate {
   task: string;
-  slots: ISlot[];
   backups: string[];
 }
 
@@ -145,44 +154,11 @@ function parseTimeRange(raw: string): ITimeRange | null {
   };
 }
 
-function overlaps(a: ITimeRange, b: ITimeRange): boolean {
-  return a.start < b.end && b.start < a.end;
-}
-
 const BOOKING_TEMPLATE: ITaskTemplate[] = [
-  {
-    task: 'Emails',
-    slots: [
-      { label: '6:00am-10:00am', start: 360, end: 600 },
-      { label: '10:00am-8:30pm', start: 600, end: 1230 },
-    ],
-    backups: [],
-  },
-  {
-    task: 'Dispatch Alerts',
-    slots: [
-      { label: '6:00am-8:00am', start: 360, end: 480 },
-      { label: '8:00am-4:30pm', start: 480, end: 990 },
-      { label: '4:30pm-11:00pm', start: 990, end: 1380 },
-    ],
-    backups: ['morning', 'night'],
-  },
-  {
-    task: 'Ontario Shores',
-    slots: [
-      { label: '6:00am-2:30pm', start: 360, end: 870 },
-      { label: '4:30pm-11:00pm', start: 990, end: 1380 },
-    ],
-    backups: [],
-  },
-  {
-    task: 'Autos & Manage Changes',
-    slots: [
-      { label: '6:00am-4:30pm', start: 360, end: 990 },
-      { label: '4:30pm-11:00pm', start: 990, end: 1380 },
-    ],
-    backups: [],
-  },
+  { task: 'Emails', backups: [] },
+  { task: 'Dispatch Alerts', backups: ['morning', 'night'] },
+  { task: 'Ontario Shores', backups: [] },
+  { task: 'Autos & Manage Changes', backups: [] },
 ];
 
 async function readBookingRoster(sp: SPFI): Promise<IBookingPerson[]> {
@@ -234,24 +210,35 @@ async function readBookingRoster(sp: SPFI): Promise<IBookingPerson[]> {
   return out;
 }
 
-function bookingEligible(people: IBookingPerson[], task: string, slot: ISlot, dow: number): string[] {
-  const priority: string[] = [];
-  const regular: string[] = [];
+// Booking: the shift for a task IS the person's roster window (e.g. Dispatch
+// "6am-8am"), so coverage shows the exact roster hours. The priority person wins
+// a tie so they keep their slot.
+function bookingCoverage(people: IBookingPerson[], task: string, dow: number, used: Set<string>): string {
+  const entries: IShiftEntry[] = [];
   for (const p of people) {
     if (!p.days.has(dow)) continue;
     const info = p.tasks.get(task);
     if (!info || info.backup || !info.window) continue;
-    if (overlaps(info.window, slot)) {
-      (info.priority ? priority : regular).push(p.person);
-    }
+    entries.push({
+      name: p.person,
+      start: info.window.start,
+      end: info.window.end,
+      priority: info.priority,
+    });
   }
-  const ordered = [
-    ...priority.sort((a, b) => a.localeCompare(b)),
-    ...regular.sort((a, b) => a.localeCompare(b)),
-  ];
-  const unique: string[] = [];
-  for (const n of ordered) if (unique.indexOf(n) === -1) unique.push(n);
-  return unique;
+  // Priority people hold their slots; otherwise the earliest-starting person.
+  return chainShifts(
+    entries,
+    active => {
+      const prio = active.filter(e => e.priority);
+      const pool = prio.length ? prio : active;
+      const earliest = Math.min(...pool.map(e => e.start));
+      return pool
+        .filter(e => e.start === earliest)
+        .sort((a, b) => a.name.localeCompare(b.name))[0];
+    },
+    used
+  );
 }
 
 function bookingBackupEligible(people: IBookingPerson[], task: string, period: string, dow: number): string[] {
@@ -269,9 +256,6 @@ function bookingBackupEligible(people: IBookingPerson[], task: string, period: s
   return names.sort((a, b) => a.localeCompare(b));
 }
 
-// Booking, like Checking, is one person per slot: named defaults stay fixed, and
-// every other slot (and each backup) takes one person, rotated weekly, skipping
-// anyone already placed that day.
 function buildBookingRows(people: IBookingPerson[], weekStart: Date): IDailyTaskInput[] {
   const rows: IDailyTaskInput[] = [];
   for (let i = 0; i < 7; i++) {
@@ -279,73 +263,65 @@ function buildBookingRows(people: IBookingPerson[], weekStart: Date): IDailyTask
     const dow = date.getDay();
     if (dow === 0 || dow === 6) continue; // booking coverage is Mon-Fri
     const dateKey = dateKeyOf(date);
-    const assigned = new Set<string>();
+    const used = new Set<string>();
     for (const t of BOOKING_TEMPLATE) {
-      const lines: string[] = [];
-      for (const slot of t.slots) {
-        const person = pickStable(bookingEligible(people, t.task, slot, dow), assigned);
-        if (person) assigned.add(person);
-        lines.push(`${slot.label}: ${person || '(open)'}`);
-      }
+      let agents = bookingCoverage(people, t.task, dow, used);
       for (const period of t.backups) {
-        const person = pickStable(bookingBackupEligible(people, t.task, period, dow), assigned);
-        if (person) assigned.add(person);
-        lines.push(`Backup (${period}): ${person || '(open)'}`);
+        const backup = bookingBackupEligible(people, t.task, period, dow);
+        if (backup.length) agents += `\nBackup (${period}): ${backup[0]}`;
       }
-      rows.push({ group: 'Booking', task: t.task, agents: lines.join('\n'), dateKey });
+      rows.push({ group: 'Booking', task: t.task, agents, dateKey });
     }
   }
   return rows;
 }
 
 // ---------------------------------------------------------------------------
-// Checking is also time-slot coverage. Its roster cells are eligibility words
-// ("Okay to Schedule"), not time ranges, so a person is a candidate for a slot
-// when they're scheduled for that task AND their shift (Work Time) covers the
-// slot. The weekly rotation is still done by hand (candidates only, TL picks).
+// Checking coverage is built FROM each person's actual work time, not fixed
+// slots. For each task we take everyone scheduled that day and chain their
+// shifts to span the operating window (6am-11pm), showing each with their real
+// hours - matching how the team lead builds it by hand. Among interchangeable
+// shifts the pick rotates weekly.
 // ---------------------------------------------------------------------------
 
-interface ICheckingPerson {
+interface IEligibilityPerson {
   person: string;
   days: Set<number>;
   shift: ITimeRange | null;
   tasks: Map<string, Status>;
 }
 
-// `task` matches the roster column (keyword); `display` is the row title shown
-// on the board, matching the names used today.
-const CHECKING_TEMPLATE: { task: string; display: string; slots: ISlot[] }[] = [
-  {
-    task: 'Emails',
-    display: 'Emails - Checking',
-    slots: [
-      { label: '6:00am-2:30pm', start: 360, end: 870 },
-      { label: '2:30pm-10:00pm', start: 870, end: 1320 },
-      { label: '6:00pm-11:00pm', start: 1080, end: 1380 },
-    ],
-  },
-  {
-    task: 'IME Emails',
-    display: 'IME Email Coverage',
-    slots: [
-      { label: '8:00am-4:30pm', start: 480, end: 990 },
-      { label: '4:30pm-6:00pm', start: 990, end: 1080 },
-      { label: '6:00pm-11:00pm', start: 1080, end: 1380 },
-    ],
-  },
-  {
-    task: 'Reminding',
-    display: 'Reminding - Checking',
-    slots: [
-      { label: '8:00am-4:30pm', start: 480, end: 990 },
-      { label: '4:30pm-11:00pm', start: 990, end: 1380 },
-    ],
-  },
+// The three Checking tasks and their board row titles.
+const CHECKING_COVERAGE: { task: string; display: string }[] = [
+  { task: 'Emails', display: 'Emails - Checking' },
+  { task: 'IME Emails', display: 'IME Email Coverage' },
+  { task: 'Reminding', display: 'Reminding - Checking' },
 ];
 
-async function readCheckingRoster(sp: SPFI): Promise<ICheckingPerson[]> {
+// Operating window the coverage spans, in minutes since midnight.
+const CHECK_DAY_START = 360; // 6:00am
+const CHECK_DAY_END = 1380; // 11:00pm
+// SPRQ evenings are owned collectively: every SPRQ task except Dispatch Alerts
+// shows "night staff" from here to close instead of named coverage.
+const SPRQ_NIGHT_START = 990; // 4:30pm
+
+function fmtTime(mins: number): string {
+  const h24 = Math.floor(mins / 60);
+  const m = mins % 60;
+  const ap = h24 >= 12 ? 'pm' : 'am';
+  const h = h24 % 12 === 0 ? 12 : h24 % 12;
+  return `${h}:${m < 10 ? `0${m}` : m}${ap}`;
+}
+
+// Reads an eligibility-style roster (words + a Work Time shift): used for both
+// Checking and SPRQ. Booking has its own reader because its cells are time ranges.
+async function readEligibilityRoster(
+  sp: SPFI,
+  listTitle: string,
+  taskSpecs: ITaskSpec[]
+): Promise<{ people: IEligibilityPerson[]; backupTasks: Set<string> }> {
   const fields: IFieldDef[] = await sp.web.lists
-    .getByTitle(CHECKING_LIST)
+    .getByTitle(listTitle)
     .fields.select('Title', 'InternalName', 'TypeAsString')();
   const titleOf = (f: IFieldDef): string => (f.Title || '').trim().toLowerCase();
 
@@ -354,9 +330,19 @@ async function readCheckingRoster(sp: SPFI): Promise<ICheckingPerson[]> {
     fields.find(f => f.InternalName === 'Title');
   const daysField = fields.find(f => titleOf(f).indexOf('day') !== -1);
   const workField = fields.find(f => titleOf(f).indexOf('work') !== -1);
-  const taskCols = CHECKING_TASKS
+  const taskCols = taskSpecs
     .map(s => ({ task: s.name, field: fields.find(f => s.match(titleOf(f))) }))
     .filter((t): t is { task: string; field: IFieldDef } => !!t.field);
+
+  // A task whose column header says "with backup" (and not "no backup") gets a
+  // backup line; "no backup" tasks do not.
+  const backupTasks = new Set<string>();
+  for (const tc of taskCols) {
+    const header = titleOf(tc.field);
+    if (header.indexOf('backup') !== -1 && header.indexOf('no backup') === -1) {
+      backupTasks.add(tc.task);
+    }
+  }
 
   const selects = ['Id'];
   if (nameField) selects.push(nameField.InternalName);
@@ -365,11 +351,11 @@ async function readCheckingRoster(sp: SPFI): Promise<ICheckingPerson[]> {
   taskCols.forEach(t => selects.push(t.field.InternalName));
 
   const rows: Record<string, unknown>[] = await sp.web.lists
-    .getByTitle(CHECKING_LIST)
+    .getByTitle(listTitle)
     .items.select(...selects)
     .top(2000)();
 
-  const out: ICheckingPerson[] = [];
+  const out: IEligibilityPerson[] = [];
   for (const r of rows) {
     const person = nameField ? String(r[nameField.InternalName] ?? '').trim() : '';
     if (!person) continue;
@@ -383,7 +369,7 @@ async function readCheckingRoster(sp: SPFI): Promise<ICheckingPerson[]> {
     }
     out.push({ person, days, shift, tasks });
   }
-  return out;
+  return { people: out, backupTasks };
 }
 
 // Weeks since a fixed Monday (Jan 1 2024), so the rotation advances one step per
@@ -393,43 +379,99 @@ function weekIndexOf(weekStart: Date): number {
   return Math.floor((weekStart.getTime() - epoch) / (7 * 24 * 60 * 60 * 1000));
 }
 
-function eligibleForSlot(people: ICheckingPerson[], task: string, slot: ISlot, dow: number): string[] {
-  const names: string[] = [];
+interface IShiftEntry {
+  name: string;
+  start: number;
+  end: number;
+  priority?: boolean;
+}
+
+// Shift-chaining across 6am-11pm, built BACKWARD from close. Working from the end
+// means a genuine late-shift person owns the evening (instead of being wasted on a
+// 10-11pm sliver) and the chain always ends exactly at close. At each step it
+// takes whoever is working at the cursor, hands off to them back to their start,
+// and repeats. Each person shows their real hours, trimmed to connect. `pickAmong`
+// chooses among the people working at the cursor (earliest-start + weekly rotation
+// for Checking; priority-first for Booking). Uncovered stretches show "(open)".
+function chainShifts(
+  entries: IShiftEntry[],
+  pickAmong: (active: IShiftEntry[]) => IShiftEntry,
+  used: Set<string>,
+  dayEnd: number = CHECK_DAY_END
+): string {
+  if (entries.length === 0) return '(open)';
+  const segments: { label: string; start: number; end: number }[] = [];
+  let cursor = dayEnd;
+  let guard = 0;
+  while (cursor > CHECK_DAY_START && guard++ < 40) {
+    // People working at the moment just before the cursor. `used` is shared across
+    // the day's tasks, so no one is placed on two at once.
+    const active = entries.filter(e => !used.has(e.name) && e.start < cursor && e.end >= cursor);
+    if (active.length > 0) {
+      const chosen = pickAmong(active);
+      used.add(chosen.name);
+      const start = Math.max(chosen.start, CHECK_DAY_START);
+      segments.push({ label: chosen.name, start, end: cursor });
+      cursor = start;
+    } else {
+      // No one covers the cursor: mark an (open) gap back to the next-latest shift
+      // end (or the day's open), then keep filling from there.
+      const prevEnd = entries
+        .filter(e => !used.has(e.name) && e.end < cursor && e.end > CHECK_DAY_START)
+        .reduce((max, e) => Math.max(max, e.end), CHECK_DAY_START);
+      segments.push({ label: '(open)', start: prevEnd, end: cursor });
+      cursor = prevEnd;
+    }
+  }
+  return segments
+    .reverse()
+    .map(s => `${s.label} ${fmtTime(s.start)}-${fmtTime(s.end)}`)
+    .join('\n');
+}
+
+// Checking: the shift comes from each person's Work Time; ties rotate weekly.
+function coverageForTask(
+  people: IEligibilityPerson[],
+  task: string,
+  dow: number,
+  weekIndex: number,
+  used: Set<string>,
+  dayEnd: number = CHECK_DAY_END
+): string {
+  const entries: IShiftEntry[] = [];
   for (const p of people) {
-    if (!p.days.has(dow)) continue;
+    if (!p.days.has(dow) || !p.shift) continue;
     const status = p.tasks.get(task);
     if (status !== 'scheduled' && status !== 'priority') continue;
-    if (p.shift && overlaps(p.shift, slot)) names.push(p.person);
+    entries.push({ name: p.person, start: p.shift.start, end: p.shift.end });
   }
-  const unique: string[] = [];
-  for (const n of names.sort((a, b) => a.localeCompare(b))) {
-    if (unique.indexOf(n) === -1) unique.push(n);
-  }
-  return unique;
+  // Prefer the earliest-starting person working at the cursor (longest clean block
+  // back = fewest handoffs); rotate weekly among equal starts.
+  return chainShifts(
+    entries,
+    active => {
+      const earliest = Math.min(...active.map(e => e.start));
+      const ties = active.filter(e => e.start === earliest);
+      return ties[weekIndex % ties.length];
+    },
+    used,
+    dayEnd
+  );
 }
 
-// Pick one person from the pool, advancing by the week number so the choice
-// rotates each week, and skipping anyone already placed that day.
-function pickRotated(pool: string[], weekIndex: number, assigned: Set<string>): string {
-  for (let k = 0; k < pool.length; k++) {
-    const cand = pool[(weekIndex + k) % pool.length];
-    if (!assigned.has(cand)) return cand;
-  }
-  return pool.length ? pool[weekIndex % pool.length] : '';
+function backupNames(people: IEligibilityPerson[], task: string, dow: number): string {
+  return people
+    .filter(p => p.days.has(dow) && p.tasks.get(task) === 'backup')
+    .map(p => p.person)
+    .sort((a, b) => a.localeCompare(b))
+    .join(' / ');
 }
 
-// Pick the first available person (priority order preserved) for a stable
-// week-to-week assignment; skips anyone already placed that day.
-function pickStable(pool: string[], assigned: Set<string>): string {
-  for (const cand of pool) {
-    if (!assigned.has(cand)) return cand;
-  }
-  return pool.length ? pool[0] : '';
-}
-
-// Weekly rotation: each slot takes one person, rotating by week and skipping
-// anyone already placed that day so no one is double-booked.
-function buildCheckingRows(people: ICheckingPerson[], weekStart: Date): IDailyTaskInput[] {
+function buildCheckingRows(
+  people: IEligibilityPerson[],
+  weekStart: Date,
+  backupTasks: Set<string>
+): IDailyTaskInput[] {
   const rows: IDailyTaskInput[] = [];
   const weekIndex = weekIndexOf(weekStart);
   for (let i = 0; i < 7; i++) {
@@ -437,15 +479,55 @@ function buildCheckingRows(people: ICheckingPerson[], weekStart: Date): IDailyTa
     const dow = date.getDay();
     if (dow === 0 || dow === 6) continue; // checking coverage is Mon-Fri
     const dateKey = dateKeyOf(date);
-    const assigned = new Set<string>();
-    for (const t of CHECKING_TEMPLATE) {
-      const lines: string[] = [];
-      for (const slot of t.slots) {
-        const person = pickRotated(eligibleForSlot(people, t.task, slot, dow), weekIndex, assigned);
-        if (person) assigned.add(person);
-        lines.push(`${slot.label}: ${person || '(open)'}`);
+    const used = new Set<string>();
+    for (const t of CHECKING_COVERAGE) {
+      let agents = coverageForTask(people, t.task, dow, weekIndex, used);
+      if (backupTasks.has(t.task)) {
+        const backup = backupNames(people, t.task, dow);
+        if (backup) agents += `\nBackup: ${backup}`;
       }
-      rows.push({ group: 'Checking', task: t.display, agents: lines.join('\n'), dateKey });
+      rows.push({ group: 'Checking', task: t.display, agents, dateKey });
+    }
+  }
+  return rows;
+}
+
+// SPRQ uses the same eligibility/coverage model as Checking, except a task the
+// roster marks "All agents" is shown literally and consumes no one, and every
+// task but Dispatch Alerts hands the 4:30pm-close stretch to "night staff"
+// (so evening people stay free to be named on Dispatch Alerts).
+function sprqCoverage(
+  people: IEligibilityPerson[],
+  task: string,
+  dow: number,
+  weekIndex: number,
+  used: Set<string>
+): string {
+  const allAgents = people.some(p => p.days.has(dow) && p.tasks.get(task) === 'all');
+  if (allAgents) return 'All agents';
+  if (task === 'Dispatch Alerts') {
+    return coverageForTask(people, task, dow, weekIndex, used);
+  }
+  const named = coverageForTask(people, task, dow, weekIndex, used, SPRQ_NIGHT_START);
+  return `${named}\nnight staff ${fmtTime(SPRQ_NIGHT_START)}-${fmtTime(CHECK_DAY_END)}`;
+}
+
+function buildSprqRows(people: IEligibilityPerson[], weekStart: Date): IDailyTaskInput[] {
+  const rows: IDailyTaskInput[] = [];
+  const weekIndex = weekIndexOf(weekStart);
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i);
+    const dow = date.getDay();
+    if (dow === 0 || dow === 6) continue; // SPRQ coverage is Mon-Fri
+    const dateKey = dateKeyOf(date);
+    const used = new Set<string>();
+    for (const task of SPRQ_TASK_NAMES) {
+      rows.push({
+        group: 'SPRQ',
+        task,
+        agents: sprqCoverage(people, task, dow, weekIndex, used),
+        dateKey,
+      });
     }
   }
   return rows;
@@ -460,21 +542,41 @@ function nextMonday(from: Date): Date {
   return d;
 }
 
-function weekBounds(): { start: Date; end: Date } {
-  const start = nextMonday(new Date());
-  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
-  return { start, end };
+function weekEnd(start: Date): Date {
+  return new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
 }
 
-function labelFor(start: Date, end: Date): string {
+// Monday on or before a date (the start of that week).
+function mondayOfWeek(from: Date): Date {
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return d;
+}
+
+function labelFor(start: Date): string {
   const fmt = (d: Date): string => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  return `${fmt(start)} - ${fmt(end)}`;
+  const friday = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 4);
+  return `${fmt(start)} - ${fmt(friday)}`;
 }
 
-/** Human label for the week the button would fill, shown in the confirm prompt. */
-export function nextWeekLabel(): string {
-  const { start, end } = weekBounds();
-  return labelFor(start, end);
+export interface IWeekOption {
+  key: string; // the Monday's YYYY-MM-DD
+  label: string; // e.g. "Jul 20 - Jul 24"
+}
+
+/** Pickable weeks for the Generate panel: this week first, then forward. */
+export function weekOptions(count: number): IWeekOption[] {
+  const thisMonday = mondayOfWeek(new Date());
+  const out: IWeekOption[] = [];
+  for (let i = 0; i < count; i++) {
+    const start = new Date(
+      thisMonday.getFullYear(),
+      thisMonday.getMonth(),
+      thisMonday.getDate() + i * 7
+    );
+    out.push({ key: dateKeyOf(start), label: labelFor(start) });
+  }
+  return out;
 }
 
 export interface IGenResult {
@@ -483,48 +585,62 @@ export interface IGenResult {
   message: string;
 }
 
-async function computeNextWeekRows(sp: SPFI): Promise<IDailyTaskInput[]> {
-  const { start } = weekBounds();
-  // Both sections are time-slot coverage: Checking (candidates by shift + task
-  // eligibility) and Booking (Siyam's slot template with named defaults).
-  const checkingPeople = await readCheckingRoster(sp);
-  const bookingPeople = await readBookingRoster(sp);
-  return [...buildCheckingRows(checkingPeople, start), ...buildBookingRows(bookingPeople, start)];
+// weekKey is a Monday's YYYY-MM-DD (from weekOptions); falls back to next week.
+function weekStartFromKey(weekKey: string): Date {
+  return parseKey(weekKey) || nextMonday(new Date());
 }
 
-/** Compute next week's rows WITHOUT writing anything. Safe to run against
- *  production: it only reads the roster lists. */
-export async function previewNextWeek(): Promise<IDailyTaskInput[]> {
-  return computeNextWeekRows(getSP());
+// Each roster/team is its own scope so they generate independently.
+export type GenScope = 'checking' | 'booking' | 'sprq';
+
+async function computeRows(sp: SPFI, weekStart: Date, scope: GenScope): Promise<IDailyTaskInput[]> {
+  if (scope === 'checking') {
+    const { people, backupTasks } = await readEligibilityRoster(sp, CHECKING_LIST, CHECKING_TASKS);
+    return buildCheckingRows(people, weekStart, backupTasks);
+  }
+  if (scope === 'booking') {
+    return buildBookingRows(await readBookingRoster(sp), weekStart);
+  }
+  const { people } = await readEligibilityRoster(sp, SPRQ_LIST, SPRQ_TASKS);
+  return buildSprqRows(people, weekStart);
 }
 
-/** Read both roster lists and write next week's rows into the CX Daily Task
- *  List. No-op (with a message) if that week already has tasks. */
-export async function generateNextWeek(): Promise<IGenResult> {
+// The board Group each scope writes, used to keep sections independent.
+function groupForScope(scope: GenScope): string {
+  return scope === 'booking' ? 'Booking' : scope === 'sprq' ? 'SPRQ' : 'Checking';
+}
+
+/** Compute a week's rows WITHOUT writing anything. Safe against production: it
+ *  only reads the roster lists. */
+export async function previewWeek(weekKey: string, scope: GenScope): Promise<IDailyTaskInput[]> {
+  return computeRows(getSP(), weekStartFromKey(weekKey), scope);
+}
+
+/** Write a week's rows into the CX Daily Task List. No-op (with a message) if
+ *  that week already has tasks for this scope. */
+export async function generateWeek(weekKey: string, scope: GenScope): Promise<IGenResult> {
   const sp = getSP();
-  const { start, end } = weekBounds();
-  const label = labelFor(start, end);
+  const start = weekStartFromKey(weekKey);
+  const label = labelFor(start);
   const startKey = dateKeyOf(start);
-  const endKey = dateKeyOf(end);
+  const endKey = dateKeyOf(weekEnd(start));
 
-  // Only CX (Checking/Booking) rows count here; SPRQ tasks share the list but
-  // are generated separately, so they must not block a CX generation.
+  // All sections share the list, so each scope only counts its own rows:
+  // regenerating one section never blocks (or touches) another.
+  const group = groupForScope(scope);
   const existing = await fetchDailyTasks();
   const inWeek = existing.filter(
-    t =>
-      t.dateKey >= startKey &&
-      t.dateKey <= endKey &&
-      t.group.toUpperCase().indexOf('SPRQ') === -1
+    t => t.dateKey >= startKey && t.dateKey <= endKey && t.group === group
   );
   if (inWeek.length > 0) {
     return {
       created: 0,
       skipped: true,
-      message: `The week of ${label} already has ${inWeek.length} tasks. Delete them first if you want to regenerate.`,
+      message: `The week of ${label} already has ${inWeek.length} tasks. Delete them first to regenerate.`,
     };
   }
 
-  const rows = await computeNextWeekRows(sp);
+  const rows = await computeRows(sp, start, scope);
   if (rows.length === 0) {
     return {
       created: 0,
@@ -537,6 +653,6 @@ export async function generateNextWeek(): Promise<IGenResult> {
   return {
     created,
     skipped: false,
-    message: `Generated ${created} tasks for the week of ${label}. Open the board each day to see them, and edit any exceptions.`,
+    message: `Generated ${created} tasks for the week of ${label}. Edit any exceptions on the board.`,
   };
 }

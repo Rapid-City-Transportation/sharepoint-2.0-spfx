@@ -84,6 +84,116 @@
   color: var(--rct-text-secondary, #4A5568);
 }
 
+.genPanel {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.genControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.genLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rct-text-primary, #262931);
+}
+
+.genSelect {
+  font-size: 16px; // 16px avoids iOS auto-zoom on focus
+  padding: 8px 10px;
+  border: 1px solid var(--rct-border, #E2E8F0);
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: var(--rct-text-primary, #262931);
+  min-width: 220px;
+  max-width: 100%;
+
+  &:focus-visible {
+    outline: 2px solid var(--rct-brand-blue-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+.previewScroll {
+  flex-basis: 100%;
+  overflow-x: auto;
+  padding: 12px;
+  background: var(--rct-surface, #F8F8F8);
+  border: 1px solid var(--rct-border, #E2E8F0);
+  border-radius: 10px;
+}
+
+.previewTable {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+
+  th,
+  td {
+    border: 1px solid var(--rct-border, #E2E8F0);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+    white-space: pre-line;
+    background: #FFFFFF;
+  }
+
+  thead th {
+    background: var(--rct-brand-blue-primary, #1F4C7F);
+    color: #FFFFFF;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+}
+
+.previewCorner {
+  min-width: 170px;
+}
+
+.previewRowHead {
+  min-width: 170px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+  white-space: nowrap;
+}
+
+.cellEntry {
+  display: block;
+  position: relative;
+  padding-left: 13px;
+  margin-bottom: 5px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    top: 6px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--rct-blue-accessible, #187389);
+  }
+}
+
+.entryName {
+  font-weight: 600;
+  color: var(--rct-text-primary, #262931);
+}
+
+.entryTime {
+  color: var(--rct-text-secondary, #4A5568);
+}
+
 .preview {
   flex-basis: 100%;
   margin-top: 4px;
