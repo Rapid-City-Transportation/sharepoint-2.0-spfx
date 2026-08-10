@@ -42,11 +42,13 @@
     outline-offset: 2px;
   }
 
-  // Force the inner Fluent Icon to inherit the button's color (default is theme-driven)
+  // Fluent colours its icon from the theme and ships it at 16px; the bell needs
+  // the button's colour and a bit more size to read in the nav.
   :global(.ms-Button-icon),
   :global(.ms-Icon),
   :global(i) {
     color: inherit !important;
+    font-size: 20px !important;
   }
 }
 
