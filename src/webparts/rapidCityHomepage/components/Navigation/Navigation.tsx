@@ -8,6 +8,8 @@ import { Icon } from '@fluentui/react/lib/Icon';
 import styles from './Navigation.module.scss';
 import { useSearchCustomers } from '../../../customerContactCards/hooks/useSearchCustomers';
 import { ICustomer } from '../../../customerContactCards/components/types';
+import { useSearchVendors } from '../../../outsourceContactCards/hooks/useSearchVendors';
+import { IVendor } from '../../../outsourceContactCards/models/types';
 import { NotificationBell } from '../../../customerContactCards/components/NotificationBell/NotificationBell';
 import { WeatherWidget } from '../WeatherWidget/WeatherWidget';
 
@@ -16,6 +18,8 @@ export interface INavLink {
   href: string;
   /** Open in a new tab (external apps like Viva Engage, ADP). */
   newTab?: boolean;
+  /** URL is known but the page isn't built yet. '#' hrefs grey out anyway. */
+  disabled?: boolean;
 }
 
 export interface INavDropdown {
@@ -35,10 +39,13 @@ const HOME_URL = `${COMPASS}/SitePages/Home.aspx`;
 // `${COMPASS}/SitePages/ContactCards.aspx` when it moves to COMPASS.
 const CONTACT_CARDS_URL =
   'https://rapidcitytransport.sharepoint.com/sites/ContactCards/SitePages/Home.aspx';
+// Outsource vendor directory page (created at deploy time, COMPASS convention).
+const OUTSOURCE_CARDS_URL = `${COMPASS}/SitePages/OutsourceContactCards.aspx`;
 const EMPLOYEE_DIRECTORY_URL = `${COMPASS}/SitePages/EmployeeDirectory.aspx`;
 const TRAINING_HUB_URL = `${COMPASS}/SitePages/TrainingHub.aspx`;
 const IT_SUPPORT_URL = `${COMPASS}/SitePages/ITSupport.aspx`;
 const CX_PUBLIC_URL = `${COMPASS}/SitePages/CustomerExperience.aspx`;
+const IT_PUBLIC_URL = `${COMPASS}/SitePages/InformationTechnology.aspx`;
 // RISE Hub lives in Viva Engage (same community deep link the CX Hub embeds).
 const RISE_HUB_URL =
   'https://engage.cloud.microsoft/main/org/rapidcitytransport.com/groups/eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIyMjgxNzMxMzU4NzIifQ/all';
@@ -55,9 +62,10 @@ function buildEmployeeSupportOptions(
     { label: 'ADP Web Clock', href: ADP_WEB_CLOCK_URL, newTab: true },
     { label: 'Employee Directory', href: employeeDirectoryUrl },
     { label: 'Human Resources Support', href: '#' },
-    { label: 'Information Technology Support', href: IT_SUPPORT_URL },
+    { label: 'IT Support', href: IT_SUPPORT_URL },
     { label: 'Rise Hub', href: RISE_HUB_URL, newTab: true },
-    { label: 'Training Hub', href: trainingHubUrl },
+    // Remove `disabled` once the Training Hub page is created on compass.
+    { label: 'Training Hub', href: trainingHubUrl, disabled: true },
     // Update remaining hrefs as those pages come online.
   ];
 }
@@ -69,21 +77,26 @@ const DEPARTMENT_HUBS_OPTIONS: INavLink[] = [
   { label: 'Customer Experience', href: CX_PUBLIC_URL },
   { label: 'Dispatch', href: '#' },
   { label: 'Human Resources', href: '#' },
-  { label: 'Information Technology', href: '#' },
+  { label: 'Information Technology', href: IT_PUBLIC_URL },
 ];
 
 export type NavPage =
   | 'home'
   | 'contactCards'
+  | 'outsourceCards'
   | 'training'
   | 'departmentHub'
   | 'employeeDirectory'
   | 'itSupport';
 
 export interface INavigationProps {
-  onSearch: (query: string) => void;
+  /** Legacy: the nav search bar was removed (search lives in each directory);
+   *  kept optional so existing pages that still pass it keep compiling. */
+  onSearch?: (query: string) => void;
   /** Called when a customer is selected from the search dropdown (used on Contact Cards page to avoid page reload) */
   onCustomerSelect?: (customerId: string) => void;
+  /** Vendor picked from the search dropdown, on the Outsource page. */
+  onVendorSelect?: (vendorId: string) => void;
   /** Which page is currently active; controls the highlighted nav item */
   activePage?: NavPage;
   /** URL for the Home page link (defaults to '/') */
@@ -100,17 +113,11 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
   const activePage = props.activePage || 'home';
   const isSupportActive =
     activePage === 'training' || activePage === 'employeeDirectory' || activePage === 'itSupport';
+  const isCardsActive = activePage === 'contactCards' || activePage === 'outsourceCards';
   const homeUrl = props.homeUrl || HOME_URL;
   const contactCardsUrl = props.contactCardsUrl || CONTACT_CARDS_URL;
   const employeeDirectoryUrl = props.employeeDirectoryUrl || EMPLOYEE_DIRECTORY_URL;
   const trainingHubUrl       = props.trainingHubUrl       || TRAINING_HUB_URL;
-
-  const [query, setQuery] = React.useState('');
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [highlightIndex, setHighlightIndex] = React.useState(-1);
-  const [debouncedQuery, setDebouncedQuery] = React.useState('');
-  const wrapperRef = React.useRef<HTMLDivElement>(null);
-  const blurTimeoutRef = React.useRef<number | undefined>(undefined);
 
   // Below 960px the full horizontal bar no longer fits, so it collapses
   // behind a hamburger toggle. Escape closes the open panel.
@@ -145,17 +152,6 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     []
   );
 
-  React.useEffect(() => {
-    const timer = window.setTimeout(() => setDebouncedQuery(query), 200);
-    return () => window.clearTimeout(timer);
-  }, [query]);
-
-  const { results, loading } = useSearchCustomers(debouncedQuery);
-
-  React.useEffect(() => {
-    setHighlightIndex(-1);
-  }, [results]);
-
   const navigateToCustomerById = React.useCallback((customerId: string) => {
     // If we're already on the Contact Cards page, use the callback to avoid a page reload
     if (props.onCustomerSelect) {
@@ -170,6 +166,34 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     window.location.assign(`${base}${sep}id=${customerId}`);
   }, [contactCardsUrl, props.onCustomerSelect]);
 
+  // Only the two card pages get a nav search, so agents can jump to the next
+  // card from inside a detail view. Each page searches its own data.
+  const showSearch = activePage === 'contactCards' || activePage === 'outsourceCards';
+  const searchesCustomers = activePage === 'contactCards';
+
+  const [query, setQuery] = React.useState('');
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [highlightIndex, setHighlightIndex] = React.useState(-1);
+  const [debouncedQuery, setDebouncedQuery] = React.useState('');
+  const blurTimeoutRef = React.useRef<number | undefined>(undefined);
+
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedQuery(query), 200);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  const { results, loading } = useSearchCustomers(searchesCustomers ? debouncedQuery : '');
+  const { results: vendorResults, loading: vendorLoading } = useSearchVendors(
+    showSearch && !searchesCustomers ? debouncedQuery : ''
+  );
+
+  const activeCount = searchesCustomers ? results.length : vendorResults.length;
+  const activeLoading = searchesCustomers ? loading : vendorLoading;
+
+  React.useEffect(() => {
+    setHighlightIndex(-1);
+  }, [results, vendorResults]);
+
   const navigateToCustomer = React.useCallback(
     (customer: ICustomer) => navigateToCustomerById(customer.id),
     [navigateToCustomerById]
@@ -181,37 +205,44 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     setIsOpen(val.trim().length > 0);
   }, []);
 
-  const handleKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleVendorResultClick = React.useCallback((vendor: IVendor) => {
+    setIsOpen(false);
+    setQuery('');
+    if (props.onVendorSelect) props.onVendorSelect(vendor.id);
+  }, [props.onVendorSelect]);
+
+  const handleSearchKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       setIsOpen(false);
       return;
     }
-
-    if (e.key === 'ArrowDown') {
+    if (e.key === 'ArrowDown' && activeCount > 0) {
       e.preventDefault();
-      setHighlightIndex(prev => (prev < results.length - 1 ? prev + 1 : 0));
+      setHighlightIndex(prev => (prev < activeCount - 1 ? prev + 1 : 0));
       return;
     }
-
-    if (e.key === 'ArrowUp') {
+    if (e.key === 'ArrowUp' && activeCount > 0) {
       e.preventDefault();
-      setHighlightIndex(prev => (prev > 0 ? prev - 1 : results.length - 1));
+      setHighlightIndex(prev => (prev > 0 ? prev - 1 : activeCount - 1));
       return;
     }
-
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (highlightIndex >= 0 && highlightIndex < results.length) {
-        navigateToCustomer(results[highlightIndex]);
+      if (highlightIndex >= 0 && highlightIndex < activeCount) {
+        if (searchesCustomers) {
+          navigateToCustomer(results[highlightIndex]);
+        } else {
+          handleVendorResultClick(vendorResults[highlightIndex]);
+        }
       } else {
         setIsOpen(false);
-        props.onSearch(query);
+        if (props.onSearch) props.onSearch(query);
       }
-      return;
     }
-  }, [results, highlightIndex, query, navigateToCustomer, props.onSearch]);
+  }, [searchesCustomers, results, vendorResults, activeCount, highlightIndex, query,
+      navigateToCustomer, handleVendorResultClick, props.onSearch]);
 
-  const handleFocus = React.useCallback(() => {
+  const handleSearchFocus = React.useCallback(() => {
     if (blurTimeoutRef.current) {
       window.clearTimeout(blurTimeoutRef.current);
       blurTimeoutRef.current = undefined;
@@ -221,8 +252,7 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     }
   }, [query]);
 
-  const handleBlur = React.useCallback(() => {
-    // Delay close so click events on dropdown items fire first
+  const handleSearchBlur = React.useCallback(() => {
     blurTimeoutRef.current = window.setTimeout(() => setIsOpen(false), 200);
   }, []);
 
@@ -232,21 +262,45 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     navigateToCustomer(customer);
   }, [navigateToCustomer]);
 
-  const handleClear = React.useCallback(() => {
+  const handleSearchClear = React.useCallback(() => {
     setQuery('');
     setIsOpen(false);
-    props.onSearch('');
+    if (props.onSearch) props.onSearch('');
   }, [props.onSearch]);
 
   // Single source of truth for the menu links: the desktop dropdowns and the
   // mobile drawer accordions both render from these arrays.
+  const contactCardsLinks: INavLink[] = React.useMemo(
+    () => [
+      { label: 'Customer', href: contactCardsUrl },
+      // Remove `disabled` once OutsourceContactCards.aspx is created on compass.
+      { label: 'Outsource', href: OUTSOURCE_CARDS_URL, disabled: true },
+    ],
+    [contactCardsUrl]
+  );
+
+  const cardsOptions: IDropdownOption[] = React.useMemo(
+    () => contactCardsLinks.map((o) => ({
+      key: o.label,
+      text: o.label,
+      data: o,
+      disabled: o.disabled || o.href === '#',
+    })),
+    [contactCardsLinks]
+  );
+
   const supportLinks = React.useMemo(
     () => buildEmployeeSupportOptions(employeeDirectoryUrl, trainingHubUrl),
     [employeeDirectoryUrl, trainingHubUrl]
   );
 
   const supportOptions: IDropdownOption[] = React.useMemo(
-    () => supportLinks.map((o) => ({ key: o.label, text: o.label, data: o })),
+    () => supportLinks.map((o) => ({
+      key: o.label,
+      text: o.label,
+      data: o,
+      disabled: o.disabled || o.href === '#',
+    })),
     [supportLinks]
   );
 
@@ -254,10 +308,17 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     key: o.label,
     text: o.label,
     data: o,
+    disabled: o.disabled || o.href === '#',
   }));
 
-  // The two expandable sections shown in the mobile drawer.
+  // The expandable sections shown in the mobile drawer.
   const mobileSections: Array<{ key: string; label: string; active: boolean; links: INavLink[] }> = [
+    {
+      key: 'cards',
+      label: 'Contact Cards',
+      active: isCardsActive,
+      links: contactCardsLinks,
+    },
     {
       key: 'dept',
       label: 'Department Hubs',
@@ -317,20 +378,39 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
 
           {/* 2. All About the Company */}
           <li className={styles.listItem}>
-            <a href="#" className={styles.link} onClick={(e) => e.preventDefault()}>
+            <a
+              href="#"
+              className={`${styles.link} ${styles.linkDisabled}`}
+              onClick={(e) => e.preventDefault()}
+              aria-disabled="true"
+              tabIndex={-1}
+            >
               All About the Company
             </a>
           </li>
 
-          {/* 3. Contact Cards */}
-          <li className={styles.listItem}>
-            <a
-              href={contactCardsUrl}
-              className={activePage === 'contactCards' ? styles.linkActive : styles.link}
-              {...(activePage === 'contactCards' ? { 'aria-current': 'page' as const } : {})}
-            >
-              Contact Cards
-            </a>
+          {/* 3. Contact Cards (dropdown: Customer / Outsource) */}
+          <li className={`${styles.listItem} ${isCardsActive ? styles.listItemActive : ''}`}>
+            <Dropdown
+              placeholder="Contact Cards"
+              options={cardsOptions}
+              onChange={onDeptChange}
+              className={styles.dropdown}
+              ariaLabel="Contact Cards menu"
+              dropdownWidth={180}
+              onRenderPlaceholder={() => (
+                <span className={`${styles.dropdownTitle} ${isCardsActive ? styles.dropdownTitleActive : ''}`}>
+                  Contact Cards
+                  <Icon iconName="ChevronDown" className={styles.chevron} />
+                </span>
+              )}
+              onRenderTitle={() => (
+                <span className={`${styles.dropdownTitle} ${isCardsActive ? styles.dropdownTitleActive : ''}`}>
+                  Contact Cards
+                  <Icon iconName="ChevronDown" className={styles.chevron} />
+                </span>
+              )}
+            />
           </li>
 
           {/* 4. Department Hubs (dropdown) */}
@@ -383,80 +463,104 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
           </li>
         </ul>
 
-        <div className={styles.utilityBar} role="group" aria-label="Search and utility actions">
-          <div className={styles.searchBox} ref={wrapperRef}>
-            <div className={styles.searchInputWrapper}>
-              <span className={styles.searchIconInline} aria-hidden="true">
-                <Icon iconName="Search" />
-              </span>
-              <input
-                type="search"
-                className={styles.searchInput}
-                placeholder="Search for Contact Cards"
-                aria-label="Search for customer contact card"
-                value={query}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-                role="combobox"
-                aria-expanded={isOpen && results.length > 0}
-                aria-controls="nav-search-listbox"
-                aria-activedescendant={highlightIndex >= 0 ? `nav-search-option-${highlightIndex}` : undefined}
-                autoComplete="off"
-              />
-              {query && (
-                <button
-                  type="button"
-                  className={styles.searchClear}
-                  onClick={handleClear}
-                  aria-label="Clear search"
-                  tabIndex={-1}
+        <div
+          className={`${styles.utilityBar} ${showSearch ? styles.utilityBarWithSearch : ''}`}
+          role="group"
+          aria-label="Search and utility actions"
+        >
+          {showSearch && (
+            <div className={styles.searchBox}>
+              <div className={styles.searchInputWrapper}>
+                <span className={styles.searchIconInline} aria-hidden="true">
+                  <Icon iconName="Search" />
+                </span>
+                <input
+                  type="search"
+                  className={styles.searchInput}
+                  placeholder={searchesCustomers ? 'Search for Contact Cards' : 'Search Outsource Vendors'}
+                  aria-label={searchesCustomers ? 'Search for customer contact card' : 'Search outsource vendors'}
+                  value={query}
+                  onChange={handleInputChange}
+                  onKeyDown={handleSearchKeyDown}
+                  onFocus={handleSearchFocus}
+                  onBlur={handleSearchBlur}
+                  autoComplete="off"
+                  role="combobox"
+                  aria-expanded={isOpen && activeCount > 0}
+                  aria-controls="nav-search-listbox"
+                  aria-activedescendant={highlightIndex >= 0 ? `nav-search-option-${highlightIndex}` : undefined}
+                />
+                {query && (
+                  <button
+                    type="button"
+                    className={styles.searchClear}
+                    onClick={handleSearchClear}
+                    aria-label="Clear search"
+                    tabIndex={-1}
+                  >
+                    <Icon iconName="Cancel" />
+                  </button>
+                )}
+              </div>
+
+              {isOpen && query.trim().length > 0 && (
+                <ul
+                  id="nav-search-listbox"
+                  role="listbox"
+                  className={styles.searchDropdown}
+                  aria-label="Search results"
                 >
-                  <Icon iconName="Cancel" />
-                </button>
+                  {activeLoading && activeCount === 0 && (
+                    <li className={styles.searchNoResults} role="option" aria-selected={false}>
+                      Loading...
+                    </li>
+                  )}
+                  {!activeLoading && activeCount === 0 && debouncedQuery.trim().length > 0 && (
+                    <li className={styles.searchNoResults} role="option" aria-selected={false}>
+                      No matches found
+                    </li>
+                  )}
+                  {searchesCustomers && results.map((customer, idx) => (
+                    <li
+                      key={customer.id}
+                      id={`nav-search-option-${idx}`}
+                      role="option"
+                      aria-selected={idx === highlightIndex}
+                      className={`${styles.searchResult} ${idx === highlightIndex ? styles.searchResultActive : ''}`}
+                      onMouseDown={() => handleResultClick(customer)}
+                      onMouseEnter={() => setHighlightIndex(idx)}
+                    >
+                      <div className={styles.searchResultName}>{customer.name}</div>
+                      <div className={styles.searchResultMeta}>
+                        <span className={styles.searchResultBadge}>{customer.customerType}</span>
+                        {customer.clientRole && (
+                          <span className={styles.searchResultRoleBadge}>{customer.clientRole}</span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                  {!searchesCustomers && vendorResults.map((vendor, idx) => (
+                    <li
+                      key={vendor.id}
+                      id={`nav-search-option-${idx}`}
+                      role="option"
+                      aria-selected={idx === highlightIndex}
+                      className={`${styles.searchResult} ${idx === highlightIndex ? styles.searchResultActive : ''}`}
+                      onMouseDown={() => handleVendorResultClick(vendor)}
+                      onMouseEnter={() => setHighlightIndex(idx)}
+                    >
+                      <div className={styles.searchResultName}>{vendor.name}</div>
+                      <div className={styles.searchResultMeta}>
+                        {vendor.zones.filter(z => !!z.zone).slice(0, 2).map(z => (
+                          <span key={z.zone} className={styles.searchResultBadge}>{z.zone}</span>
+                        ))}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
-
-            {isOpen && query.trim().length > 0 && (
-              <ul
-                id="nav-search-listbox"
-                role="listbox"
-                className={styles.searchDropdown}
-                aria-label="Search results"
-              >
-                {loading && results.length === 0 && (
-                  <li className={styles.searchNoResults} role="option" aria-selected={false}>
-                    Loading...
-                  </li>
-                )}
-                {!loading && results.length === 0 && debouncedQuery.trim().length > 0 && (
-                  <li className={styles.searchNoResults} role="option" aria-selected={false}>
-                    No matches found
-                  </li>
-                )}
-                {results.map((customer, idx) => (
-                  <li
-                    key={customer.id}
-                    id={`nav-search-option-${idx}`}
-                    role="option"
-                    aria-selected={idx === highlightIndex}
-                    className={`${styles.searchResult} ${idx === highlightIndex ? styles.searchResultActive : ''}`}
-                    onMouseDown={() => handleResultClick(customer)}
-                    onMouseEnter={() => setHighlightIndex(idx)}
-                  >
-                    <div className={styles.searchResultName}>{customer.name}</div>
-                    <div className={styles.searchResultMeta}>
-                      <span className={styles.searchResultBadge}>{customer.customerType}</span>
-                      {customer.clientRole && (
-                        <span className={styles.searchResultRoleBadge}>{customer.clientRole}</span>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          )}
 
           <NotificationBell onNavigateToCustomer={navigateToCustomerById} />
           <WeatherWidget />
@@ -464,7 +568,7 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
       </div>
 
       {/* Mobile drawer: navigation links only. The header above keeps the
-          search, bell, and weather. Hidden entirely above 960px via CSS. */}
+          bell and weather. Hidden entirely above 960px via CSS. */}
       <div id="rct-nav-menu" className={styles.mobileDrawer} hidden={!menuOpen}>
         <ul className={styles.mobileNavList}>
           <li>
@@ -479,19 +583,14 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
           </li>
 
           <li>
-            <a href="#" className={styles.mobileNavLink} onClick={handleDrawerLink('#')}>
-              <span className={styles.mobileNavLinkLabel}>All About the Company</span>
-            </a>
-          </li>
-
-          <li>
             <a
-              href={contactCardsUrl}
-              className={`${styles.mobileNavLink} ${activePage === 'contactCards' ? styles.mobileNavLinkActive : ''}`}
-              onClick={handleDrawerLink(contactCardsUrl)}
-              {...(activePage === 'contactCards' ? { 'aria-current': 'page' as const } : {})}
+              href="#"
+              className={`${styles.mobileNavLink} ${styles.mobileNavLinkDisabled}`}
+              onClick={handleDrawerLink('#')}
+              aria-disabled="true"
+              tabIndex={-1}
             >
-              <span className={styles.mobileNavLinkLabel}>Contact Cards</span>
+              <span className={styles.mobileNavLinkLabel}>All About the Company</span>
             </a>
           </li>
 
@@ -511,18 +610,24 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
                   <Icon iconName="ChevronDown" className={styles.mobileChevron} aria-hidden="true" />
                 </button>
                 <ul id={panelId} className={styles.mobileSubList} hidden={!expanded}>
-                  {section.links.map((link) => (
-                    <li key={link.label}>
-                      <a
-                        href={link.href}
-                        className={styles.mobileSubLink}
-                        onClick={handleDrawerLink(link.href)}
-                        {...(link.newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                      >
-                        {link.label}
-                      </a>
-                    </li>
-                  ))}
+                  {section.links.map((link) => {
+                    const isDisabled = link.disabled || link.href === '#';
+                    return (
+                      <li key={link.label}>
+                        <a
+                          href={link.href}
+                          className={`${styles.mobileSubLink} ${isDisabled ? styles.mobileSubLinkDisabled : ''}`}
+                          onClick={isDisabled
+                            ? (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault()
+                            : handleDrawerLink(link.href)}
+                          {...(isDisabled ? { 'aria-disabled': 'true' as const, tabIndex: -1 } : {})}
+                          {...(link.newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                        >
+                          {link.label}
+                        </a>
+                      </li>
+                    );
+                  })}
                 </ul>
               </li>
             );

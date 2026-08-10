@@ -63,6 +63,17 @@
   font-weight: 600;
 }
 
+// Greyed and inert. Disabled controls are exempt from contrast minimums.
+.linkDisabled {
+  color: rgba(255, 255, 255, 0.45);
+  cursor: default;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.45);
+    border-bottom-color: transparent;
+  }
+}
+
 .homeLink {
   display: flex;
   align-items: center;
@@ -439,6 +450,15 @@
   }
 }
 
+// Matches the desktop disabled treatment.
+.mobileNavLinkDisabled,
+.mobileSubLinkDisabled {
+  color: rgba(255, 255, 255, 0.4);
+  cursor: default;
+
+  &:hover { color: rgba(255, 255, 255, 0.4); }
+}
+
 @media (max-width: 960px) {
   .nav {
     padding: 0 calc(var(--rct-spacing-unit) * 2);
@@ -472,12 +492,15 @@
     display: none;
   }
 
-  // Search + bell + weather stay in the header. Search grows; the rest pin.
+  // The card pages grow the bar so search can flex between hamburger and bell.
   .utilityBar {
+    gap: calc(var(--rct-spacing-unit) * 1.5);
+  }
+
+  .utilityBarWithSearch {
     flex: 1;
     min-width: 0;
     margin-left: 0;
-    gap: calc(var(--rct-spacing-unit) * 1.5);
   }
 
   .searchBox {
