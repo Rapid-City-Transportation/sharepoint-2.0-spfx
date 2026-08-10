@@ -319,7 +319,8 @@ $transition:      0.18s ease;
   transform: translate(-50%, -50%);
   width: 100%;
   padding: 0 16px;
-  color: #98A2B3;
+  // Instructional text, so it needs 4.5:1 on the gradient. The muted grey fails.
+  color: var(--rct-text-secondary, #4A5568);
   font-size: 16px;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -1376,7 +1377,7 @@ $engage-header-crop:  50px;
   .layout { padding: 0 16px; }
 
   // Comfortable touch targets (>= 44px) for thumbs.
-  .toolContentClose { width: 40px; height: 40px; }
+  .toolContentClose { width: 44px; height: 44px; }
   .newsAdd,
   .teamAddBtn,
   .toolContentOpenFull { min-height: 44px; }
