@@ -2,6 +2,7 @@ import * as React from 'react';
 import styles from './DailyTaskBoard.module.scss';
 import { useDailyTasks } from '../../hooks/useDailyTasks';
 import { IDailyTask, IDailyTaskInput, parseKey, todayKey } from '../../services/dailyTaskService';
+import { canGenerateTasks } from '../../services/taskPermissions';
 import {
   generateWeek,
   previewWeek,
@@ -110,9 +111,21 @@ export const DailyTaskBoard: React.FC<IDailyTaskBoardProps> = ({ scope }) => {
   }, [tasks, scope, today]);
   const days = React.useMemo(() => groupByDay(visible), [visible]);
 
-  // "Generate next week" fills the CX Daily Task List from the roster lists. It
-  // only applies to the CX board (Checking/Booking), not the SPRQ view.
-  const showGenerate = scope === 'cx' || scope === 'sprq';
+  // "Generate next week" fills the CX Daily Task List from the roster lists.
+  // Render-guarded to leads (Team Lead/Supervisor/Manager or the Management
+  // tag in Employee Highlight): the list permissions are the real enforcement,
+  // but agents must not be one accidental click away from generating a week.
+  const [canGenerate, setCanGenerate] = React.useState(false);
+  React.useEffect(() => {
+    let cancelled = false;
+    canGenerateTasks()
+      .then(ok => {
+        if (!cancelled) setCanGenerate(ok);
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
+  const showGenerate = (scope === 'cx' || scope === 'sprq') && canGenerate;
   // Each hub offers only its own team's sections, so they generate independently.
   const sections = React.useMemo<{ value: GenScope; label: string }[]>(
     () =>
@@ -131,6 +144,13 @@ export const DailyTaskBoard: React.FC<IDailyTaskBoardProps> = ({ scope }) => {
   const [weekKey, setWeekKey] = React.useState(() =>
     weeks.length > 1 ? weeks[1].key : weeks[0]?.key || ''
   );
+  // The week options only exist once the permission check resolves, so the
+  // default selection (next week) has to be applied when they appear.
+  React.useEffect(() => {
+    if (!weekKey && weeks.length > 0) {
+      setWeekKey(weeks.length > 1 ? weeks[1].key : weeks[0].key);
+    }
+  }, [weeks, weekKey]);
   const [busy, setBusy] = React.useState(false);
   const [genMessage, setGenMessage] = React.useState('');
   const [previewRows, setPreviewRows] = React.useState<IDailyTaskInput[] | null>(null);
