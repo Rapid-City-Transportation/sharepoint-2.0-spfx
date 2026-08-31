@@ -35,7 +35,7 @@ Each web part is a self-contained SPFx client-side web part: `XxxWebPart.ts` (en
 
 - **Data access is PnPjs only** (`@pnp/sp`), never raw REST or `SPHttpClient`. Each web part owns a per-site SPFI singleton in `services/spConfig.ts`, created once in `onInit()` via `initializeSP(this.context)`. Auth is delegated: `spfi(SITE_URL).using(SPFx(context))` runs as the signed-in user, so reads/writes obey that user's list permissions.
 - **Graph** is used in exactly one place (Department page group gating), via `context.msGraphClientFactory.getClient('3')`.
-- **External**: weather from Open-Meteo (`api.open-meteo.com/v1/forecast`, no API key), cached in `localStorage` with a TTL.
+- **External**: weather from Open-Meteo (`api.open-meteo.com/v1/forecast`, no API key), cached in `sessionStorage` for 30 minutes (saved location preference in `localStorage`).
 - There is **no Power Automate, no Azure Function, and no app-only auth** in the repo. Any HTML from SharePoint rich-text fields is run through DOMPurify before `dangerouslySetInnerHTML`.
 
 ```
@@ -90,13 +90,18 @@ Within a web part: `services/` (PnP + business logic), `hooks/` (React data hook
 | Department Public Page | `departmentPublicPage/` | `/SitePages/DeptHub-*.aspx` | `departmentKey` selects config; Graph group gating |
 | Employee Directory | `employeeDirectory/` | `/sites/Management/SitePages/EmployeeDirectory.aspx` | Employee Highlight list (root site) |
 | IT Support (public) | `itSupport/` | `/SitePages/ITSupport.aspx` | self-help toolbox (docs on RCT-ITTeam) + ticket form |
+| Health & Safety (public) | `healthSafety/` | page TBD (`HealthSafety.aspx`) | emergency steps + always-visible poster panels (PDFs pending upload to compass "Health and Safety" folder) + Tools (3 policies pending, JHSC Documents pending, 4 external Ontario/WSIB links) + JHSC roster from Employee Highlight rows with the `JHSCRole` choice column filled (column pending creation; reads via `employeeDirectory` spConfig) |
+| HR Support (public) | `hrSupport/` | page TBD (`HRSupport.aspx`) | itSupport structural clone, trimmed 2026-08-24: guides SECTION kept but tiles removed (empty-panel placeholder) and confidential panel pulled, both pending HR content decisions; mockup artifact still shows the full version; submit is STUBBED (`services/hrRequestService.ts` is the backend swap point; no list exists) |
 | IT Team Hub (private) | `itHub/` | page TBD (host on RCT-ITTeam) | mirrors the CX hub layout (banner, Tool Viewer, dark toolbox, team card); Documents library on `/sites/RCT-ITTeam` (delegated); Graph group gate; content only renders after access is proven |
-| Outsource Contact Cards | `outsourceContactCards/` | page TBD (`OutsourceContactCards.aspx`) | frontend-only MVP on mock data (`mock/mockVendors.ts` via `services/vendorService.ts`, the SharePoint swap point); one card per vendor, zone tabs in detail; imports `AccordionSection` from customerContactCards |
+| Dept Hubs x5 (private, mock) | `dispatchHub/` `accountingHub/` `humanResourcesHub/` `businessDevelopmentHub/` `fleetHub/` | pages TBD (`DispatchHub.aspx` etc. on compass; FleetHub must move to a Fleet-only site before real docs, per Jackie: fleet docs stay private from Dispatch) | generated clones of the sprqHub skeleton (updates card via `useAnnouncements('<Dept> Private')`, 3 unwired placeholder tools, team card via Show In Dept Team + `getDepartmentMatchNames`); no data wired yet; import `departmentPublicPage/services/DepartmentConfig` |
+| All About the Company (public) | `aboutCompany/` | page TBD (`AboutCompany.aspx`) | MVV as native content (wording from the Management "MVV Branding Toolkit - FINAL" poster) + video slot (`videoUrl` web part property; launches 2026-09-14) + History placeholder + senior leadership from Employee Highlight `LeadershipOrder`/`LeadershipBio` (columns pending creation) + Leadership Updates via the Announcements list (`Page=Leadership` choice value pending) + QMS section (ISO 9001:2015 statement, Quality Policy, objectives, why-unique + 3 docs from the compass 'Quality Management System' folder by UniqueId, H&S-style Tools viewer); reads via `employeeDirectory` spConfig + `rapidCityHomepage` announcements service |
+| Outsource Contact Cards | `outsourceContactCards/` | page TBD (`OutsourceContactCards.aspx`) | reads `/sites/Dispatch`: `Outsource Providers Masterlist` joined to `Outsource Vendor Coverage` (one row per vendor per zone; VendorRef lookup; orphan coverage rows become standalone cards; manager view bridged via coverage `OldDirectoryID`); "If Unavailable: Alternatives" panel beside All Dispatch recommends vendors sharing the active zone's cities; legacy Driver Directory no longer read; imports `AccordionSection` from customerContactCards |
 
 Cross-page coupling to remember:
 - **`Navigation` (in rapidCityHomepage) imports from `customerContactCards`** (`NotificationBell`, `useSearchCustomers`) **and `outsourceContactCards`** (`useSearchVendors`) plus `WeatherWidget`. Every page that renders Navigation transitively depends on both Contact Cards web parts. The nav search bar renders ONLY on the two card pages (`activePage` contactCards/outsourceCards) with a typeahead over that page's own data (customers vs vendors, via `onCustomerSelect`/`onVendorSelect`); all other pages have no nav search. "Contact Cards" in the nav is a dropdown (Customer / Outsource).
 - **`Footer` -> `FeedbackModal` -> `FeedbackService` -> SiteFeedback list.** FeedbackService reuses the Contact Cards SPFI (same site), so any web part with a Footer must initialize that SP config in `onInit()` (the hubs call `initializeFeedbackSP`). If feedback submit fails, check that init.
 - **`itHub` imports `DEPARTMENT_CONFIGS` from `departmentPublicPage/services/DepartmentConfig`** (single source of truth for the IT AAD group GUID) and the IT banner asset from `departmentPublicPage/assets`. Renaming/moving DepartmentConfig breaks itHub.
+- **The four mock dept hubs also import from `departmentPublicPage/services/DepartmentConfig`** (`getDepartmentMatchNames` for their team filters), widening that same coupling.
 - The hub pages (CX, SPRQ, Trainers, Team Lead, Training, IT) share the same layout DNA: full-bleed Navigation, a grid `main + sidebar` that collapses at 1100px, a dark "Tools" panel, and a Footer. `trainersHub` or `sprqHub` is the cleanest reference; `itHub` is a deliberate structural copy of `customerExperienceHub` (banner, Tool Viewer, team card) with an access gate in front.
 
 ## SharePoint / Microsoft 365 specifics
@@ -230,9 +235,9 @@ Identifiers explain what; comments explain only non-obvious why (a hidden constr
 
 | Token                    | Hex     | Use                                  |
 |--------------------------|---------|--------------------------------------|
-| `--rct-brand-blue`       | #1F4C7F | Primary blue (AAA on white)          |
+| `--rct-primary`          | #1F4C7F | Primary blue (AAA on white)          |
 | `--rct-brand-gold`       | #D29F1C | Primary button background            |
-| `--rct-brand-navy`       | #262931 | Darkest text / button text on gold   |
+| `--rct-text-primary`     | #262931 | Darkest text / button text on gold   |
 | `--rct-blue-accessible`  | #187389 | Links / interactive accents (AA)     |
 | `--rct-gold-accessible`  | #8A6A0C | Gold text on light backgrounds (AA)  |
 | `--rct-gold-light`       | #E8B832 | Gold text on dark backgrounds (AA)   |
@@ -240,10 +245,10 @@ Identifiers explain what; comments explain only non-obvious why (a hidden constr
 | Light gray surface       | #F8F8F8 | Page / card background               |
 
 Button conventions:
-- **Primary button** = gold background (`--rct-brand-gold`) + navy text (`--rct-brand-navy`) = 6.06:1 (AA)
-- **Secondary button** = blue background (`--rct-brand-blue`) + white text
+- **Primary button** = gold background (`--rct-brand-gold`) + navy text (`--rct-text-primary`) = 6.06:1 (AA)
+- **Secondary button** = blue background (`--rct-primary`) + white text
 
-Decorative-only color (e.g. the original light blue #62A9B8 at 2.65:1) must never carry information by itself.
+Decorative-only color must never carry information by itself. Naming trap: `--rct-brand-blue` is the decorative light blue #62A9B8 (2.65:1), NOT the primary; #1F4C7F is `--rct-primary`.
 
 ## Gotchas
 
