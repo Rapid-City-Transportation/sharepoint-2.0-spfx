@@ -138,6 +138,8 @@ const ManagerSections: React.FC<{ info: IVendorManagerInfo }> = ({ info }) => (
 interface IAlternative {
   vendor: IVendor;
   sharedCities: string[];
+  /** Matched by covering the same zone, with no listed city overlap. */
+  sameZone?: boolean;
 }
 
 /**
@@ -156,9 +158,17 @@ function findAlternatives(
   // at all falls back to everything it serves.
   const base = zoneProfile ? zoneProfile.cities : allCities(current);
   const wanted = new Set(base.map(c => c.toLowerCase()));
-  if (wanted.size === 0) return [];
+  const zone = zoneProfile && zoneProfile.zone;
 
-  const out: IAlternative[] = [];
+  const byPriorityThenName = (a: IAlternative, b: IAlternative): number => {
+    const pa = priorityRank(bestPriority(a.vendor));
+    const pb = priorityRank(bestPriority(b.vendor));
+    if (pa !== pb) return pa - pb;
+    return a.vendor.name.localeCompare(b.vendor.name);
+  };
+
+  const cityTier: IAlternative[] = [];
+  const zoneTier: IAlternative[] = [];
   for (const v of all) {
     if (v.id === current.id) continue;
     const shared: string[] = [];
@@ -170,20 +180,24 @@ function findAlternatives(
         shared.push(c);
       }
     }
-    if (shared.length > 0) out.push({ vendor: v, sharedCities: shared });
+    if (shared.length > 0) {
+      cityTier.push({ vendor: v, sharedCities: shared });
+    } else if (zone && v.zones.some(z => z.zone === zone)) {
+      // Second tier: covers the same zone with no listed city overlap.
+      // Catches vendors whose Cities column is still sparse mid-migration.
+      zoneTier.push({ vendor: v, sharedCities: [], sameZone: true });
+    }
   }
 
-  return out
-    .sort((a, b) => {
-      if (b.sharedCities.length !== a.sharedCities.length) {
-        return b.sharedCities.length - a.sharedCities.length;
-      }
-      const pa = priorityRank(bestPriority(a.vendor));
-      const pb = priorityRank(bestPriority(b.vendor));
-      if (pa !== pb) return pa - pb;
-      return a.vendor.name.localeCompare(b.vendor.name);
-    })
-    .slice(0, 5);
+  cityTier.sort((a, b) => {
+    if (b.sharedCities.length !== a.sharedCities.length) {
+      return b.sharedCities.length - a.sharedCities.length;
+    }
+    return byPriorityThenName(a, b);
+  });
+  zoneTier.sort(byPriorityThenName);
+
+  return cityTier.concat(zoneTier).slice(0, 5);
 }
 
 /**
@@ -433,21 +447,19 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
               accentColor={SECTION_COLORS.alternatives}
               defaultOpen
             >
-              {zoneProfile.cities.length === 0 ? (
+              {alternatives.length === 0 ? (
                 <p className={styles.recEmpty}>
-                  No cities are on file for this coverage yet, so alternatives
-                  cannot be suggested.
-                </p>
-              ) : alternatives.length === 0 ? (
-                <p className={styles.recEmpty}>
-                  No other company on file serves
-                  {zoneProfile.zone ? ` these ${zoneProfile.zone} cities.` : ' these cities.'}
+                  {zoneProfile.cities.length === 0
+                    ? 'No cities are on file for this coverage yet, and no other company covers this zone.'
+                    : zoneProfile.zone
+                      ? `No other company on file serves these ${zoneProfile.zone} cities or covers this zone.`
+                      : 'No other company on file serves these cities.'}
                 </p>
               ) : (
                 <>
                   <p className={styles.recIntro}>
                     If {vendor.name} cannot take the trip, these companies serve
-                    the same cities:
+                    the same cities or zone:
                   </p>
                   <ul className={styles.recList} role="list">
                     {alternatives.map(alt => (
@@ -466,10 +478,13 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                             )}
                           </span>
                           <span className={styles.recCities}>
-                            Also serves: {alt.sharedCities.slice(0, 3).join(', ')}
-                            {alt.sharedCities.length > 3
-                              ? ` +${alt.sharedCities.length - 3} more`
-                              : ''}
+                            {alt.sameZone
+                              ? `Covers the same zone${zoneProfile.zone ? ` (${zoneProfile.zone})` : ''}`
+                              : `Also serves: ${alt.sharedCities.slice(0, 3).join(', ')}${
+                                  alt.sharedCities.length > 3
+                                    ? ` +${alt.sharedCities.length - 3} more`
+                                    : ''
+                                }`}
                           </span>
                           {alt.vendor.dispatch.phone && (
                             <span className={styles.recPhone}>
