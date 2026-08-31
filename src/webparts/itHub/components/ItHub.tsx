@@ -55,9 +55,12 @@ function teamSortRank(emp: IEmployee): number {
   return 4;
 }
 
+/** Role label for the team card: Level wins when set, then a Management tag
+ *  maps to the generic 'Manager', then a fallback so no card is left blank.
+ *  Same labelling as the CX and dept hubs. */
 function getTeamRoleLabel(emp: IEmployee): string {
   if (emp.level) return emp.level;
-  if (isITManagement(emp)) return 'IT Management';
+  if (isITManagement(emp)) return 'Manager';
   return 'Team member';
 }
 

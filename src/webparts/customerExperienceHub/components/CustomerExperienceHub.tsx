@@ -185,12 +185,12 @@ function teamSortRank(emp: IEmployee): number {
   return 4;
 }
 
-/** Best-effort role label for the team card. The Highlight list doesn't
- *  carry a Level column, so we lean on departments as the role hint. */
+/** Role label for the team card: Level wins when set, then a Management tag
+ *  maps to the generic 'Manager', then a fallback so no card is left blank.
+ *  Same labelling as the IT and dept hubs. */
 function getTeamRoleLabel(emp: IEmployee): string {
   if (emp.level) return emp.level;
-  if (isCXManagement(emp)) return 'Customer Experience Management';
-  if (isITManagement(emp)) return 'IT Management';
+  if (isCXManagement(emp) || isITManagement(emp)) return 'Manager';
   return 'Team member';
 }
 
