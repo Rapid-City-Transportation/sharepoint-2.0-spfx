@@ -32,10 +32,11 @@ export interface INavDropdown {
 const COMPASS = 'https://rapidcitytransport.sharepoint.com/sites/compass';
 const HOME_URL = `${COMPASS}/SitePages/Home.aspx`;
 // Temporary: Contact Cards still lives on its own site until full go-live.
-// This MUST be the explicit page that hosts the web part, NOT the site root:
-// navigating to "/sites/ContactCards?id=" makes SharePoint do a welcome-page
-// redirect that fails to render (bypassReason=abandoned) and 404s the bell/search
-// deep links. The page's file is Home.aspx on that site. Switch to
+// This MUST be the explicit page that hosts the web part (Home.aspx on that
+// site), not the site root, or the welcome-page redirect drops query params.
+// Deep links must also never use ?id= - SharePoint reserves that name and
+// fails the whole request with "No item exists" (bypassReason=abandoned);
+// we pass ?customerId= instead. Switch to
 // `${COMPASS}/SitePages/ContactCards.aspx` when it moves to COMPASS.
 const CONTACT_CARDS_URL =
   'https://rapidcitytransport.sharepoint.com/sites/ContactCards/SitePages/Home.aspx';
@@ -44,6 +45,9 @@ const OUTSOURCE_CARDS_URL = `${COMPASS}/SitePages/OutsourceContactCards.aspx`;
 const EMPLOYEE_DIRECTORY_URL = `${COMPASS}/SitePages/EmployeeDirectory.aspx`;
 const TRAINING_HUB_URL = `${COMPASS}/SitePages/TrainingHub.aspx`;
 const IT_SUPPORT_URL = `${COMPASS}/SitePages/ITSupport.aspx`;
+const HR_SUPPORT_URL = `${COMPASS}/SitePages/HRSupport.aspx`;
+const HEALTH_SAFETY_URL = `${COMPASS}/SitePages/HealthSafety.aspx`;
+const ABOUT_COMPANY_URL = `${COMPASS}/SitePages/AboutCompany.aspx`;
 const CX_PUBLIC_URL = `${COMPASS}/SitePages/CustomerExperience.aspx`;
 const IT_PUBLIC_URL = `${COMPASS}/SitePages/InformationTechnology.aspx`;
 // RISE Hub lives in Viva Engage (same community deep link the CX Hub embeds).
@@ -53,6 +57,8 @@ const RISE_HUB_URL =
 const ADP_WEB_CLOCK_URL =
   'https://online.adp.com/signin/v1/?APPID=webclk&productId=80e309c3-7098-bae1-e053-3505430b5495&returnURL=https://clock.adp.com&callingAppId=webclk&TARGET=-SM-https://clock.adp.com/';
 
+/** Employee Support dropdown options. A function rather than a constant
+ *  because the two passed-in URLs can be overridden per page via props. */
 function buildEmployeeSupportOptions(
   employeeDirectoryUrl: string,
   trainingHubUrl: string
@@ -61,7 +67,10 @@ function buildEmployeeSupportOptions(
   return [
     { label: 'ADP Web Clock', href: ADP_WEB_CLOCK_URL, newTab: true },
     { label: 'Employee Directory', href: employeeDirectoryUrl },
-    { label: 'Human Resources Support', href: '#' },
+    // Remove `disabled` once HealthSafety.aspx is created on compass.
+    { label: 'Health & Safety', href: HEALTH_SAFETY_URL, disabled: true },
+    // Remove `disabled` once HRSupport.aspx is created on compass.
+    { label: 'Human Resources Support', href: HR_SUPPORT_URL, disabled: true },
     { label: 'IT Support', href: IT_SUPPORT_URL },
     { label: 'Rise Hub', href: RISE_HUB_URL, newTab: true },
     // Remove `disabled` once the Training Hub page is created on compass.
@@ -76,10 +85,14 @@ const DEPARTMENT_HUBS_OPTIONS: INavLink[] = [
   { label: 'Business Development', href: '#' },
   { label: 'Customer Experience', href: CX_PUBLIC_URL },
   { label: 'Dispatch', href: '#' },
+  { label: 'Fleet', href: '#' },
   { label: 'Human Resources', href: '#' },
   { label: 'Information Technology', href: IT_PUBLIC_URL },
 ];
 
+/** Identity of the hosting page: drives which nav item is highlighted, and
+ *  only the two card pages ('contactCards' / 'outsourceCards') render the
+ *  nav search bar. */
 export type NavPage =
   | 'home'
   | 'contactCards'
@@ -87,7 +100,10 @@ export type NavPage =
   | 'training'
   | 'departmentHub'
   | 'employeeDirectory'
-  | 'itSupport';
+  | 'itSupport'
+  | 'hrSupport'
+  | 'healthSafety'
+  | 'aboutCompany';
 
 export interface INavigationProps {
   /** Legacy: the nav search bar was removed (search lives in each directory);
@@ -109,10 +125,18 @@ export interface INavigationProps {
   trainingHubUrl?: string;
 }
 
+/** Shared top nav rendered by every page. Imports the customer/vendor search
+ *  hooks and the NotificationBell, so any page that renders it must also
+ *  initialize the Contact Cards SP config in onInit() or the bell and search
+ *  will be broken. */
 export const Navigation: React.FC<INavigationProps> = (props) => {
   const activePage = props.activePage || 'home';
   const isSupportActive =
-    activePage === 'training' || activePage === 'employeeDirectory' || activePage === 'itSupport';
+    activePage === 'training' ||
+    activePage === 'employeeDirectory' ||
+    activePage === 'itSupport' ||
+    activePage === 'hrSupport' ||
+    activePage === 'healthSafety';
   const isCardsActive = activePage === 'contactCards' || activePage === 'outsourceCards';
   const homeUrl = props.homeUrl || HOME_URL;
   const contactCardsUrl = props.contactCardsUrl || CONTACT_CARDS_URL;
@@ -158,12 +182,14 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
       props.onCustomerSelect(customerId);
       return;
     }
-    // Otherwise navigate to the Contact Cards page with ?id= param
+    // Cross-page deep link. The param is customerId, NOT id: SharePoint
+    // reserves ?id= for its own page routing and answers "No item exists"
+    // (sw=bypass&bypassReason=abandoned) before the web part ever loads.
     const base = contactCardsUrl && contactCardsUrl !== '#'
       ? contactCardsUrl
       : CONTACT_CARDS_URL;
     const sep = base.indexOf('?') >= 0 ? '&' : '?';
-    window.location.assign(`${base}${sep}id=${customerId}`);
+    window.location.assign(`${base}${sep}customerId=${customerId}`);
   }, [contactCardsUrl, props.onCustomerSelect]);
 
   // Only the two card pages get a nav search, so agents can jump to the next
@@ -328,7 +354,7 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     {
       key: 'support',
       label: 'Employee Support',
-      active: activePage === 'training' || activePage === 'employeeDirectory' || activePage === 'itSupport',
+      active: isSupportActive,
       links: supportLinks,
     },
   ];
@@ -377,16 +403,29 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
           </li>
 
           {/* 2. All About the Company */}
+          {/* Drop the disabled branch once AboutCompany.aspx is created on
+              compass. On the About page itself the link is the current-page
+              indicator, so the disabled styling and guards must not apply. */}
           <li className={styles.listItem}>
-            <a
-              href="#"
-              className={`${styles.link} ${styles.linkDisabled}`}
-              onClick={(e) => e.preventDefault()}
-              aria-disabled="true"
-              tabIndex={-1}
-            >
-              All About the Company
-            </a>
+            {activePage === 'aboutCompany' ? (
+              <a
+                href={ABOUT_COMPANY_URL}
+                className={styles.linkActive}
+                aria-current="page"
+              >
+                All About the Company
+              </a>
+            ) : (
+              <a
+                href={ABOUT_COMPANY_URL}
+                className={`${styles.link} ${styles.linkDisabled}`}
+                onClick={(e) => e.preventDefault()}
+                aria-disabled="true"
+                tabIndex={-1}
+              >
+                All About the Company
+              </a>
+            )}
           </li>
 
           {/* 3. Contact Cards (dropdown: Customer / Outsource) */}
@@ -583,10 +622,12 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
           </li>
 
           <li>
+            {/* Same as the desktop link above: drop mobileNavLinkDisabled +
+                the guards once AboutCompany.aspx exists on compass. */}
             <a
-              href="#"
+              href={ABOUT_COMPANY_URL}
               className={`${styles.mobileNavLink} ${styles.mobileNavLinkDisabled}`}
-              onClick={handleDrawerLink('#')}
+              onClick={(e) => e.preventDefault()}
               aria-disabled="true"
               tabIndex={-1}
             >
