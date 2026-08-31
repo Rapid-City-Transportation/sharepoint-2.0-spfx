@@ -263,7 +263,7 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
             {leadersLoading && leaders.length === 0
               ? 'Loading profiles…'
               : leaders.length === 0
-                ? 'No profiles listed yet. Leaders are marked in the Employee Highlight list with the Leadership Order column and appear here automatically.'
+                ? 'No profiles listed yet. Anyone tagged with the Management department in the Employee Highlight list appears here automatically.'
                 : `${leaders.length} profiles listed.`}
           </p>
           {leaders.length > 0 && (
@@ -289,7 +289,6 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
                   <div className={styles.leaderBody}>
                     <p className={styles.leaderName}>{l.name}</p>
                     <p className={styles.leaderRole}>{l.role}</p>
-                    {l.bio && <p className={styles.leaderBio}>{l.bio}</p>}
                     {l.email && (
                       <a
                         className={styles.leaderMail}

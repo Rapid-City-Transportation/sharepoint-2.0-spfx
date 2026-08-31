@@ -1,61 +1,50 @@
-import { getSP } from '../../employeeDirectory/services/spConfig';
-import { ET } from '../../employeeDirectory/services/fieldNames';
-import { buildUserPhotoUrl } from '../../employeeDirectory/mappers/employeeMapper';
+import { fetchActiveEmployees } from '../../employeeDirectory/services/employeesService';
+import { IEmployee } from '../../employeeDirectory/components/types';
 
-/** Display model for one senior-leadership card. */
+/** One senior leadership card on the About the Company page. */
 export interface ILeader {
-  id: number;
+  id: string;
   name: string;
   role: string;
-  bio?: string;
   email?: string;
   photoUrl?: string;
 }
 
-interface IRawRow {
-  Id: number;
-  Title?: string;
-  Level?: string;
-  LeadershipOrder?: number;
-  LeadershipBio?: string;
-  Employee?: { Title?: string; EMail?: string };
+/** Same predicate the department hubs use for their management-first sort,
+ *  so tagging someone Management affects both surfaces consistently. */
+function isManagement(emp: IEmployee): boolean {
+  return emp.departments.some(d => d.toLowerCase() === 'management');
 }
 
-/** The leadership roster is the Employee Highlight rows whose LeadershipOrder
- *  number is filled in: presence is the flag, the value is the display order.
- *  Same single-source-of-truth pattern as the JHSC roster. Reads through the
- *  employeeDirectory SPFI, so the host web part must call that web part's
- *  initializeSP() in onInit(). Throws on failure (including the column not
- *  existing yet) so the hook falls back to empty. */
-export async function fetchLeadership(): Promise<ILeader[]> {
-  const rows: IRawRow[] = await getSP()
-    .web.lists.getByTitle(ET.LIST_TITLE)
-    .items.select(
-      ET.Id,
-      ET.Title,
-      ET.Level,
-      ET.LeadershipOrder,
-      ET.LeadershipBio,
-      `${ET.Employee}/Title`,
-      `${ET.Employee}/EMail`
-    )
-    .expand(ET.Employee)
-    .top(5000)();
+/** Only the Management tag and nothing else marks the people who run the
+ *  company (CEO, President); they lead the page ahead of department heads. */
+function isExecutive(emp: IEmployee): boolean {
+  return emp.departments.every(d => d.toLowerCase() === 'management');
+}
 
-  return rows
-    .filter(r => typeof r.LeadershipOrder === 'number')
+/**
+ * Senior leadership, derived from Employee Highlight rather than a dedicated
+ * column: everyone tagged with the Management department appears, so curating
+ * the page means curating that tag. Executives (Management-only rows) sort
+ * first, then department heads, alphabetical within each group. Reads through
+ * the shared cached employees fetch; the host web part must have called the
+ * employeeDirectory initializeSP() in onInit().
+ */
+export async function fetchLeadership(): Promise<ILeader[]> {
+  const employees = await fetchActiveEmployees();
+  return employees
+    .filter(isManagement)
     .sort((a, b) => {
-      const ao = a.LeadershipOrder as number;
-      const bo = b.LeadershipOrder as number;
-      if (ao !== bo) return ao - bo;
-      return (a.Title || '').localeCompare(b.Title || '');
+      const ae = isExecutive(a) ? 0 : 1;
+      const be = isExecutive(b) ? 0 : 1;
+      if (ae !== be) return ae - be;
+      return a.name.localeCompare(b.name);
     })
-    .map(r => ({
-      id: r.Id,
-      name: r.Title || (r.Employee && r.Employee.Title) || '(unnamed)',
-      role: r.Level || 'Leadership Team',
-      bio: (r.LeadershipBio || '').trim() || undefined,
-      email: (r.Employee && r.Employee.EMail) || undefined,
-      photoUrl: buildUserPhotoUrl((r.Employee && r.Employee.EMail) || undefined),
+    .map(emp => ({
+      id: emp.id,
+      name: emp.name,
+      role: emp.level || 'Leadership Team',
+      email: emp.email,
+      photoUrl: emp.photoUrl,
     }));
 }
