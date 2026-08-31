@@ -15,6 +15,9 @@ import { useProtocolBook } from '../hooks/useProtocolBook';
 
 type ViewState = 'grid' | 'detail';
 
+/** React root for the Contact Cards web part: routes between the card grid
+ *  and the customer detail view, and hosts the resources and email-template
+ *  drawers. */
 const CustomerContactCards: React.FC<ICustomerContactCardsProps> = ({ title }) => {
   const [view, setView]                         = React.useState<ViewState>('grid');
   const [selectedCustomer, setSelectedCustomer] = React.useState<ICustomer | null>(null);
@@ -71,12 +74,14 @@ const CustomerContactCards: React.FC<ICustomerContactCardsProps> = ({ title }) =
     clearDetail();
   }, [clearDetail]);
 
-  // Handle ?id= URL param from search dropdown navigation
+  // Deep link from the notification bell on other pages. The param must stay
+  // customerId: SharePoint intercepts ?id= with its own page routing and the
+  // request dies with "No item exists" before this code runs.
   const urlIdHandled = React.useRef(false);
   React.useEffect(() => {
     if (urlIdHandled.current || customers.length === 0 || gridLoading) return;
     const params = new URLSearchParams(window.location.search);
-    const idParam = params.get('id');
+    const idParam = params.get('customerId');
     if (!idParam) return;
 
     urlIdHandled.current = true;
