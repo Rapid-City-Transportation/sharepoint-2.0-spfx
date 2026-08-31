@@ -1,0 +1,27 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "7bf031ab-9d7c-4f67-8cd8-e837ae9589e2",
+  "alias": "DispatchHubWebPart",
+  "componentType": "WebPart",
+  "version": "1.0.0",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": [
+    "SharePointWebPart",
+    "SharePointFullPage"
+  ],
+  "supportsThemeVariants": true,
+  "supportsFullBleed": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Advanced" },
+      "title": { "default": "Dispatch Hub" },
+      "description": {
+        "default": "Private Dispatch team hub: updates, tools, and the team roster."
+      },
+      "officeFabricIconFontName": "Bus",
+      "properties": {}
+    }
+  ]
+}
