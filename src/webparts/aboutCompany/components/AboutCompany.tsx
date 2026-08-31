@@ -287,7 +287,13 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
                       <span className={styles.leaderNameLabel}>Name:</span>{' '}
                       {l.name}
                     </p>
-                    {l.role && (
+                    {l.leads && (
+                      <p className={styles.leaderRole}>
+                        <span className={styles.leaderRoleLabel}>Leads:</span>{' '}
+                        {l.leads}
+                      </p>
+                    )}
+                    {!l.leads && l.role && (
                       <p className={styles.leaderRole}>
                         <span className={styles.leaderRoleLabel}>Role:</span>{' '}
                         {l.role}

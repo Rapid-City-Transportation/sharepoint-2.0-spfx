@@ -7,8 +7,13 @@ import { IEmployee } from '../../employeeDirectory/components/types';
 export interface ILeader {
   id: string;
   name: string;
-  /** The Highlight row's Level, when filled. Never invented: a blank Level
-   *  renders no role line rather than a filler label. */
+  /** The departments this person leads (their Department tags minus the
+   *  Management flag itself). Preferred over role: it is consistently
+   *  filled and says what the leadership page needs to say. */
+  leads?: string;
+  /** Fallback line from the row's Level, for people with no department
+   *  portfolio (the Management-only executives). Never invented: blank
+   *  Level renders no line rather than a filler label. */
   role?: string;
   photoUrl?: string;
 }
@@ -43,10 +48,16 @@ export async function fetchLeadership(): Promise<ILeader[]> {
       if (ae !== be) return ae - be;
       return a.name.localeCompare(b.name);
     })
-    .map(emp => ({
-      id: emp.id,
-      name: emp.name,
-      role: emp.level || undefined,
-      photoUrl: emp.photoUrl,
-    }));
+    .map(emp => {
+      const portfolio = emp.departments.filter(
+        d => d.toLowerCase() !== 'management'
+      );
+      return {
+        id: emp.id,
+        name: emp.name,
+        leads: portfolio.length > 0 ? portfolio.join(', ') : undefined,
+        role: portfolio.length === 0 ? emp.level || undefined : undefined,
+        photoUrl: emp.photoUrl,
+      };
+    });
 }
