@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "f1b12d7e-52ed-4034-ba0b-1643c3004a15",
+  "alias": "AboutCompanyWebPart",
+  "componentType": "WebPart",
+  "version": "1.0.0",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": [
+    "SharePointWebPart",
+    "SharePointFullPage"
+  ],
+  "supportsThemeVariants": true,
+  "supportsFullBleed": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Advanced" },
+      "title": { "default": "All About the Company" },
+      "description": {
+        "default": "Company page: mission, vision and values, history, senior leadership profiles and updates, and the QMS."
+      },
+      "officeFabricIconFontName": "CompassNW",
+      "properties": {
+        "videoUrl": ""
+      }
+    }
+  ]
+}

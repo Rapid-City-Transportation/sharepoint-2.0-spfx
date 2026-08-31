@@ -1,0 +1,944 @@
+@import '../../rapidCityHomepage/theme/themeVariables.module.scss';
+@import '../../rapidCityHomepage/theme/_rct-components';
+
+// ── SPFx full-width override ────────────────────────────────────────────────
+// Modern pages cap web parts at the canvas section width; every page-level web
+// part in this solution breaks out so the nav/hero span the full page.
+:global {
+  #workbenchPageContent,
+  .CanvasComponent.LCS .CanvasZone {
+    max-width: 100% !important;
+  }
+}
+
+.page {
+  background: var(--rct-surface-page, #F4F6FA);
+  min-height: 100vh;
+  color: var(--rct-text-primary, #262931);
+}
+
+// Visible only when focused (keyboard skip link).
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 10px 16px;
+  background: #ffffff;
+  color: var(--rct-primary, #1F4C7F);
+  font-weight: 700;
+  border-radius: 0 0 8px 0;
+
+  &:focus {
+    left: 0;
+  }
+}
+
+.main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 24px 8px;
+}
+
+// ── Hero band ───────────────────────────────────────────────────────────────
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  background:
+    linear-gradient(135deg, var(--rct-primary, #1F4C7F) 0%, #173B62 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 30px 32px;
+}
+
+.heroText {
+  min-width: 0;
+}
+
+.heroTitle {
+  margin: 0 0 8px;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.heroIntro {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+// ── Shared section chrome ───────────────────────────────────────────────────
+.section,
+.compassSection {
+  margin-top: 24px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 6px;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+}
+
+.sectionIcon {
+  font-size: 18px;
+  color: var(--rct-primary, #1F4C7F);
+}
+
+.sectionKicker {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+// Keeps the loaded-state announcement audible but invisible.
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sectionStatus {
+  margin: 0;
+  font-size: 15px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+// ── Mission / Vision ────────────────────────────────────────────────────────
+.mvvGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.mvvCard {
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-left: 4px solid var(--rct-primary, #1F4C7F);
+  border-radius: 14px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.mvvTitle {
+  margin: 0 0 10px;
+  font-size: 17px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--rct-primary, #1F4C7F);
+}
+
+.mvvText {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--rct-text-primary, #262931);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// ── Values ──────────────────────────────────────────────────────────────────
+.valuesHeading {
+  margin: 24px 0 14px;
+  font-size: 17px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--rct-text-primary, #262931);
+}
+
+.valuesGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.valueCard {
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.valueTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.valueNum {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--rct-gold-accessible, #8A6A0C);
+}
+
+.valueIcon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--rct-primary, #1F4C7F);
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.valueName {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+}
+
+.valueText {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.taglineBand {
+  margin: 20px 0 0;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: var(--rct-surface-midnight, #262931);
+  color: var(--rct-gold-light, #E8B832); // 4.62:1 on dark (AA)
+  font-size: 16px;
+  font-weight: 600;
+  font-style: italic;
+  text-align: center;
+}
+
+// ── Video ───────────────────────────────────────────────────────────────────
+.videoPanel {
+  margin-top: 20px;
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.videoFrame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: 0;
+}
+
+// ── Pending panels (history, QMS, pre-launch video) ─────────────────────────
+.pendingPanel {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 160px;
+  padding: 28px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px dashed var(--rct-border, #D0D5DD);
+  border-radius: 14px;
+}
+
+.pendingIcon {
+  font-size: 28px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.pendingText {
+  margin: 0;
+  max-width: 420px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+// ── Leadership profiles ─────────────────────────────────────────────────────
+.leadersGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.leaderCard {
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+// Same 180px photo band as the department page leader cards.
+.leaderPhoto,
+.leaderPhotoFallback {
+  height: 180px;
+  background-size: cover;
+  background-position: center top;
+}
+
+.leaderPhotoFallback {
+  display: grid;
+  place-items: center;
+  color: var(--rct-text-inverse, #FFFFFF);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.leaderBody {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.leaderName {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+}
+
+.leaderRole {
+  margin: 0;
+  font-size: 14px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.leaderBio {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.leaderMail {
+  margin-top: 10px;
+  align-self: flex-start;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(24, 115, 137, 0.08);
+  color: var(--rct-blue-accessible, #187389);
+  font-size: 13px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(24, 115, 137, 0.18);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+// ── Leadership updates ──────────────────────────────────────────────────────
+.updatesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.updateCard {
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.updateTitle {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+}
+
+.updateMeta {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.updateBody {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--rct-text-primary, #262931);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.updateActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.updateReadMore {
+  border: 0;
+  padding: 0;
+  background: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--rct-blue-accessible, #187389);
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--rct-primary, #1F4C7F);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+}
+
+.updateLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--rct-blue-accessible, #187389);
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--rct-primary, #1F4C7F);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+}
+
+.updateModalBody {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--rct-text-primary, #262931);
+  overflow-wrap: anywhere; // pasted long URLs must not widen the dialog
+  overflow-x: auto; // let a wide pasted table scroll inside the dialog
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+// ── Responsive ──────────────────────────────────────────────────────────────
+@media (max-width: 900px) {
+  .mvvGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .valuesGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .main {
+    padding: 20px 16px 8px;
+  }
+
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    padding: 22px 20px 24px;
+    border-radius: 14px;
+  }
+
+  .heroTitle {
+    font-size: 27px;
+  }
+
+  .valuesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderMail {
+    width: 44px;
+    height: 44px;
+  }
+
+  .updateReadMore,
+  .updateLink {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+// ── Quality Management System ───────────────────────────────────────────────
+.certBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: rgba(31, 76, 127, 0.06);
+  border: 1px solid var(--rct-border, #D0D5DD);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rct-primary, #1F4C7F);
+
+  i {
+    font-size: 18px;
+  }
+}
+
+.qmsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.qmsMain,
+.qmsAside {
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 14px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.qmsAside {
+  align-self: start;
+}
+
+.qmsHeading {
+  margin: 20px 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.qmsText {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--rct-text-primary, #262931);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.qmsList {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--rct-text-primary, #262931);
+}
+
+.qmsClosing {
+  margin: 14px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--rct-primary, #1F4C7F);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Self-help toolbox
+//  Dark navy "Tools" panel + light viewer, matching the CX hub Tools panel so
+//  the toolbox reads as the same component family (dark tiles, gold selected).
+// ═══════════════════════════════════════════════════════════════════════════
+.toolboxSection {
+  margin-top: 24px;
+
+  .sectionTitle {
+    margin-bottom: 6px; // sits closer to its own intro line
+  }
+}
+
+.toolboxIntro {
+  margin: 0 0 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+// Tools as a full-width bar, with the guide viewer stacked directly below it.
+.toolboxLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.toolsPanel {
+  background:
+    linear-gradient(160deg, rgba(31, 76, 127, 0.96) 0%, rgba(38, 41, 49, 0.98) 100%);
+  background-color: var(--rct-brand-navy, #262931);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px; // matches the ticket + viewer cards on this page
+  padding: 16px 18px 18px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  color: #ffffff;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.panelTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+// Placeholder line where the guide tiles will sit; 0.75 white on the dark
+// panel gradient stays above 4.5:1.
+.guidesEmpty {
+  margin: 0;
+  padding: 6px 2px 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.toolsGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  // Full-width bar of larger tiles: auto-fill wraps them across the panel
+  // (about 6 per row on desktop, 2 on phones).
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-auto-rows: 1fr; // equal tile heights even when one label wraps longer
+  gap: 12px;
+}
+
+.toolTile {
+  position: relative; // anchors the external-link marker
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  min-height: 116px;
+  padding: 18px 14px;
+  text-align: center;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--rct-border-radius-lg, 8px); // matches the CX tile radius
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease,
+              border-color 0.18s ease, background 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  // The default blue focus outline is near-invisible on this dark navy/blue
+  // panel (below 3:1). A white ring reads on both the dark tiles and the gold
+  // selected tile (the offset puts the ring on the panel background).
+  &:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: var(--rct-focus-offset, 3px);
+  }
+}
+
+// Selected tile: solid brand gold with dark-navy text/icon so it pops against
+// the dark panel. Navy on gold = 6.06:1 (AA). Pairs with aria-pressed.
+.toolTileActive,
+.toolTileActive:hover {
+  background: var(--rct-brand-gold, #D29F1C);
+  border-color: var(--rct-brand-gold, #D29F1C);
+  color: var(--rct-brand-navy, #262931);
+  box-shadow: 0 4px 16px rgba(210, 159, 28, 0.4);
+
+  .toolIcon {
+    background: rgba(38, 41, 49, 0.18);
+    border-color: rgba(38, 41, 49, 0.28);
+    color: var(--rct-brand-navy, #262931);
+  }
+
+  .toolLabel {
+    color: var(--rct-brand-navy, #262931);
+  }
+}
+
+.toolIcon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--rct-border-radius-lg, 8px);
+  font-size: 22px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.toolLabel {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #ffffff;
+  overflow-wrap: anywhere; // overflow guard: break long tool names
+}
+
+.toolViewer {
+  min-height: 260px;
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #E2E8F0);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.toolViewerEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 260px;
+  padding: 32px;
+  text-align: center;
+}
+
+.toolViewerEmptyIcon {
+  font-size: 32px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.toolViewerEmptyText {
+  margin: 0;
+  font-size: 15px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.toolViewerContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.toolViewerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--rct-border, #E2E8F0);
+  background: var(--rct-surface, #F8F8F8);
+}
+
+.toolViewerEyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.toolViewerTitle {
+  margin: 2px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--rct-text-primary, #262931);
+  overflow-wrap: anywhere;
+}
+
+.toolViewerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolViewerOpen {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--rct-border, #E2E8F0);
+  background: #ffffff;
+  color: var(--rct-primary, #1F4C7F);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(31, 76, 127, 0.06);
+    border-color: var(--rct-primary, #1F4C7F);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+.toolViewerClose {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--rct-text-secondary, #4A5568);
+  font-size: 16px;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(38, 41, 49, 0.06);
+    color: var(--rct-text-primary, #262931);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+.toolDocFrame {
+  display: block;
+  width: 100%;
+  // Viewport-based: a portrait PDF renders at the frame's height, so a fixed
+  // 520px showed the handbook postage-stamp sized on tall monitors.
+  height: 78vh;
+  min-height: 520px;
+  border: 0;
+}
+
+.toolComingSoon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 200px;
+  padding: 32px;
+  text-align: center;
+}
+
+.toolComingSoonIcon {
+  font-size: 30px;
+  color: var(--rct-primary, #1F4C7F);
+}
+
+.toolComingSoonText {
+  margin: 0;
+  max-width: 420px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+@media (max-width: 900px) {
+  .qmsGrid,
+  .toolboxLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .qmsMain,
+  .qmsAside {
+    padding: 18px 16px;
+  }
+
+  .toolDocFrame {
+    height: 60vh;
+    min-height: 320px;
+  }
+
+  .toolViewerOpen,
+  .toolViewerClose {
+    min-height: 44px;
+  }
+
+  .toolTile {
+    min-height: 44px;
+  }
+}
