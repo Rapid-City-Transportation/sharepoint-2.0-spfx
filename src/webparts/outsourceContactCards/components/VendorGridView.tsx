@@ -1,13 +1,7 @@
 import * as React from 'react';
 import styles from './OutsourceContactCards.module.scss';
 import { IVendor, IVendorFilters } from '../models/types';
-import {
-  distinctCities,
-  distinctVehicleTypes,
-  distinctZones,
-  filterVendors,
-  sortVendors,
-} from '../services/vendorSearch';
+import { facetOptions, filterVendors, sortVendors } from '../services/vendorSearch';
 import VendorCard from './VendorCard';
 
 const PAGE_SIZE = 15;
@@ -38,9 +32,43 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
     setShowAll(false);
   }, [filters]);
 
-  const cities = React.useMemo(() => distinctCities(allVendors), [allVendors]);
-  const zones = React.useMemo(() => distinctZones(allVendors), [allVendors]);
-  const vehicleTypes = React.useMemo(() => distinctVehicleTypes(allVendors), [allVendors]);
+  // Dropdown options facet each other but deliberately ignore the search
+  // text: if typing narrowed them, a half-typed word could invalidate and
+  // silently wipe a selected zone. Search stays an overlay on the results.
+  const { zone, city, vehicleType } = filters;
+  const options = React.useMemo(
+    () => facetOptions(allVendors, { zone, city, vehicleType, searchText: '' }),
+    [allVendors, zone, city, vehicleType]
+  );
+
+  const [resetNotice, setResetNotice] = React.useState('');
+
+  // A selection its own option list no longer offers is impossible given the
+  // other dropdowns (e.g. the chosen city vanishes after switching zones), so
+  // it resets to All. Announced for screen readers: the value changes while
+  // focus is on a different control.
+  React.useEffect(() => {
+    const next = { ...filters };
+    const cleared: string[] = [];
+    if (filters.zone !== 'All' && options.zones.indexOf(filters.zone) === -1) {
+      next.zone = 'All';
+      cleared.push('Zone');
+    }
+    if (filters.city !== 'All' && options.cities.indexOf(filters.city) === -1) {
+      next.city = 'All';
+      cleared.push('City');
+    }
+    if (filters.vehicleType !== 'All' && options.vehicleTypes.indexOf(filters.vehicleType) === -1) {
+      next.vehicleType = 'All';
+      cleared.push('Vehicle');
+    }
+    if (cleared.length > 0) {
+      setResetNotice(
+        `${cleared.join(' and ')} filter${cleared.length > 1 ? 's' : ''} reset to All to match your other selections.`
+      );
+      onFiltersChange(next);
+    }
+  }, [options, filters, onFiltersChange]);
 
   const results = React.useMemo(
     () => sortVendors(filterVendors(allVendors, filters)),
@@ -70,6 +98,7 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
 
   return (
     <div className={styles.gridView}>
+      <div className={styles.srOnly} role="status">{resetNotice}</div>
       <div className={styles.filterBar} role="search" aria-label="Vendor filter controls">
         <div className={styles.filterGroup}>
           <label className={styles.filterLabel} htmlFor="occ-zone-filter">
@@ -83,7 +112,10 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
               onChange={e => onFiltersChange({ ...filters, zone: e.target.value })}
             >
               <option value="All">All Zones</option>
-              {zones.map(z => (
+              {filters.zone !== 'All' && options.zones.indexOf(filters.zone) === -1 && (
+                <option value={filters.zone}>{filters.zone}</option>
+              )}
+              {options.zones.map(z => (
                 <option key={z} value={z}>{z}</option>
               ))}
             </select>
@@ -102,7 +134,10 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
               onChange={e => onFiltersChange({ ...filters, city: e.target.value })}
             >
               <option value="All">All Cities</option>
-              {cities.map(c => (
+              {filters.city !== 'All' && options.cities.indexOf(filters.city) === -1 && (
+                <option value={filters.city}>{filters.city}</option>
+              )}
+              {options.cities.map(c => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
@@ -121,7 +156,10 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
               onChange={e => onFiltersChange({ ...filters, vehicleType: e.target.value })}
             >
               <option value="All">All Vehicles</option>
-              {vehicleTypes.map(v => (
+              {filters.vehicleType !== 'All' && options.vehicleTypes.indexOf(filters.vehicleType) === -1 && (
+                <option value={filters.vehicleType}>{filters.vehicleType}</option>
+              )}
+              {options.vehicleTypes.map(v => (
                 <option key={v} value={v}>{v}</option>
               ))}
             </select>
