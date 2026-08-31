@@ -16,6 +16,13 @@ import styles from './DepartmentPublicPage.module.scss';
 /** Neutral dark hero backdrop; tinted per-department by the accent scrim. */
 const HEADER_BACKDROP = require('../assets/dept-header-backdrop.png');
 
+/** Dialable form of a displayed number. Anything from "ext" onward is dropped
+ *  first: keeping it would fold the extension's digits into the number itself
+ *  and dial something that does not exist. */
+function telHref(display: string): string {
+  return display.split(/ext/i)[0].replace(/[^+\d]/g, '');
+}
+
 /** Per-department hero banners: departments with a bespoke banner override the
  *  neutral backdrop above; the rest fall back to it. */
 const HEADER_BACKDROPS: Partial<Record<DepartmentKey, string>> = {
@@ -86,6 +93,10 @@ function useDepartmentMembership(
 
 // ── Main component ──────────────────────────────────────────────────────────
 
+/** Public department page: one bundle serves every department. departmentKey
+ *  selects the config; property-pane values override config defaults; the
+ *  "View Department Resources" CTA renders only for members of the
+ *  department's AAD group (fails safe to hidden). */
 export default function DepartmentPublicPage(props: IDepartmentPublicPageProps): React.ReactElement {
   const config = getDepartmentConfig(props.departmentKey);
 
@@ -118,9 +129,13 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
   const emailList = config?.contactEmails && config.contactEmails.length > 0
     ? config.contactEmails
     : (email ? [{ email, scope: '' }] : []);
-  const officeHours = config?.hoursGroups && config.hoursGroups.length > 0
-    ? config.hoursGroups
-    : (hours ? [{ title: '', rows: [{ days: '', time: hours }] }] : []);
+  // Pane-entered hours beat config hoursGroups: every config now ships
+  // hoursGroups, so without this the documented pane override would be dead.
+  const officeHours = props.contactHours
+    ? [{ title: '', rows: [{ days: '', time: props.contactHours }] }]
+    : config?.hoursGroups && config.hoursGroups.length > 0
+      ? config.hoursGroups
+      : (hours ? [{ title: '', rows: [{ days: '', time: hours }] }] : []);
   const phoneNumbers = config?.phoneNumbers && config.phoneNumbers.length > 0
     ? config.phoneNumbers
     : (phone ? [{ label: '', number: phone }] : []);
@@ -255,7 +270,7 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
                       <li key={p.number} className={styles.heroPhoneItem}>
                         {p.label && <span className={styles.heroPhoneLabel}>{p.label}</span>}
                         <a
-                          href={`tel:${p.number.replace(/[^+\d]/g, '')}`}
+                          href={`tel:${telHref(p.number)}`}
                           className={styles.contactPhoneLink}
                         >
                           {p.number}
@@ -413,12 +428,10 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
                         <span className={styles.leaderNameLabel}>Name:</span>{' '}
                         {leader.name}
                       </p>
-                      {leader.level && (
-                        <p className={styles.leaderRole}>
-                          <span className={styles.leaderRoleLabel}>Role:</span>{' '}
-                          {leader.level}
-                        </p>
-                      )}
+                      <p className={styles.leaderRole}>
+                        <span className={styles.leaderRoleLabel}>Role:</span>{' '}
+                        {leader.role}
+                      </p>
                       {leader.phone && (
                         <p className={styles.leaderDescription}>
                           Phone: {leader.phone}

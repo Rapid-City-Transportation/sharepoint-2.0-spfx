@@ -15,7 +15,8 @@ export type DepartmentKey =
   | 'accounting'
   | 'humanResources'
   | 'informationTechnology'
-  | 'businessDevelopment';
+  | 'businessDevelopment'
+  | 'fleet';
 
 export interface IDepartmentConfig {
   key: DepartmentKey;
@@ -33,8 +34,9 @@ export interface IDepartmentConfig {
   contactEmail: string;
   contactPhone: string;
   contactHours: string;
-  /** Optional richer contact emails, each labelled Internal/External.
-   *  Falls back to a single contactEmail entry when omitted. */
+  /** Optional richer contact emails, each with a short scope label telling
+   *  the reader which address to use (Internal, External, Driver candidates,
+   *  ...). Falls back to a single contactEmail entry when omitted. */
   contactEmails?: { email: string; scope: string }[];
   /** Optional structured office hours (grouped). Falls back to contactHours. */
   hoursGroups?: { title: string; rows: { days: string; time: string }[] }[];
@@ -97,9 +99,20 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     subtitle: 'About the Team',
     about: 'Dispatch keeps every vehicle moving: coordinating routes, drivers, and real-time changes so service stays reliable around the clock.',
     contactEmail: 'dispatch@rapidcitytransport.com',
-    contactPhone: '605-394-4176',
-    contactHours: '24/7',
-    resourcePageUrl: '/SitePages/DeptHub-Dispatch.aspx',
+    // Email-only until dispatch provides the number to publish.
+    contactPhone: '',
+    contactHours: '',
+    hoursGroups: [
+      {
+        title: '',
+        rows: [
+          { days: 'Every day', time: '24 hours' },
+        ],
+      },
+    ],
+    // Private hub page (create with exactly this name; move to a team site
+    // later if Dispatch gets one, like the IT hub did).
+    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/DispatchHub.aspx',
     groupId: '00000000-0000-0000-0000-000000000002', // Replace with real GUID
     accentColor:      '#187389', // Teal / Blue-accessible: 5.45:1 (AA)
     accentColorHover: '#126070',
@@ -111,9 +124,19 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     subtitle: 'About the Team',
     about: 'Accounting manages the numbers behind the service: billing, payroll, and reporting that keep Rapid City Transportation running.',
     contactEmail: 'accounting@rapidcitytransport.com',
-    contactPhone: '605-394-4177',
-    contactHours: '8:00 AM - 5:00 PM',
-    resourcePageUrl: '/SitePages/DeptHub-Accounting.aspx',
+    // Email-only until the team provides the number to publish.
+    contactPhone: '',
+    contactHours: '',
+    hoursGroups: [
+      {
+        title: '',
+        rows: [
+          { days: 'Monday to Friday', time: '8:00 AM to 5:00 PM' },
+        ],
+      },
+    ],
+    // Private hub page (create with exactly this name).
+    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/AccountingHub.aspx',
     groupId: '00000000-0000-0000-0000-000000000003', // Replace with real GUID
     accentColor:      '#8A6A0C', // Gold-accessible: 5.09:1 (AA)
     accentColorHover: '#6F550A',
@@ -123,11 +146,29 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     key: 'humanResources',
     displayName: 'Human Resources',
     subtitle: 'About the Team',
-    about: 'Human Resources supports our people: hiring, onboarding, benefits, and the everyday help that lets every employee do their best work.',
+    about: 'Our Human Resources team is dedicated to creating a positive, supportive, and engaging workplace for everyone at Rapid City Transportation. Whether you have questions about payroll, policies, training, or employee programs, we are here to help.',
+    teamSectionTitle: 'Meet the Team',
     contactEmail: 'hr@rapidcitytransport.com',
-    contactPhone: '605-394-4178',
-    contactHours: '8:00 AM - 5:00 PM',
-    resourcePageUrl: '/SitePages/DeptHub-Human-Resources.aspx',
+    contactPhone: '',
+    contactHours: '',
+    // Purpose-routed addresses, in the CX shape: the scope label tells a
+    // reader which one to use (or hand to a candidate or agency). No phone
+    // numbers by HR's request: contact is email-only on the public page.
+    contactEmails: [
+      { email: 'Driverrecruitment@rapidcitytransport.com', scope: 'Driver candidates' },
+      { email: 'Careers@rapidcitytransport.com', scope: 'Office candidates' },
+      { email: 'hr@rapidcitytransport.com', scope: 'General' },
+    ],
+    hoursGroups: [
+      {
+        title: '',
+        rows: [
+          { days: 'Monday to Friday', time: '9:00 AM to 5:00 PM' },
+        ],
+      },
+    ],
+    // Private hub page (create with exactly this name).
+    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/HumanResourcesHub.aspx',
     groupId: '00000000-0000-0000-0000-000000000004', // Replace with real GUID
     accentColor:      '#262931', // Dark Navy: 14.54:1 on white (AAA)
     accentColorHover: '#15171B',
@@ -165,13 +206,51 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     subtitle: 'About the Team',
     about: 'Business Development grows our service: building partnerships and finding new ways to serve the Rapid City community.',
     contactEmail: 'bizdev@rapidcitytransport.com',
-    contactPhone: '605-394-4180',
-    contactHours: '8:00 AM - 5:00 PM',
-    resourcePageUrl: '/SitePages/DeptHub-Business-Development.aspx',
+    // Email-only until the team provides the number to publish.
+    contactPhone: '',
+    contactHours: '',
+    hoursGroups: [
+      {
+        title: '',
+        rows: [
+          { days: 'Monday to Friday', time: '8:00 AM to 5:00 PM' },
+        ],
+      },
+    ],
+    // Private hub page (create with exactly this name).
+    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/BusinessDevelopmentHub.aspx',
     groupId: '00000000-0000-0000-0000-000000000006', // Replace with real GUID
     accentColor:      '#1A6B1A', // Forest Green: 6.8:1 on white (AA+)
     accentColorHover: '#145514',
     accentTint:       '#E8F2E8',
+  },
+  fleet: {
+    key: 'fleet',
+    displayName: 'Fleet',
+    subtitle: 'About the Team',
+    about: 'Fleet keeps our vehicles road-ready: maintenance, safety, and the equipment behind every trip.',
+    // Confirm this alias exists before publishing the page.
+    contactEmail: 'fleet@rapidcitytransport.com',
+    // Email-only until the team provides the number to publish.
+    contactPhone: '',
+    contactHours: '',
+    hoursGroups: [
+      {
+        title: '',
+        rows: [
+          { days: 'Monday to Friday', time: '8:00 AM to 5:00 PM' },
+        ],
+      },
+    ],
+    // Private hub page (create with exactly this name). Fleet docs are meant
+    // to stay private from Dispatch, so host this page somewhere Dispatch
+    // cannot reach (a Fleet team site, like the IT hub on RCT-ITTeam) before
+    // putting real documents on it.
+    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/FleetHub.aspx',
+    groupId: '00000000-0000-0000-0000-000000000007', // Replace with real GUID
+    accentColor:      '#9B2C2C', // Brick: 5.9:1 on white (AA)
+    accentColorHover: '#7F2424',
+    accentTint:       '#F7E9E9',
   },
 };
 
@@ -202,4 +281,5 @@ export const ALL_DEPARTMENT_KEYS: DepartmentKey[] = [
   'humanResources',
   'informationTechnology',
   'businessDevelopment',
+  'fleet',
 ];

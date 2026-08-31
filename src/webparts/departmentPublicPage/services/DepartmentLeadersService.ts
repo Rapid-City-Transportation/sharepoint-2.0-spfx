@@ -12,10 +12,35 @@ import { getDepartmentMatchNames } from './DepartmentConfig';
 export interface IDepartmentLeader {
   id: number;
   name: string;
-  level?: string;
+  /** Always set: Level, or a derived fallback (see roleLabel). */
+  role: string;
   shift?: string;
   phone?: string;
   photoUrl?: string;
+}
+
+/** Same chain as the private hubs so a person carries one title everywhere:
+ *  Level wins, then the Management department tag, then a generic fallback so
+ *  no card is left without a role line. */
+function roleLabel(level?: string, departments?: string[]): string {
+  if (level) return level;
+  // Plain "Manager": matches what people type into Level, instead of a
+  // longer derived phrase only the fallback would ever produce.
+  if ((departments || []).some(d => d.toLowerCase() === 'management')) {
+    return 'Manager';
+  }
+  return 'Team member';
+}
+
+/** Same hierarchy as the private hubs: management first, then team leads,
+ *  then trainers, then everyone else. 'manage' catches "Manager",
+ *  "Management", and the derived "<Dept> Management" alike. */
+function roleRank(role: string): number {
+  const r = role.toLowerCase();
+  if (r.indexOf('manage') !== -1) return 1;
+  if (r.indexOf('team lead') !== -1) return 2;
+  if (r.indexOf('trainer') !== -1) return 3;
+  return 4;
 }
 
 /**
@@ -40,13 +65,13 @@ export async function fetchDepartmentLeaders(
     .map(e => ({
       id: Number(e.id),
       name: e.name,
-      // The person's actual job level (Supervisor, Team Lead, etc.). Left
-      // undefined when the Highlight row has no Level, so the card can drop
-      // the Role line rather than repeat the department name.
-      level: e.level,
+      role: roleLabel(e.level, e.departments),
       shift: e.shift,
       phone: e.phoneLine,
       photoUrl: e.photoUrl,
     }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .sort((a, b) => {
+      const diff = roleRank(a.role) - roleRank(b.role);
+      return diff !== 0 ? diff : a.name.localeCompare(b.name);
+    });
 }
