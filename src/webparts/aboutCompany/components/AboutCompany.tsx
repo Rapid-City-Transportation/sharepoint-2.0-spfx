@@ -9,10 +9,6 @@ import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
 import { useLeadership } from '../hooks/useLeadership';
 import { useAnnouncements } from '../../rapidCityHomepage/hooks/useAnnouncements';
 import { sanitizeHtml } from '../../customerContactCards/utils/sanitize';
-import {
-  getEmployeeInitials,
-  pickAccentFromString,
-} from '../../employeeDirectory/utils/employeeFormatting';
 
 // Wording comes from the approved MVV branding toolkit poster (Management
 // site, "MVV Branding Toolkit - FINAL"). Update here if HR revises it.
@@ -267,41 +263,41 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
                 : `${leaders.length} profiles listed.`}
           </p>
           {leaders.length > 0 && (
-            <ul className={styles.leadersGrid} role="list">
+            <div className={styles.leadersGrid} role="list">
               {leaders.map((l) => (
-                <li key={l.id} className={styles.leaderCard}>
-                  {l.photoUrl ? (
-                    <div
-                      className={styles.leaderPhoto}
-                      style={{ backgroundImage: `url("${l.photoUrl}")` }}
-                      role="img"
-                      aria-label={`Photo of ${l.name}`}
-                    />
-                  ) : (
-                    <div
-                      className={styles.leaderPhotoFallback}
-                      style={{ background: pickAccentFromString(l.name) }}
-                      aria-hidden="true"
-                    >
-                      {getEmployeeInitials(l.name)}
-                    </div>
-                  )}
-                  <div className={styles.leaderBody}>
-                    <p className={styles.leaderName}>{l.name}</p>
-                    <p className={styles.leaderRole}>{l.role}</p>
-                    {l.email && (
-                      <a
-                        className={styles.leaderMail}
-                        href={`mailto:${l.email}`}
-                        aria-label={`Email ${l.name}`}
-                      >
-                        <Icon iconName="Mail" />
-                      </a>
+                <article key={l.id} className={styles.leaderCard} role="listitem">
+                  <div
+                    className={styles.leaderImageWrap}
+                    style={
+                      l.photoUrl
+                        ? ({ ['--leader-photo']: `url("${l.photoUrl}")` } as React.CSSProperties)
+                        : undefined
+                    }
+                  >
+                    {l.photoUrl ? (
+                      <img src={l.photoUrl} alt={l.name} className={styles.leaderPhoto} />
+                    ) : (
+                      <span className={styles.leaderImagePlaceholder} aria-hidden="true">
+                        Photo Placeholder
+                      </span>
                     )}
                   </div>
-                </li>
+                  <div className={styles.leaderBody}>
+                    <p className={styles.leaderName}>
+                      <span className={styles.leaderNameLabel}>Name:</span>{' '}
+                      {l.name}
+                    </p>
+                    <p className={styles.leaderRole}>
+                      <span className={styles.leaderRoleLabel}>Role:</span>{' '}
+                      {l.role}
+                    </p>
+                    {l.phone && (
+                      <p className={styles.leaderDescription}>Phone: {l.phone}</p>
+                    )}
+                  </div>
+                </article>
               ))}
-            </ul>
+            </div>
           )}
         </section>
 

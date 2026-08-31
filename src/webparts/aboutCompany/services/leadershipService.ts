@@ -1,12 +1,14 @@
 import { fetchActiveEmployees } from '../../employeeDirectory/services/employeesService';
 import { IEmployee } from '../../employeeDirectory/components/types';
 
-/** One senior leadership card on the About the Company page. */
+/** One senior leadership card on the About the Company page, shaped for
+ *  the public-page showcase card (same anatomy as the department pages'
+ *  "Meet the Department Leaders" section). */
 export interface ILeader {
   id: string;
   name: string;
   role: string;
-  email?: string;
+  phone?: string;
   photoUrl?: string;
 }
 
@@ -44,7 +46,7 @@ export async function fetchLeadership(): Promise<ILeader[]> {
       id: emp.id,
       name: emp.name,
       role: emp.level || 'Leadership Team',
-      email: emp.email,
+      phone: emp.phoneLine,
       photoUrl: emp.photoUrl,
     }));
 }
