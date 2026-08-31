@@ -4,7 +4,7 @@ import {
   IVendorZoneProfile,
   VendorPriority,
 } from '../models/types';
-import { DD, MGR } from '../services/fieldNames';
+import { COV, MGR, ML } from '../services/fieldNames';
 
 type SPRow = Record<string, unknown>;
 
@@ -39,51 +39,120 @@ function splitCities(value?: string): string[] {
   return value.split(',').map(s => s.trim()).filter(s => s.length > 0);
 }
 
-/** The list still says "Tertiary Option"; dispatch wanted "When Required" on
- *  screen. Blank stays undefined rather than defaulting to a tier. */
-function mapPriority(raw?: string): VendorPriority | undefined {
-  if (!raw) return undefined;
-  if (raw === 'Tertiary Option') return 'When Required';
-  if (raw === 'Primary Option' || raw === 'Secondary Option' || raw === 'When Required') {
-    return raw;
-  }
-  return undefined;
+/** Coverage Rank number to the on-screen tier. Blank stays undefined. */
+function rankToPriority(rank: unknown): VendorPriority | undefined {
+  if (typeof rank !== 'number') return undefined;
+  if (rank <= 1) return 'Primary Option';
+  if (rank === 2) return 'Secondary Option';
+  return 'When Required';
+}
+
+function coverageToZoneProfile(row: SPRow): IVendorZoneProfile {
+  const vehicleTypes = readChoiceArray(row, COV.VehicleOverride);
+  return {
+    zone: readString(row, COV.Zone),
+    cities: splitCities(readString(row, COV.Cities)),
+    priority: rankToPriority(row[COV.Rank]),
+    specialInstructions: readString(row, COV.DispatchNotes),
+    dispatchPhone: readString(row, COV.DispatchPhone),
+    dispatchPhoneAlt: readString(row, COV.DispatchPhoneAlt),
+    dispatchEmail: readString(row, COV.DispatchEmail),
+    vehicleTypes: vehicleTypes.length > 0 ? vehicleTypes : undefined,
+  };
+}
+
+function mapMasterRow(row: SPRow): IVendor {
+  return {
+    id: String(row[ML.Id] ?? row['Id'] ?? ''),
+    name: readString(row, ML.ProperName) || readString(row, ML.Title) || '(unnamed vendor)',
+    operatingName: readString(row, ML.ERPSystemName),
+    vehicleTypes: readChoiceArray(row, ML.VehicleTypesC),
+    portal: readBool(row, ML.PortalAccessYN),
+    zones: [],
+    templates: [],
+    dispatch: {
+      phone: readString(row, ML.ContactPhone),
+      secondaryPhone: readString(row, ML.PhoneAlt),
+      email: readString(row, ML.ContactEmail),
+      hours: readString(row, ML.Hours),
+      notes: readString(row, ML.Restriction),
+      bookingMethod:
+        readString(row, ML.PhoneOnly) === 'Yes' ? 'Phone only' : undefined,
+    },
+  };
 }
 
 /**
- * Maps one Outsource Company row to a vendor card. Multiple Home Zone values
- * fan out into a zone profile each, sharing the row's cities and priority.
+ * Joins masterlist records to their coverage rows. Coverage rows whose
+ * lookup points nowhere (mid-migration data still being identified) become
+ * standalone vendors from the row's own fields, so dispatch can still reach
+ * them. Masters with no active coverage keep a single empty profile so the
+ * card stays searchable.
  */
-export function mapRowToVendor(row: SPRow): IVendor {
-  const cities = splitCities(readString(row, DD.City));
-  const priority = mapPriority(readString(row, DD.Priority));
-  const specialInstructions = readString(row, DD.SpecialDispatchInstructions);
-  const homeZones = readChoiceArray(row, DD.HomeZone);
+export function mapMasterAndCoverage(
+  masterRows: SPRow[],
+  coverageRows: SPRow[]
+): IVendor[] {
+  const byId = new Map<string, IVendor>();
+  const inactiveIds = new Set<string>();
+  for (const row of masterRows) {
+    if (row[ML.ActiveYN] === false) {
+      inactiveIds.add(String(row[ML.Id] ?? row['Id'] ?? ''));
+      continue;
+    }
+    const vendor = mapMasterRow(row);
+    byId.set(vendor.id, vendor);
+  }
 
-  const zones: IVendorZoneProfile[] =
-    homeZones.length > 0
-      ? homeZones.map(zone => ({ zone, cities, priority, specialInstructions }))
-      : [{ cities, priority, specialInstructions }];
+  const standalone: IVendor[] = [];
+  for (const row of coverageRows) {
+    if (row[COV.CoverageActive] === false) continue;
+    const profile = coverageToZoneProfile(row);
+    const legacyId = readString(row, COV.OldDirectoryID);
+    const refRaw = row[COV.VendorRefId];
+    const refKey =
+      refRaw !== null && refRaw !== undefined ? String(refRaw) : undefined;
+    // A row pointing at a deactivated master is deactivated with it; only
+    // rows whose lookup was never set become standalone cards.
+    if (refKey && inactiveIds.has(refKey)) continue;
+    const master = refKey ? byId.get(refKey) : undefined;
 
-  return {
-    id: String(row[DD.Id] ?? row['Id'] ?? ''),
-    name: readString(row, DD.Title) || '(unnamed vendor)',
-    operatingName: readString(row, DD.OperatingName),
-    vehicleTypes: readChoiceArray(row, DD.Vehicle),
-    portal: readBool(row, DD.Portal),
-    zones,
-    templates: [],
-    dispatch: {
-      phone: readString(row, DD.Primary),
-      secondaryPhone: readString(row, DD.Secondary),
-      afterHoursPhone: readString(row, DD.AfterHoursPhone),
-      email: readString(row, DD.Email),
-      hours: readString(row, DD.HoursOfOperation),
-      notes: readString(row, DD.Notes),
-      bookingMethod: readString(row, DD.BookingMethod),
-      service247: readBool(row, DD.Service247),
-    },
-  };
+    if (master) {
+      master.zones.push(profile);
+      if (legacyId && !master.legacyDirectoryId) {
+        master.legacyDirectoryId = legacyId;
+      }
+      continue;
+    }
+
+    standalone.push({
+      id: `cov-${String(row[COV.Id] ?? row['Id'] ?? '')}`,
+      name: readString(row, COV.Title) || '(unnamed vendor)',
+      vehicleTypes: profile.vehicleTypes || [],
+      portal: false,
+      zones: [profile],
+      templates: [],
+      dispatch: {
+        phone: profile.dispatchPhone,
+        secondaryPhone: profile.dispatchPhoneAlt,
+        email: profile.dispatchEmail,
+        notes: profile.specialInstructions,
+      },
+      legacyDirectoryId: legacyId,
+    });
+  }
+
+  const vendors: IVendor[] = [];
+  byId.forEach(vendor => {
+    if (vendor.zones.length === 0) {
+      vendor.zones.push({ cities: [] });
+    }
+    vendors.push(vendor);
+  });
+
+  return vendors
+    .concat(standalone)
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /** Manager rows keyed by Driver Directory id, for a single-pass join. */

@@ -38,7 +38,9 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({ title })
   }, []);
 
   const handleNavSearch = React.useCallback((query: string): void => {
-    setFilters(prev => ({ ...prev, searchText: query }));
+    // Same-text no-ops keep their object identity so the grid's page and
+    // Show All state survive a redundant nav-search callback.
+    setFilters(prev => (prev.searchText === query ? prev : { ...prev, searchText: query }));
     setView('grid');
     setSelectedVendor(null);
   }, []);
@@ -48,6 +50,8 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({ title })
     if (match) handleCardClick(match);
   }, [vendors, handleCardClick]);
 
+  // Returning to the grid moves focus back to the card that opened the
+  // detail view; falls back to the page heading when the card is gone.
   React.useEffect(() => {
     if (view !== 'grid' || !lastVendorIdRef.current) return;
     const card = document.querySelector<HTMLButtonElement>(
@@ -101,7 +105,13 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({ title })
       )}
 
       {view === 'detail' && selectedVendor && (
-        <VendorDetailView vendor={selectedVendor} onBack={handleBack} />
+        <VendorDetailView
+          key={selectedVendor.id}
+          vendor={selectedVendor}
+          onBack={handleBack}
+          allVendors={vendors}
+          onVendorSelect={handleCardClick}
+        />
       )}
 
       <Footer pageIdentifier={feedbackPageId} />

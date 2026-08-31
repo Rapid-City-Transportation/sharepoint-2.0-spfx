@@ -1,55 +1,98 @@
 /**
- * Internal field names for the two Dispatch-site lists.
+ * Internal field names for the Dispatch-site lists.
  *
- * Account Password and Account Number are intentionally absent: this web part
- * must never fetch or render them.
+ * The directory reads the normalized pair: Outsource Providers Masterlist
+ * (one record per company) joined to Outsource Vendor Coverage (one row per
+ * company per zone) through the coverage row's VendorRef lookup. The legacy
+ * Driver Directory list is no longer read by this web part.
+ *
+ * Account numbers, account references, and passwords are intentionally
+ * absent from every select below: this web part must never fetch or render
+ * them.
  */
 
-export const DD = {
-  LIST_TITLE: 'Driver Directory',
-  /** The list also holds fleet drivers, so vendor reads filter on this. */
-  OUTSOURCE_CONTENT_TYPE_ID: '0x0100AD273086343F4640B574D341F3C1C333',
+/** Masterlist columns kept their imported field_N internal names; the
+ *  display names are in the comments. */
+export const ML = {
+  LIST_TITLE: 'Outsource Providers Masterlist',
 
   Id: 'ID',
   Title: 'Title',
-  OperatingName: 'Operating_x0020_Name',
-  Priority: 'Priority',
-  Primary: 'Primary',
-  Secondary: 'Secondary',
-  Email: 'Emailaddress',
-  City: 'City',
-  HomeZone: 'HomeZone',
-  Vehicle: 'Vehicle',
-  Portal: 'Portal',
-  Notes: 'Notes',
-  SpecialDispatchInstructions: 'Special_x0020_Dispatch_x0020_Ins',
-  HoursOfOperation: 'Hours_x0020_of_x0020_Operation',
-  AfterHoursPhone: 'After_x0020_Hours_x0020_Phone',
-  BookingMethod: 'Booking_x0020_Method',
-  /** Internal name starts with an encoded digit, so REST needs the OData_ prefix. */
-  Service247: 'OData__x0032_4_x002f_7_x0020_Service',
-  ActiveVendor: 'Active_x0020_Vendor',
+  /** ProperName */
+  ProperName: 'field_2',
+  /** ERPSystemName */
+  ERPSystemName: 'field_3',
+  /** ContactPhone */
+  ContactPhone: 'field_8',
+  /** PhoneAlt */
+  PhoneAlt: 'field_9',
+  /** ContactEmail */
+  ContactEmail: 'field_11',
+  /** Restriction, e.g. "Sedan only" */
+  Restriction: 'field_15',
+  /** Hours */
+  Hours: 'field_19',
+  /** PhoneOnly ("Yes"/"No") */
+  PhoneOnly: 'field_21',
+  ActiveYN: 'ActiveYN',
+  PortalAccessYN: 'PortalAccessYN',
+  VehicleTypesC: 'VehicleTypesC',
 } as const;
 
-export const DD_SELECT_FIELDS: readonly string[] = [
-  DD.Id,
-  DD.Title,
-  DD.OperatingName,
-  DD.Priority,
-  DD.Primary,
-  DD.Secondary,
-  DD.Email,
-  DD.City,
-  DD.HomeZone,
-  DD.Vehicle,
-  DD.Portal,
-  DD.Notes,
-  DD.SpecialDispatchInstructions,
-  DD.HoursOfOperation,
-  DD.AfterHoursPhone,
-  DD.BookingMethod,
-  DD.Service247,
-  DD.ActiveVendor,
+export const ML_SELECT_FIELDS: readonly string[] = [
+  ML.Id,
+  ML.Title,
+  ML.ProperName,
+  ML.ERPSystemName,
+  ML.ContactPhone,
+  ML.PhoneAlt,
+  ML.ContactEmail,
+  ML.Restriction,
+  ML.Hours,
+  ML.PhoneOnly,
+  ML.ActiveYN,
+  ML.PortalAccessYN,
+  ML.VehicleTypesC,
+];
+
+/** Outsource Vendor Coverage: one row per (vendor, zone). */
+export const COV = {
+  LIST_TITLE: 'Outsource Vendor Coverage',
+
+  Id: 'ID',
+  Title: 'Title',
+  Zone: 'Zone',
+  /** Comma-separated town list for this zone. */
+  Cities: 'Cities',
+  /** 1 = Primary Option, 2 = Secondary Option, 3+ = When Required. */
+  Rank: 'Rank',
+  DispatchPhone: 'DispatchPhone',
+  DispatchPhoneAlt: 'DispatchPhoneAlt',
+  DispatchEmail: 'DispatchEmail',
+  DispatchNotes: 'DispatchNotes',
+  VehicleOverride: 'VehicleOverride',
+  CoverageActive: 'CoverageActive',
+  /** REST id field of the VendorRef lookup into the Masterlist. */
+  VendorRefId: 'VendorRefId',
+  /** Legacy Driver Directory row id, kept by the migration; bridges the
+   *  Manager View list, which still looks up the old directory. */
+  OldDirectoryID: 'OldDirectoryID',
+} as const;
+
+export const COV_SELECT_FIELDS: readonly string[] = [
+  COV.Id,
+  COV.Title,
+  COV.Zone,
+  COV.Cities,
+  COV.Rank,
+  COV.DispatchPhone,
+  COV.DispatchPhoneAlt,
+  COV.DispatchEmail,
+  COV.DispatchNotes,
+  COV.VehicleOverride,
+  COV.CoverageActive,
+  COV.VendorRefId,
+  COV.OldDirectoryID,
 ];
 
 export const MGR = {

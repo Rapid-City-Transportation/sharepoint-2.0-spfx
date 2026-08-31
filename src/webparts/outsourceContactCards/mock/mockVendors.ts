@@ -1,8 +1,8 @@
 import { IVendor } from '../models/types';
 
 /**
- * Fake vendors for the USE_MOCK_DATA flag. Shaped like real Driver Directory
- * rows, including the messy cases: missing priority, missing zone, an email in
+ * Fake vendors for the USE_MOCK_DATA flag. Shaped like the Masterlist +
+ * Coverage join output, including the messy cases: missing priority, missing zone, an email in
  * the phone column. No real companies or numbers.
  */
 export const MOCK_VENDORS: IVendor[] = [

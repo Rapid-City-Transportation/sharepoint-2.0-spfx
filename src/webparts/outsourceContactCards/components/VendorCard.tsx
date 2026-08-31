@@ -60,9 +60,9 @@ const VendorCard: React.FC<IVendorCardProps> = ({ vendor, onClick }) => {
 
       {namedZones.length > 0 && (
         <div className={styles.cardZoneRow}>
-          {namedZones.map(z => (
+          {namedZones.map((z, i) => (
             <span
-              key={z.zone}
+              key={`${z.zone}-${i}`}
               className={styles.cardTypeBadge}
               style={{ color: zoneAccent(z.zone), borderColor: zoneAccent(z.zone) }}
             >

@@ -3,24 +3,33 @@ import { Icon } from '@fluentui/react/lib/Icon';
 import styles from './OutsourceContactCards.module.scss';
 import AccordionSection from '../../customerContactCards/components/AccordionSection';
 import {
+  allCities,
+  bestPriority,
   IVendor,
   IVendorManagerInfo,
   IVendorZoneProfile,
+  priorityRank,
   zoneAccent,
 } from '../models/types';
 import { isManagerView } from '../services/permissions';
 import VehicleIcon from './VehicleIcon';
 
+// Accent hexes match the customer detail view's sections so the two card
+// pages read as one family.
 const SECTION_COLORS = {
   allDispatch: '#1F4C7F',
   templates: '#9B2C2C',
   contracts: '#187389',
   notes: '#8A6A0C',
+  alternatives: '#187389',
 };
 
 interface IVendorDetailViewProps {
   vendor: IVendor;
   onBack: () => void;
+  /** Full directory, for the "If Unavailable" alternatives panel. */
+  allVendors: IVendor[];
+  onVendorSelect: (vendor: IVendor) => void;
 }
 
 /** Renders nothing when the value is empty. */
@@ -125,18 +134,80 @@ const ManagerSections: React.FC<{ info: IVendorManagerInfo }> = ({ info }) => (
   </>
 );
 
+
+interface IAlternative {
+  vendor: IVendor;
+  sharedCities: string[];
+}
+
+/**
+ * Other companies serving the same cities as the active zone (or the whole
+ * vendor when it has no zone breakdown), for when this one cannot take the
+ * trip. Best coverage first: shared-city count, then strongest priority,
+ * then name.
+ */
+function findAlternatives(
+  current: IVendor,
+  zoneProfile: IVendorZoneProfile | undefined,
+  all: IVendor[]
+): IAlternative[] {
+  // A zone with no city data must not borrow other zones' cities (that
+  // recommends wrong-area companies); only a vendor with no zone breakdown
+  // at all falls back to everything it serves.
+  const base = zoneProfile ? zoneProfile.cities : allCities(current);
+  const wanted = new Set(base.map(c => c.toLowerCase()));
+  if (wanted.size === 0) return [];
+
+  const out: IAlternative[] = [];
+  for (const v of all) {
+    if (v.id === current.id) continue;
+    const shared: string[] = [];
+    const seen = new Set<string>();
+    for (const c of allCities(v)) {
+      const k = c.toLowerCase();
+      if (wanted.has(k) && !seen.has(k)) {
+        seen.add(k);
+        shared.push(c);
+      }
+    }
+    if (shared.length > 0) out.push({ vendor: v, sharedCities: shared });
+  }
+
+  return out
+    .sort((a, b) => {
+      if (b.sharedCities.length !== a.sharedCities.length) {
+        return b.sharedCities.length - a.sharedCities.length;
+      }
+      const pa = priorityRank(bestPriority(a.vendor));
+      const pb = priorityRank(bestPriority(b.vendor));
+      if (pa !== pb) return pa - pb;
+      return a.vendor.name.localeCompare(b.vendor.name);
+    })
+    .slice(0, 5);
+}
+
 /**
  * Full vendor record, laid out like the customer detail view. Manager sections
  * are render-guarded rather than hidden, so dispatch never receives that data.
  * Zone tabs are keyed by index: live zone values can be missing or repeated.
  */
-const VendorDetailView: React.FC<IVendorDetailViewProps> = ({ vendor, onBack }) => {
+const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
+  vendor,
+  onBack,
+  allVendors,
+  onVendorSelect,
+}) => {
   const manager = isManagerView();
   const singleZone = vendor.zones.length === 1;
   const [activeIdx, setActiveIdx] = React.useState<number | null>(singleZone ? 0 : null);
 
   const zoneProfile: IVendorZoneProfile | undefined =
     activeIdx !== null ? vendor.zones[activeIdx] : undefined;
+
+  const alternatives = React.useMemo(
+    () => findAlternatives(vendor, zoneProfile, allVendors),
+    [vendor, zoneProfile, allVendors]
+  );
 
   const backRef = React.useRef<HTMLButtonElement>(null);
   React.useEffect(() => {
@@ -178,9 +249,9 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({ vendor, onBack }) 
         <div className={styles.detailHeaderLeft}>
           <h1 className={styles.detailName}>
             <span>{vendor.name}</span>
-            {namedZones.map(z => (
+            {namedZones.map((z, i) => (
               <span
-                key={z.zone}
+                key={`${z.zone}-${i}`}
                 className={styles.detailTypePill}
                 style={{ backgroundColor: zoneAccent(z.zone) }}
               >
@@ -258,6 +329,53 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({ vendor, onBack }) 
             </div>
           )}
 
+          {(zoneProfile.dispatchPhone || zoneProfile.dispatchPhoneAlt || zoneProfile.dispatchEmail) && (
+            <div className={styles.zoneOverrideRow} role="note">
+              <Icon iconName="Phone" aria-hidden="true" />
+              <span>
+                <strong>
+                  {zoneProfile.zone ? `${zoneProfile.zone} dispatch:` : 'Zone dispatch:'}
+                </strong>{' '}
+                {zoneProfile.dispatchPhone && (
+                  <a className={styles.contactLink} href={contactHref(zoneProfile.dispatchPhone)}>
+                    {zoneProfile.dispatchPhone}
+                  </a>
+                )}
+                {zoneProfile.dispatchPhoneAlt && (
+                  <>
+                    {' / '}
+                    <a
+                      className={styles.contactLink}
+                      href={contactHref(zoneProfile.dispatchPhoneAlt)}
+                    >
+                      {zoneProfile.dispatchPhoneAlt}
+                    </a>
+                  </>
+                )}
+                {zoneProfile.dispatchEmail && (
+                  <>
+                    {' / '}
+                    <a
+                      className={styles.contactLink}
+                      href={`mailto:${zoneProfile.dispatchEmail}`}
+                    >
+                      {zoneProfile.dispatchEmail}
+                    </a>
+                  </>
+                )}
+              </span>
+            </div>
+          )}
+          {zoneProfile.vehicleTypes && (
+            <div className={styles.zoneOverrideRow} role="note">
+              <Icon iconName="Car" aria-hidden="true" />
+              <span>
+                <strong>Vehicles in this zone:</strong>{' '}
+                {zoneProfile.vehicleTypes.join(', ')}
+              </span>
+            </div>
+          )}
+
           <div className={styles.infoBar}>
             <span
               className={`${styles.infoBadge} ${vendor.portal ? styles.infoBadgeYes : styles.infoBadgeNeutral}`}
@@ -307,6 +425,63 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({ vendor, onBack }) 
               <FieldRow label="Hours of Operation" value={vendor.dispatch.hours} />
               <FieldRow label="Booking Method" value={vendor.dispatch.bookingMethod} />
               <FieldRow label="Notes" value={vendor.dispatch.notes} />
+            </AccordionSection>
+
+            <AccordionSection
+              id="vendor-alternatives"
+              title="If Unavailable: Alternatives"
+              accentColor={SECTION_COLORS.alternatives}
+              defaultOpen
+            >
+              {zoneProfile.cities.length === 0 ? (
+                <p className={styles.recEmpty}>
+                  No cities are on file for this coverage yet, so alternatives
+                  cannot be suggested.
+                </p>
+              ) : alternatives.length === 0 ? (
+                <p className={styles.recEmpty}>
+                  No other company on file serves
+                  {zoneProfile.zone ? ` these ${zoneProfile.zone} cities.` : ' these cities.'}
+                </p>
+              ) : (
+                <>
+                  <p className={styles.recIntro}>
+                    If {vendor.name} cannot take the trip, these companies serve
+                    the same cities:
+                  </p>
+                  <ul className={styles.recList} role="list">
+                    {alternatives.map(alt => (
+                      <li key={alt.vendor.id}>
+                        <button
+                          type="button"
+                          className={styles.recButton}
+                          onClick={() => onVendorSelect(alt.vendor)}
+                        >
+                          <span className={styles.recTopRow}>
+                            <span className={styles.recName}>{alt.vendor.name}</span>
+                            {bestPriority(alt.vendor) && (
+                              <span className={styles.recPriority}>
+                                {bestPriority(alt.vendor)}
+                              </span>
+                            )}
+                          </span>
+                          <span className={styles.recCities}>
+                            Also serves: {alt.sharedCities.slice(0, 3).join(', ')}
+                            {alt.sharedCities.length > 3
+                              ? ` +${alt.sharedCities.length - 3} more`
+                              : ''}
+                          </span>
+                          {alt.vendor.dispatch.phone && (
+                            <span className={styles.recPhone}>
+                              {alt.vendor.dispatch.phone}
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </AccordionSection>
 
             {vendor.templates.length > 0 && (

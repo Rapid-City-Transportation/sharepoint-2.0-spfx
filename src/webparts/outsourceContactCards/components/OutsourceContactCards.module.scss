@@ -87,6 +87,18 @@ $transition:      0.18s ease;
 // ============================================================
 // Grid view + filter bar
 // ============================================================
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .gridView {
   padding: 0 28px 28px 28px;
   background: $surface;
@@ -491,21 +503,26 @@ $transition:      0.18s ease;
   white-space: nowrap;
 }
 
+// Priority chips avoid every zone-palette colour and use three distinct fills
+// (dark solid, white outline, grey tint) so the tiers read apart at a glance
+// and a priority never looks like a zone. Two outline styles differing only in
+// ink shade proved indistinguishable at card size.
 .priorityPrimary {
   color: #fff;
-  background: $primary-blue;
+  background: #262931;
+  border: 1.5px solid #262931;
 }
 
 .prioritySecondary {
-  color: $primary-blue;
-  background: rgba(31, 76, 127, 0.08);
-  border: 1.5px solid rgba(31, 76, 127, 0.4);
+  color: #262931;
+  background: #fff;
+  border: 1.5px solid #262931;
 }
 
 .priorityWhenRequired {
   color: $text-secondary;
-  background: rgba(74, 85, 104, 0.08);
-  border: 1.5px solid rgba(74, 85, 104, 0.35);
+  background: #EAEBED;
+  border: 1.5px solid #EAEBED;
 }
 
 .cardVehicles {
@@ -522,6 +539,20 @@ $transition:      0.18s ease;
   background: rgba(31, 76, 127, 0.07);
   color: $primary-blue;
   font-size: 14px;
+}
+
+.vehicleIconCompound {
+  display: inline-flex;
+  align-items: center;
+}
+
+// Sized in em so it tracks the icon wherever the compound is dropped.
+.vehicleIconBadge {
+  font-size: 0.62em;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: 1px;
+  transform: translateY(-0.45em);
 }
 
 // ============================================================
@@ -1032,5 +1063,124 @@ $transition:      0.18s ease;
     outline: 3px solid $primary-blue;
     outline-offset: 2px;
     border-radius: 3px;
+  }
+}
+
+// ── Zone dispatch overrides + "If Unavailable" alternatives ─────────────────
+.zoneOverrideRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(31, 76, 127, 0.06);
+  border: 1px solid var(--rct-border, #D0D5DD);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--rct-text-primary, #262931);
+
+  i {
+    color: var(--rct-primary, #1F4C7F);
+    margin-top: 2px;
+  }
+
+  // Inline links in a sentence need more than color to be links.
+  a {
+    text-decoration: underline;
+  }
+}
+
+.recIntro {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.recEmpty {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.recList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recButton {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 10px;
+  background: #ffffff;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    background: rgba(24, 115, 137, 0.06);
+    border-color: var(--rct-blue-accessible, #187389);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+.recTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.recName {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rct-primary, #1F4C7F);
+}
+
+.recPriority {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--rct-gold-accessible, #8A6A0C);
+}
+
+.recCities {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.recPhone {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rct-blue-accessible, #187389);
+}
+
+@media (max-width: 640px) {
+  .recButton {
+    min-height: 44px;
+  }
+
+  .zoneOverrideRow a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 }

@@ -13,37 +13,109 @@ export function priorityRank(priority?: VendorPriority): number {
   return idx === -1 ? VENDOR_PRIORITIES.length : idx;
 }
 
-/** All AA-accessible as text on white and as a background under white text. */
+/**
+ * All AA-accessible as text on white and as a background under white text.
+ * Brand blue #1F4C7F and slate #4A5568 are deliberately absent: those live on
+ * the priority badges, and a zone chip in the same colour reads as a priority.
+ */
 const ZONE_PALETTE: string[] = [
-  '#1F4C7F',
+  '#1D4ED8',
   '#B84A00',
   '#2E7D32',
   '#6B21A8',
   '#187389',
   '#8A6A0C',
   '#9B2C2C',
-  '#4A5568',
+  '#BE185D',
 ];
 
-/**
- * Hashes the zone name to a palette colour. The list has 20+ zones and grows,
- * so a hand-kept map would go stale. Zone names always render alongside.
- */
-export function zoneAccent(zone?: string): string {
-  if (!zone) return ZONE_PALETTE[0];
+function hashIndex(zone: string): number {
   let hash = 0;
   for (let i = 0; i < zone.length; i++) {
     hash = (hash * 31 + zone.charCodeAt(i)) | 0;
   }
-  return ZONE_PALETTE[Math.abs(hash) % ZONE_PALETTE.length];
+  return Math.abs(hash) % ZONE_PALETTE.length;
 }
 
-/** One zone a vendor serves. Most vendors have a single profile. */
+// Populated from live data by buildZoneAccents; module-level so every consumer
+// (cards, detail tabs, nav search rows) shares one assignment without the
+// vendor list being threaded through Navigation's props.
+let assignedAccents: Map<string, string> | undefined;
+
+/**
+ * Colour for a zone chip. Data-aware when the vendor list has loaded, hash
+ * fallback before that. The list has 20+ zones and grows, so a hand-kept map
+ * would go stale. Colour is decorative: zone names always render alongside.
+ */
+export function zoneAccent(zone?: string): string {
+  if (!zone) return ZONE_PALETTE[0];
+  const assigned = assignedAccents && assignedAccents.get(zone);
+  return assigned || ZONE_PALETTE[hashIndex(zone)];
+}
+
+/**
+ * Assigns palette colours so zones that co-occur on any vendor never share
+ * one: each zone takes its hash-preferred slot unless a co-occurring zone got
+ * there first, then probes forward. Alphabetical order keeps it deterministic.
+ * The guarantee holds up to 8 zones on one vendor (the palette size); past
+ * that a repeat is unavoidable and the probe keeps the preferred slot.
+ */
+export function buildZoneAccents(vendors: IVendor[]): void {
+  const zones = new Set<string>();
+  const coOccurring = new Map<string, Set<string>>();
+  for (const v of vendors) {
+    const named = v.zones.map(z => z.zone).filter((z): z is string => !!z);
+    for (const a of named) {
+      zones.add(a);
+      for (const b of named) {
+        if (a === b) continue;
+        let set = coOccurring.get(a);
+        if (!set) {
+          set = new Set<string>();
+          coOccurring.set(a, set);
+        }
+        set.add(b);
+      }
+    }
+  }
+
+  const result = new Map<string, string>();
+  const ordered = Array.from(zones).sort((a, b) => a.localeCompare(b));
+  for (const zone of ordered) {
+    const taken = new Set<string>();
+    const neighbours = coOccurring.get(zone);
+    if (neighbours) {
+      neighbours.forEach(n => {
+        const c = result.get(n);
+        if (c) taken.add(c);
+      });
+    }
+    const start = hashIndex(zone);
+    let colour = ZONE_PALETTE[start];
+    for (let i = 0; i < ZONE_PALETTE.length; i++) {
+      const candidate = ZONE_PALETTE[(start + i) % ZONE_PALETTE.length];
+      if (!taken.has(candidate)) {
+        colour = candidate;
+        break;
+      }
+    }
+    result.set(zone, colour);
+  }
+  assignedAccents = result;
+}
+
+/** One zone a vendor serves; built from one Outsource Vendor Coverage row. */
 export interface IVendorZoneProfile {
   zone?: string;
   cities: string[];
   priority?: VendorPriority;
   specialInstructions?: string;
+  /** Zone-specific dispatch line, when it differs from the company line. */
+  dispatchPhone?: string;
+  dispatchPhoneAlt?: string;
+  dispatchEmail?: string;
+  /** Zone-specific vehicle availability override. */
+  vehicleTypes?: string[];
 }
 
 export interface IVendorTemplate {
@@ -51,6 +123,7 @@ export interface IVendorTemplate {
   body: string;
 }
 
+/** Company-wide dispatch contact details, from the Masterlist row. */
 export interface IVendorDispatchContact {
   phone?: string;
   secondaryPhone?: string;
@@ -91,6 +164,7 @@ export interface IVendorManagerInfo {
   operationsNotes?: string;
 }
 
+/** One outsource company: a Masterlist record plus its per-zone coverage profiles. */
 export interface IVendor {
   id: string;
   name: string;
@@ -101,8 +175,12 @@ export interface IVendor {
   templates: IVendorTemplate[];
   dispatch: IVendorDispatchContact;
   managerOnly?: IVendorManagerInfo;
+  /** Driver Directory row id carried over by the migration; joins the
+   *  manager-view list, which still keys on the old directory. */
+  legacyDirectoryId?: string;
 }
 
+/** Grid filter state. 'All' means that facet is not filtering. */
 export interface IVendorFilters {
   zone: string | 'All';
   city: string | 'All';

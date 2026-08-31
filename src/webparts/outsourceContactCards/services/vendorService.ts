@@ -1,7 +1,7 @@
-import { IVendor } from '../models/types';
+import { buildZoneAccents, IVendor } from '../models/types';
 import { getSP } from './spConfig';
-import { DD, DD_SELECT_FIELDS, MGR, MGR_SELECT_FIELDS } from './fieldNames';
-import { mapManagerRows, mapRowToVendor } from '../mappers/vendorMapper';
+import { COV, COV_SELECT_FIELDS, MGR, MGR_SELECT_FIELDS, ML, ML_SELECT_FIELDS } from './fieldNames';
+import { mapManagerRows, mapMasterAndCoverage } from '../mappers/vendorMapper';
 import { isManagerView } from './permissions';
 import { MOCK_VENDORS } from '../mock/mockVendors';
 
@@ -25,6 +25,7 @@ let _cache: ICacheEntry | undefined;
 export async function fetchVendors(): Promise<IVendor[]> {
   if (USE_MOCK_DATA) {
     await new Promise<void>(resolve => setTimeout(resolve, MOCK_DELAY_MS));
+    buildZoneAccents(MOCK_VENDORS);
     return MOCK_VENDORS;
   }
 
@@ -32,22 +33,26 @@ export async function fetchVendors(): Promise<IVendor[]> {
     return _cache.data;
   }
 
-  // ContentTypeId can't be indexed, so this throttles if the list ever passes
-  // 5,000 items. Add an indexed IsVendor column and filter on that instead.
-  const rows: Record<string, unknown>[] = await getSP()
-    .web.lists.getByTitle(DD.LIST_TITLE)
-    .items.select(...DD_SELECT_FIELDS)
-    .filter(`startswith(ContentTypeId,'${DD.OUTSOURCE_CONTENT_TYPE_ID}')`)
-    .top(4999)();
+  const [masterRows, coverageRows] = await Promise.all([
+    getSP()
+      .web.lists.getByTitle(ML.LIST_TITLE)
+      .items.select(...ML_SELECT_FIELDS)
+      .top(4999)() as Promise<Record<string, unknown>[]>,
+    getSP()
+      .web.lists.getByTitle(COV.LIST_TITLE)
+      .items.select(...COV_SELECT_FIELDS)
+      .top(4999)() as Promise<Record<string, unknown>[]>,
+  ]);
 
-  // Most rows leave Active Vendor blank, so only explicit "Inactive" is hidden.
-  const vendors = rows
-    .filter(r => r[DD.ActiveVendor] !== 'Inactive')
-    .map(mapRowToVendor);
+  const vendors = mapMasterAndCoverage(masterRows, coverageRows);
 
   if (isManagerView()) {
     await attachManagerInfo(vendors);
   }
+
+  // Zone chip colours are assigned from the loaded data so zones sharing a
+  // vendor never share a colour; must happen before anything renders a chip.
+  buildZoneAccents(vendors);
 
   _cache = { data: vendors, timestamp: Date.now() };
   return vendors;
@@ -66,7 +71,9 @@ async function attachManagerInfo(vendors: IVendor[]): Promise<void> {
 
     const byDirectoryId = mapManagerRows(rows);
     for (const vendor of vendors) {
-      const info = byDirectoryId.get(vendor.id);
+      // The manager list still keys on the old Driver Directory row id.
+      if (!vendor.legacyDirectoryId) continue;
+      const info = byDirectoryId.get(vendor.legacyDirectoryId);
       if (info) vendor.managerOnly = info;
     }
   } catch {
