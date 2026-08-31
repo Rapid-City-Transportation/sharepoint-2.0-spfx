@@ -7,8 +7,9 @@ import { IEmployee } from '../../employeeDirectory/components/types';
 export interface ILeader {
   id: string;
   name: string;
-  role: string;
-  phone?: string;
+  /** The Highlight row's Level, when filled. Never invented: a blank Level
+   *  renders no role line rather than a filler label. */
+  role?: string;
   photoUrl?: string;
 }
 
@@ -45,8 +46,7 @@ export async function fetchLeadership(): Promise<ILeader[]> {
     .map(emp => ({
       id: emp.id,
       name: emp.name,
-      role: emp.level || 'Leadership Team',
-      phone: emp.phoneLine,
+      role: emp.level || undefined,
       photoUrl: emp.photoUrl,
     }));
 }
