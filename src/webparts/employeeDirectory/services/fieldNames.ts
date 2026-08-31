@@ -34,6 +34,26 @@ export const ET = {
    *  Contact & Systems section only when present. */
   AltContact: 'AltContact',
 
+  // ── Committee membership ─────────────────────────────────────────
+  /** Choice column marking JHSC membership: blank = not on the committee;
+   *  a value is both the membership flag and the label shown on the
+   *  Health & Safety page ("Certified JHSC Worker Representative",
+   *  "Certified JHSC Management Representative", "First Aid Certified
+   *  Representative", "Member"). Deliberately NOT in the shared select
+   *  arrays below: only healthSafety reads it, so the directory and the
+   *  hubs keep working even before the column exists on the list. */
+  JhscRole: 'JHSCRole',
+
+  // ── Senior leadership (About the Company page) ───────────────────
+  /** Number column: filled = the person appears in "Meet Your Senior
+   *  Leadership" on the About the Company page, and the value is their
+   *  display position (1 first). One column is both the flag and the
+   *  sort, like JhscRole above. Not in the shared select arrays: only
+   *  aboutCompany reads it, so nothing else depends on it existing. */
+  LeadershipOrder: 'LeadershipOrder',
+  /** Optional multi-line plain-text bio shown on the leadership card. */
+  LeadershipBio: 'LeadershipBio',
+
   // ── Cross-reference ──────────────────────────────────────────────
   /** Foreign key back to the Employee Tracker row, for code that needs
    *  to walk into the richer profile data (e.g. supervisor, team lead). */

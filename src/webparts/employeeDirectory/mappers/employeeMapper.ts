@@ -45,8 +45,10 @@ function readPerson(row: SPRow, field: string): SPPersonField | undefined {
 
 /** Build the M365 profile-photo URL for an account.
  *  Hits the SharePoint user-photo endpoint with the user's email address
- *  as the account name; SharePoint returns the rendered photo image. */
-function buildUserPhotoUrl(email: string | undefined): string | undefined {
+ *  as the account name; SharePoint returns the rendered photo image.
+ *  Also imported by aboutCompany (leadership cards) and healthSafety (JHSC
+ *  roster) so every people card shares the same photo source. */
+export function buildUserPhotoUrl(email: string | undefined): string | undefined {
   if (!email) return undefined;
   return `${EMPLOYEE_DIRECTORY_SITE_URL}/_layouts/15/userphoto.aspx?size=L&accountname=${encodeURIComponent(email)}`;
 }
