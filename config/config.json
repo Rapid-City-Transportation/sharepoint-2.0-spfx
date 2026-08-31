@@ -97,6 +97,70 @@
           "manifest": "./src/webparts/outsourceContactCards/OutsourceContactCardsWebPart.manifest.json"
         }
       ]
+    },
+    "hr-support-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/hrSupport/HrSupportWebPart.js",
+          "manifest": "./src/webparts/hrSupport/HrSupportWebPart.manifest.json"
+        }
+      ]
+    },
+    "dispatch-hub-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/dispatchHub/DispatchHubWebPart.js",
+          "manifest": "./src/webparts/dispatchHub/DispatchHubWebPart.manifest.json"
+        }
+      ]
+    },
+    "accounting-hub-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/accountingHub/AccountingHubWebPart.js",
+          "manifest": "./src/webparts/accountingHub/AccountingHubWebPart.manifest.json"
+        }
+      ]
+    },
+    "human-resources-hub-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/humanResourcesHub/HumanResourcesHubWebPart.js",
+          "manifest": "./src/webparts/humanResourcesHub/HumanResourcesHubWebPart.manifest.json"
+        }
+      ]
+    },
+    "business-development-hub-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/businessDevelopmentHub/BusinessDevelopmentHubWebPart.js",
+          "manifest": "./src/webparts/businessDevelopmentHub/BusinessDevelopmentHubWebPart.manifest.json"
+        }
+      ]
+    },
+    "fleet-hub-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/fleetHub/FleetHubWebPart.js",
+          "manifest": "./src/webparts/fleetHub/FleetHubWebPart.manifest.json"
+        }
+      ]
+    },
+    "health-safety-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/healthSafety/HealthSafetyWebPart.js",
+          "manifest": "./src/webparts/healthSafety/HealthSafetyWebPart.manifest.json"
+        }
+      ]
+    },
+    "about-company-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/aboutCompany/AboutCompanyWebPart.js",
+          "manifest": "./src/webparts/aboutCompany/AboutCompanyWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
