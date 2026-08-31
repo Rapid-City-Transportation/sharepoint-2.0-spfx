@@ -22,7 +22,7 @@
   z-index: 100;
   padding: 10px 16px;
   background: #ffffff;
-  color: var(--rct-brand-blue, #1F4C7F);
+  color: var(--rct-primary, #1F4C7F);
   font-weight: 700;
   border-radius: 0 0 8px 0;
 
@@ -44,7 +44,7 @@
   justify-content: space-between;
   gap: 32px;
   background:
-    linear-gradient(135deg, var(--rct-brand-blue, #1F4C7F) 0%, #173B62 100%);
+    linear-gradient(135deg, var(--rct-primary, #1F4C7F) 0%, #173B62 100%);
   color: #ffffff;
   border-radius: 16px;
   padding: 32px;
@@ -116,7 +116,7 @@
 
   &:hover {
     background: #ffffff;
-    color: var(--rct-brand-blue, #1F4C7F);
+    color: var(--rct-primary, #1F4C7F);
   }
 
   &:focus-visible {
@@ -138,7 +138,7 @@
 
 .sectionIcon {
   font-size: 18px;
-  color: var(--rct-brand-blue, #1F4C7F);
+  color: var(--rct-primary, #1F4C7F);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -369,7 +369,7 @@
   border-radius: 8px;
   border: 1px solid var(--rct-border, #E2E8F0);
   background: #ffffff;
-  color: var(--rct-brand-blue, #1F4C7F);
+  color: var(--rct-primary, #1F4C7F);
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -378,11 +378,11 @@
 
   &:hover {
     background: rgba(31, 76, 127, 0.06);
-    border-color: var(--rct-brand-blue, #1F4C7F);
+    border-color: var(--rct-primary, #1F4C7F);
   }
 
   &:focus-visible {
-    outline: 3px solid var(--rct-brand-blue, #1F4C7F);
+    outline: 3px solid var(--rct-primary, #1F4C7F);
     outline-offset: 2px;
   }
 }
@@ -407,7 +407,7 @@
   }
 
   &:focus-visible {
-    outline: 3px solid var(--rct-brand-blue, #1F4C7F);
+    outline: 3px solid var(--rct-primary, #1F4C7F);
     outline-offset: 2px;
   }
 }
@@ -432,7 +432,7 @@
 
 .toolComingSoonIcon {
   font-size: 30px;
-  color: var(--rct-brand-blue, #1F4C7F);
+  color: var(--rct-primary, #1F4C7F);
 }
 
 .toolComingSoonText {
@@ -497,9 +497,9 @@
   }
 
   &:focus-visible {
-    outline: 3px solid var(--rct-brand-blue, #1F4C7F);
+    outline: 3px solid var(--rct-primary, #1F4C7F);
     outline-offset: 1px;
-    border-color: var(--rct-brand-blue, #1F4C7F);
+    border-color: var(--rct-primary, #1F4C7F);
   }
 }
 
@@ -529,19 +529,19 @@
   cursor: pointer;
 
   &:hover {
-    border-color: var(--rct-brand-blue, #1F4C7F);
+    border-color: var(--rct-primary, #1F4C7F);
   }
 
   // Focus ring driven by the visually-hidden radio inside the label.
   &:focus-within {
-    outline: 3px solid var(--rct-brand-blue, #1F4C7F);
+    outline: 3px solid var(--rct-primary, #1F4C7F);
     outline-offset: 2px;
   }
 }
 
 .priorityChipActive {
-  background: var(--rct-brand-blue, #1F4C7F);
-  border-color: var(--rct-brand-blue, #1F4C7F);
+  background: var(--rct-primary, #1F4C7F);
+  border-color: var(--rct-primary, #1F4C7F);
   color: #ffffff;
 }
 
@@ -635,7 +635,7 @@
   text-decoration: underline;
 
   &:focus-visible {
-    outline: 3px solid var(--rct-brand-blue, #1F4C7F);
+    outline: 3px solid var(--rct-primary, #1F4C7F);
     outline-offset: 2px;
     border-radius: 3px;
   }
