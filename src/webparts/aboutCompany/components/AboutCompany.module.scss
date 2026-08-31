@@ -73,8 +73,7 @@
 }
 
 // ── Shared section chrome ───────────────────────────────────────────────────
-.section,
-.compassSection {
+.section {
   margin-top: 24px;
 }
 
@@ -118,52 +117,78 @@
   color: var(--rct-text-secondary, #4A5568);
 }
 
-// ── Mission / Vision ────────────────────────────────────────────────────────
-.mvvGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+// ── Mission / Vision / Values slides ────────────────────────────────────────
+// Each reads as its own full-width "slide" on the scroll, per HR's direction.
+.slideNavy {
+  margin-top: 24px;
+  background:
+    linear-gradient(135deg, var(--rct-primary, #1F4C7F) 0%, #173B62 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 48px 32px 52px;
+  text-align: center;
 }
 
-.mvvCard {
-  background: #ffffff;
-  border: 1px solid var(--rct-border, #D0D5DD);
-  border-left: 4px solid var(--rct-primary, #1F4C7F);
-  border-radius: 14px;
-  padding: 22px 24px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-}
-
-.mvvTitle {
+.slideEyebrow {
   margin: 0 0 10px;
-  font-size: 17px;
+  font-size: 13px;
   font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--rct-primary, #1F4C7F);
+  color: var(--rct-gold-light, #E8B832); // 4.62:1 on the navy band (AA)
 }
 
-.mvvText {
-  margin: 0 0 10px;
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--rct-text-primary, #262931);
+.slideTitleLight {
+  margin: 0 0 18px;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.slideTextLight {
+  margin: 0 auto 12px;
+  max-width: 60ch;
+  font-size: 19px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.94);
 
   &:last-child {
     margin-bottom: 0;
   }
 }
 
-// ── Values ──────────────────────────────────────────────────────────────────
-.valuesHeading {
-  margin: 24px 0 14px;
-  font-size: 17px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+.slideLight {
+  margin-top: 24px;
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 16px;
+  padding: 44px 32px 48px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.slideTitleDark {
+  margin: 0 0 18px;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: var(--rct-primary, #1F4C7F);
+}
+
+.slideTextDark {
+  margin: 0 auto;
+  max-width: 60ch;
+  font-size: 21px;
+  line-height: 1.6;
   color: var(--rct-text-primary, #262931);
 }
 
+.slideValues {
+  margin-top: 24px;
+}
+
+// ── Values ──────────────────────────────────────────────────────────────────
 .valuesGrid {
   list-style: none;
   margin: 0;
@@ -472,10 +497,6 @@
 
 // ── Responsive ──────────────────────────────────────────────────────────────
 @media (max-width: 900px) {
-  .mvvGrid {
-    grid-template-columns: 1fr;
-  }
-
   .valuesGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -496,6 +517,25 @@
     gap: 20px;
     padding: 22px 20px 24px;
     border-radius: 14px;
+  }
+
+  .slideNavy,
+  .slideLight {
+    padding: 30px 18px 34px;
+    border-radius: 14px;
+  }
+
+  .slideTitleLight,
+  .slideTitleDark {
+    font-size: 24px;
+  }
+
+  .slideTextLight {
+    font-size: 16px;
+  }
+
+  .slideTextDark {
+    font-size: 17px;
   }
 
   .heroTitle {

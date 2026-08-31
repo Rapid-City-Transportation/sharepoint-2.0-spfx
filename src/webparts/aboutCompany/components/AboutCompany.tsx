@@ -171,27 +171,24 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
           </div>
         </section>
 
-        <section className={styles.compassSection} aria-labelledby="ac-compass-title">
-          <h2 id="ac-compass-title" className={styles.sectionTitle}>
-            <Icon iconName="CompassNW" className={styles.sectionIcon} aria-hidden="true" />
-            Our Compass
-          </h2>
-          <p className={styles.sectionKicker}>What we do, every day, today.</p>
+        {/* Per HR's direction: Mission, Vision, and Values read as their own
+            slides on one scrolling page; the printed 1-pagers stay print-only,
+            and the video embeds below once its link arrives. */}
+        <section className={styles.slideNavy} aria-labelledby="ac-mission-title">
+          <p className={styles.slideEyebrow}>Our Compass: what we do, every day, today</p>
+          <h2 id="ac-mission-title" className={styles.slideTitleLight}>Our Mission</h2>
+          {MISSION_LINES.map((line, i) => (
+            <p key={i} className={styles.slideTextLight}>{line}</p>
+          ))}
+        </section>
 
-          <div className={styles.mvvGrid}>
-            <div className={styles.mvvCard}>
-              <h3 className={styles.mvvTitle}>Our Mission</h3>
-              {MISSION_LINES.map((line, i) => (
-                <p key={i} className={styles.mvvText}>{line}</p>
-              ))}
-            </div>
-            <div className={styles.mvvCard}>
-              <h3 className={styles.mvvTitle}>Our Vision</h3>
-              <p className={styles.mvvText}>{VISION_TEXT}</p>
-            </div>
-          </div>
+        <section className={styles.slideLight} aria-labelledby="ac-vision-title">
+          <h2 id="ac-vision-title" className={styles.slideTitleDark}>Our Vision</h2>
+          <p className={styles.slideTextDark}>{VISION_TEXT}</p>
+        </section>
 
-          <h3 className={styles.valuesHeading}>Our Values</h3>
+        <section className={styles.slideValues} aria-labelledby="ac-values-title">
+          <h2 id="ac-values-title" className={styles.slideTitleDark}>Our Values</h2>
           <ul className={styles.valuesGrid} role="list">
             {VALUES.map((v) => (
               <li key={v.num} className={styles.valueCard}>
@@ -201,14 +198,19 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
                     <Icon iconName={v.icon} />
                   </span>
                 </div>
-                <h4 className={styles.valueName}>{v.name}</h4>
+                <h3 className={styles.valueName}>{v.name}</h3>
                 <p className={styles.valueText}>{v.text}</p>
               </li>
             ))}
           </ul>
-
           <p className={styles.taglineBand}>{TAGLINE}</p>
+        </section>
 
+        <section className={styles.section} aria-labelledby="ac-video-title">
+          <h2 id="ac-video-title" className={styles.sectionTitle}>
+            <Icon iconName="Video" className={styles.sectionIcon} aria-hidden="true" />
+            The Mission, Vision and Values Video
+          </h2>
           {videoUrl ? (
             <div className={styles.videoPanel}>
               <iframe
