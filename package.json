@@ -8,7 +8,8 @@
     "build:ship": "node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js bundle --ship",
     "serve": "node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js serve",
     "clean": "gulp clean",
-    "test": "gulp test"
+    "test": "gulp test",
+    "ship": "node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js bundle --ship && node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js package-solution --ship"
   },
   "dependencies": {
     "@fluentui/react": "8.106.4",

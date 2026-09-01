@@ -22,12 +22,13 @@ SPFx solution for the Rapid City Transportation (RCT) intranet on Microsoft 365 
 ```
 npm run serve        # local workbench / hosted workbench dev loop
 npm run build        # debug bundle (sass -> lint -> tsc -> webpack)
-npm run build:ship   # production bundle for App Catalog deploy
+npm run build:ship   # production bundle ONLY (no package; do not deploy from this)
+npm run ship         # bundle --ship + package-solution --ship: builds the deployable .sppkg
 npm run clean        # gulp clean
 npm test             # gulp test
 ```
 
-Builds use `--max-old-space-size=8192` because the bundle is large enough to OOM Node otherwise. Keep that flag on any new build script. There is no device emulator here; `serve` against the hosted workbench needs a tenant URL in `config/serve.json` (each dev sets their own).
+Deploy = `npm run ship`, then upload `sharepoint/solution/*.sppkg` to the App Catalog; `build:ship` alone does NOT refresh the .sppkg (a stale package deploys silently). Builds use `--max-old-space-size=8192` because the bundle is large enough to OOM Node otherwise. Keep that flag on any new build script. There is no device emulator here; `serve` against the hosted workbench needs a tenant URL in `config/serve.json` (each dev sets their own).
 
 ## Architecture and data flow
 
