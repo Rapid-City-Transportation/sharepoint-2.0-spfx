@@ -116,6 +116,10 @@ export interface IVendorZoneProfile {
   dispatchEmail?: string;
   /** Zone-specific vehicle availability override. */
   vehicleTypes?: string[];
+  /** Per-priority split of this zone's cities, present when the coverage
+   *  list holds one row per rank (e.g. Primary in Petrolia, Secondary in
+   *  Sarnia). `cities` is always the union across tiers. */
+  cityTiers?: { priority: VendorPriority; cities: string[] }[];
 }
 
 export interface IVendorTemplate {

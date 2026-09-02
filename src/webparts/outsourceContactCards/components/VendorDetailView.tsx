@@ -332,7 +332,22 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
           id={singleZone ? undefined : `zone-panel-${activeIdx}`}
           aria-labelledby={singleZone ? undefined : `zone-tab-${activeIdx}`}
         >
-          {zoneProfile.cities.length > 0 && (
+          {zoneProfile.cityTiers && zoneProfile.cityTiers.length > 0 ? (
+            // One row per priority tier: the vendor is e.g. Primary in some
+            // of this zone's towns and Secondary in the rest.
+            zoneProfile.cityTiers.map((tier, ti) => (
+              <div key={ti} className={styles.citiesRow}>
+                <span className={styles.citiesRowLabel}>
+                  {zoneProfile.zone
+                    ? `Cities served as ${tier.priority} (${zoneProfile.zone}):`
+                    : `Cities served as ${tier.priority}:`}
+                </span>
+                {tier.cities.map(city => (
+                  <span key={city} className={styles.cityChip}>{city}</span>
+                ))}
+              </div>
+            ))
+          ) : zoneProfile.cities.length > 0 && (
             <div className={styles.citiesRow}>
               <span className={styles.citiesRowLabel}>
                 {zoneProfile.zone ? `Cities served (${zoneProfile.zone}):` : 'Cities served:'}
@@ -401,7 +416,7 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                 24/7 Service: <strong>Yes</strong>
               </span>
             )}
-            {zoneProfile.priority && (
+            {zoneProfile.priority && !zoneProfile.cityTiers && (
               <span className={styles.priorityBadgeDetail}>
                 {zoneProfile.priority}
               </span>

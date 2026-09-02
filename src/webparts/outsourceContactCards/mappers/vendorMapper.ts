@@ -47,17 +47,70 @@ function rankToPriority(rank: unknown): VendorPriority | undefined {
   return 'When Required';
 }
 
-function coverageToZoneProfile(row: SPRow): IVendorZoneProfile {
-  const vehicleTypes = readChoiceArray(row, COV.VehicleOverride);
+/**
+ * Merges the coverage rows for one (vendor, zone) into a single profile.
+ * The list deliberately holds one row per rank in a zone (CoverageKey
+ * "vendorId-zone-rank"): the vendor is Primary in some towns and Secondary
+ * in others. One profile per zone keeps the chips and tabs honest, while
+ * cityTiers preserves the per-town priority split for the detail view.
+ */
+function mergeCoverageRows(rows: SPRow[]): IVendorZoneProfile {
+  const sorted = rows.slice().sort((a, b) => {
+    const ra = typeof a[COV.Rank] === 'number' ? (a[COV.Rank] as number) : 99;
+    const rb = typeof b[COV.Rank] === 'number' ? (b[COV.Rank] as number) : 99;
+    return ra - rb;
+  });
+
+  const cities: string[] = [];
+  const seen = new Set<string>();
+  const tiers: { priority: VendorPriority; cities: string[] }[] = [];
+  const notes: string[] = [];
+  let phone: string | undefined;
+  let phoneAlt: string | undefined;
+  let email: string | undefined;
+  let vehicles: string[] | undefined;
+
+  for (const row of sorted) {
+    const rowCities = splitCities(readString(row, COV.Cities));
+    for (const c of rowCities) {
+      const k = c.toLowerCase();
+      if (!seen.has(k)) {
+        seen.add(k);
+        cities.push(c);
+      }
+    }
+    const priority = rankToPriority(row[COV.Rank]);
+    if (priority && rowCities.length > 0) {
+      tiers.push({ priority, cities: rowCities });
+    }
+    const note = readString(row, COV.DispatchNotes);
+    if (note && notes.indexOf(note) === -1) notes.push(note);
+    phone = phone || readString(row, COV.DispatchPhone);
+    phoneAlt = phoneAlt || readString(row, COV.DispatchPhoneAlt);
+    email = email || readString(row, COV.DispatchEmail);
+    if (!vehicles) {
+      const vo = readChoiceArray(row, COV.VehicleOverride);
+      if (vo.length > 0) vehicles = vo;
+    }
+  }
+
+  const priority = rankToPriority(sorted[0][COV.Rank]);
+  // The split stays whenever it says something the flat priority does not:
+  // more than one tier, or a lone tier whose rank differs from the zone's
+  // best rank (a rank-1 row with no cities must not relabel rank-2 towns).
+  const keepTiers =
+    tiers.length > 1 || (tiers.length === 1 && tiers[0].priority !== priority);
+
   return {
-    zone: readString(row, COV.Zone),
-    cities: splitCities(readString(row, COV.Cities)),
-    priority: rankToPriority(row[COV.Rank]),
-    specialInstructions: readString(row, COV.DispatchNotes),
-    dispatchPhone: readString(row, COV.DispatchPhone),
-    dispatchPhoneAlt: readString(row, COV.DispatchPhoneAlt),
-    dispatchEmail: readString(row, COV.DispatchEmail),
-    vehicleTypes: vehicleTypes.length > 0 ? vehicleTypes : undefined,
+    zone: readString(sorted[0], COV.Zone),
+    cities,
+    priority,
+    specialInstructions: notes.length > 0 ? notes.join(' | ') : undefined,
+    dispatchPhone: phone,
+    dispatchPhoneAlt: phoneAlt,
+    dispatchEmail: email,
+    vehicleTypes: vehicles,
+    cityTiers: keepTiers ? tiers : undefined,
   };
 }
 
@@ -105,9 +158,10 @@ export function mapMasterAndCoverage(
   }
 
   const standalone: IVendor[] = [];
+  const grouped = new Map<string, { vendor: IVendor; rows: SPRow[] }>();
+  const soloGroups = new Map<string, SPRow[]>();
   for (const row of coverageRows) {
     if (row[COV.CoverageActive] === false) continue;
-    const profile = coverageToZoneProfile(row);
     const legacyId = readString(row, COV.OldDirectoryID);
     const refRaw = row[COV.VendorRefId];
     const refKey =
@@ -118,16 +172,48 @@ export function mapMasterAndCoverage(
     const master = refKey ? byId.get(refKey) : undefined;
 
     if (master) {
-      master.zones.push(profile);
       if (legacyId && !master.legacyDirectoryId) {
         master.legacyDirectoryId = legacyId;
+      }
+      // Blank-zone rows stay separate profiles; named zones merge per zone.
+      const zone = readString(row, COV.Zone);
+      const groupKey = zone
+        ? `${refKey}|${zone}`
+        : `${refKey}|#${String(row[COV.Id] ?? '')}`;
+      const group = grouped.get(groupKey);
+      if (group) {
+        group.rows.push(row);
+      } else {
+        grouped.set(groupKey, { vendor: master, rows: [row] });
       }
       continue;
     }
 
+    // Unrefd rows come in the same rank pairs as everything else; group
+    // them by (name, zone) so half a company never becomes a second card
+    // that recommends its own other half.
+    const title = readString(row, COV.Title);
+    const zone = readString(row, COV.Zone);
+    const soloKey =
+      title && zone
+        ? `solo|${title.toLowerCase()}|${zone}`
+        : `solo|#${String(row[COV.Id] ?? '')}`;
+    const soloGroup = soloGroups.get(soloKey);
+    if (soloGroup) {
+      soloGroup.push(row);
+    } else {
+      soloGroups.set(soloKey, [row]);
+    }
+  }
+  grouped.forEach(group => {
+    group.vendor.zones.push(mergeCoverageRows(group.rows));
+  });
+  soloGroups.forEach(rows => {
+    const first = rows[0];
+    const profile = mergeCoverageRows(rows);
     standalone.push({
-      id: `cov-${String(row[COV.Id] ?? row['Id'] ?? '')}`,
-      name: readString(row, COV.Title) || '(unnamed vendor)',
+      id: `cov-${String(first[COV.Id] ?? first['Id'] ?? '')}`,
+      name: readString(first, COV.Title) || '(unnamed vendor)',
       vehicleTypes: profile.vehicleTypes || [],
       portal: false,
       zones: [profile],
@@ -138,9 +224,11 @@ export function mapMasterAndCoverage(
         email: profile.dispatchEmail,
         notes: profile.specialInstructions,
       },
-      legacyDirectoryId: legacyId,
+      legacyDirectoryId: rows
+        .map(r => readString(r, COV.OldDirectoryID))
+        .filter(Boolean)[0],
     });
-  }
+  });
 
   const vendors: IVendor[] = [];
   byId.forEach(vendor => {
