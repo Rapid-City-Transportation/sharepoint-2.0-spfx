@@ -48,6 +48,14 @@ const IT_SUPPORT_URL = `${COMPASS}/SitePages/ITSupport.aspx`;
 const HR_SUPPORT_URL = `${COMPASS}/SitePages/HRSupport.aspx`;
 const HEALTH_SAFETY_URL = `${COMPASS}/SitePages/HealthSafety.aspx`;
 const ABOUT_COMPANY_URL = `${COMPASS}/SitePages/AboutCompany.aspx`;
+
+/** Section anchors on the About the Company page, in the meeting's order. */
+const ABOUT_SECTIONS = [
+  { key: '#ac-history', text: 'History of the Company' },
+  { key: '#ac-leadership', text: 'Meet Your Senior Leaders' },
+  { key: '#ac-mvv', text: 'Mission, Vision & Values' },
+  { key: '#ac-qms', text: 'Quality Management System' },
+];
 const CX_PUBLIC_URL = `${COMPASS}/SitePages/CustomerExperience.aspx`;
 const IT_PUBLIC_URL = `${COMPASS}/SitePages/InformationTechnology.aspx`;
 // RISE Hub lives in Viva Engage (same community deep link the CX Hub embeds).
@@ -67,8 +75,7 @@ function buildEmployeeSupportOptions(
   return [
     { label: 'ADP Web Clock', href: ADP_WEB_CLOCK_URL, newTab: true },
     { label: 'Employee Directory', href: employeeDirectoryUrl },
-    // Remove `disabled` once HealthSafety.aspx is created on compass.
-    { label: 'Health & Safety', href: HEALTH_SAFETY_URL, disabled: true },
+    { label: 'Health & Safety', href: HEALTH_SAFETY_URL },
     // Remove `disabled` once HRSupport.aspx is created on compass.
     { label: 'Human Resources Support', href: HR_SUPPORT_URL, disabled: true },
     { label: 'IT Support', href: IT_SUPPORT_URL },
@@ -376,6 +383,38 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     }
   };
 
+  const aboutOptions: IDropdownOption[] = React.useMemo(
+    () => ABOUT_SECTIONS.map(sec => ({ key: sec.key, text: sec.text })),
+    []
+  );
+
+  // The label never swaps to a picked section, and the chevron survives the
+  // shared .dropdown styles hiding Fluent's own caret.
+  const renderAboutTitle = (): JSX.Element => (
+    <span
+      className={`${styles.dropdownTitle} ${
+        activePage === 'aboutCompany'
+          ? styles.dropdownTitleActive
+          : styles.dropdownTitleDisabled
+      }`}
+    >
+      All About the Company
+      <Icon iconName="ChevronDown" className={styles.chevron} />
+    </span>
+  );
+
+  const onAboutChange: IDropdownProps['onChange'] = (_ev, option) => {
+    if (!option) return;
+    // Same-page hash changes do not re-fire the About page's scroll effect,
+    // so scroll directly when already there; navigate otherwise.
+    const anchor = String(option.key);
+    if (activePage === 'aboutCompany') {
+      document.getElementById(anchor.replace('#', ''))?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.location.assign(`${ABOUT_COMPANY_URL}${anchor}`);
+    }
+  };
+
   return (
     <nav className={styles.nav} role="navigation" aria-label="Main">
       <div className={styles.navInner}>
@@ -402,30 +441,25 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
             </a>
           </li>
 
-          {/* 2. All About the Company */}
-          {/* Drop the disabled branch once AboutCompany.aspx is created on
-              compass. On the About page itself the link is the current-page
-              indicator, so the disabled styling and guards must not apply. */}
-          <li className={styles.listItem}>
-            {activePage === 'aboutCompany' ? (
-              <a
-                href={ABOUT_COMPANY_URL}
-                className={styles.linkActive}
-                aria-current="page"
-              >
-                All About the Company
-              </a>
-            ) : (
-              <a
-                href={ABOUT_COMPANY_URL}
-                className={`${styles.link} ${styles.linkDisabled}`}
-                onClick={(e) => e.preventDefault()}
-                aria-disabled="true"
-                tabIndex={-1}
-              >
-                All About the Company
-              </a>
-            )}
+          {/* 2. All About the Company: a section dropdown (History, Senior
+              Leaders, MVV, QMS) deep-linking into the one page. Remove
+              `disabled` once AboutCompany.aspx is created on compass. */}
+          <li className={`${styles.listItem} ${activePage === 'aboutCompany' ? styles.listItemActive : ''}`}>
+            <Dropdown
+              placeholder="All About the Company"
+              options={aboutOptions}
+              onChange={onAboutChange}
+              className={styles.dropdown}
+              ariaLabel={
+                activePage === 'aboutCompany'
+                  ? 'All About the Company menu, current page'
+                  : 'All About the Company menu'
+              }
+              dropdownWidth={230}
+              disabled={activePage !== 'aboutCompany'}
+              onRenderPlaceholder={renderAboutTitle}
+              onRenderTitle={renderAboutTitle}
+            />
           </li>
 
           {/* 3. Contact Cards (dropdown: Customer / Outsource) */}

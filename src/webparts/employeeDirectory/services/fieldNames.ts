@@ -44,6 +44,12 @@ export const ET = {
    *  hubs keep working even before the column exists on the list. */
   JhscRole: 'JHSCRole',
 
+  // ── Senior leadership bio (About the Company page) ───────────────
+  /** Multi-line plain text: the short professional bio each leader writes
+   *  for their About the Company card. Read only by aboutCompany, through
+   *  its own defensive query, so nothing breaks before the column exists. */
+  LeadershipBio: 'LeadershipBio',
+
   // ── Cross-reference ──────────────────────────────────────────────
   /** Foreign key back to the Employee Tracker row, for code that needs
    *  to walk into the richer profile data (e.g. supervisor, team lead). */

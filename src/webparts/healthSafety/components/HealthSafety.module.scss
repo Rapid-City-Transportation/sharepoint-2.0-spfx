@@ -1141,6 +1141,196 @@
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  Incident report form
+//  Replaces the Excel Incident Investigation Form for first submissions:
+//  guided fields, HR-first routing, confidential branch for harassment.
+// ═══════════════════════════════════════════════════════════════════════════
+.incidentSection {
+  margin-top: 24px;
+}
+
+.heroActions {
+  flex-shrink: 0;
+}
+
+.heroCta,
+.incidentStartButton,
+.incidentSubmitButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 24px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--rct-brand-gold, #D29F1C);
+  color: var(--rct-text-primary, #262931); // 6.06:1 on gold (AA)
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--rct-gold-hover, #C09118);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-text-primary, #262931);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.incidentIntroCard,
+.incidentFormCard,
+.incidentDoneCard {
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 14px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.incidentIntroCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.incidentIntroText {
+  margin: 0;
+  max-width: 70ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--rct-text-primary, #262931);
+}
+
+.incidentFormCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.incidentGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+}
+
+.incidentConfidentialNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(31, 76, 127, 0.06);
+  border: 1px solid var(--rct-primary, #1F4C7F);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--rct-text-primary, #262931);
+
+  i {
+    color: var(--rct-primary, #1F4C7F);
+    margin-top: 2px;
+  }
+}
+
+.incidentErrorNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(155, 44, 44, 0.06);
+  border: 1px solid #9B2C2C;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--rct-text-primary, #262931);
+
+  i {
+    color: #9B2C2C;
+    margin-top: 2px;
+  }
+
+  a {
+    color: var(--rct-blue-accessible, #187389);
+    text-decoration: underline;
+  }
+}
+
+.incidentActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.incidentCancelButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--rct-text-primary, #262931);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--rct-surface, #F8F8F8);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+.incidentInlineButton {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 9px 18px;
+  border: 1px solid var(--rct-primary, #1F4C7F);
+  border-radius: 8px;
+  background: var(--rct-primary, #1F4C7F);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #173B62;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+// The shared outline is navy, invisible against the navy hero band.
+.heroCta:focus-visible {
+  outline-color: #ffffff;
+}
+
+.incidentDoneCard {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--rct-text-primary, #262931);
+  border-left: 4px solid var(--rct-brand-gold, #D29F1C);
+}
+
 // ── Responsive ──────────────────────────────────────────────────────────────
 @media (max-width: 640px) {
   .main {
@@ -1200,6 +1390,34 @@
 
   .emergencyCard {
     padding: 18px 16px 20px;
+  }
+
+  .incidentIntroCard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .incidentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  // Fluent defaults are 32px controls at 14px; phones need 44px targets
+  // and 16px text so iOS does not auto-zoom.
+  .incidentFormCard {
+    :global(.ms-TextField-field) {
+      min-height: 44px;
+      font-size: 16px;
+    }
+
+    :global(.ms-TextField-field[type='date']) {
+      line-height: 42px;
+    }
+
+    :global(.ms-Dropdown-title) {
+      min-height: 44px;
+      line-height: 42px;
+      font-size: 16px;
+    }
   }
 
   .memberMail {

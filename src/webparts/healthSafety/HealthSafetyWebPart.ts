@@ -7,6 +7,7 @@ import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import HealthSafety from './components/HealthSafety';
 import { IHealthSafetyProps } from './components/IHealthSafetyProps';
 import { initializeSP as initializeEmployeesSP } from '../employeeDirectory/services/spConfig';
+import { initializeSP as initializeCompassSP } from './services/spConfig';
 import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
 
 /** Entry point for the public Health & Safety page (HealthSafety.aspx). */
@@ -17,6 +18,8 @@ export default class HealthSafetyWebPart extends BaseClientSideWebPart<Record<st
     // Root-site SPFI for the JHSC roster (Employee Highlight); feedback
     // SPFI for the Footer.
     initializeEmployeesSP(this.context);
+    // Compass SPFI for the Incident Reports list.
+    initializeCompassSP(this.context);
     initializeFeedbackSP(this.context);
   }
 

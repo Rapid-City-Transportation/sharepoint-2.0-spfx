@@ -146,20 +146,26 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
     setActiveDoc(prev => (prev && prev.label === doc.label ? null : doc));
   }, []);
 
-  const handleNavSearch = React.useCallback((query: string): void => {
-    const q = (query || '').trim();
-    const url = q
-      ? `/SitePages/ContactCards.aspx?q=${encodeURIComponent(q)}`
-      : '/SitePages/ContactCards.aspx';
-    window.location.assign(url);
-  }, []);
-
   const videoUrl = (props.videoUrl || '').trim();
+
+  // The nav's About dropdown deep-links to #ac-* sections. Sections above
+  // the target keep growing as list data and images arrive, so the scroll
+  // re-anchors a few times instead of trusting one delay.
+  React.useEffect(() => {
+    const hash = (window.location.hash || '').replace('#', '');
+    if (!hash) return;
+    const timers = [300, 1200, 2500].map(ms =>
+      window.setTimeout(() => {
+        document.getElementById(hash)?.scrollIntoView({ behavior: 'auto' });
+      }, ms)
+    );
+    return () => timers.forEach(t => window.clearTimeout(t));
+  }, []);
 
   return (
     <div className={styles.page} style={themeVars}>
       <a href="#ac-main" className={styles.skipLink}>Skip to main content</a>
-      <Navigation onSearch={handleNavSearch} activePage="aboutCompany" />
+      <Navigation activePage="aboutCompany" />
 
       <main id="ac-main" className={styles.main} role="main" tabIndex={-1}>
         <section className={styles.hero} aria-labelledby="ac-title">
@@ -171,39 +177,52 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
           </div>
         </section>
 
-        {/* Per HR's direction: Mission, Vision, and Values read as their own
-            slides on one scrolling page; the printed 1-pagers stay print-only,
-            and the video embeds below once its link arrives. */}
-        <section className={styles.slideNavy} aria-labelledby="ac-mission-title">
-          <p className={styles.slideEyebrow}>Our Compass: what we do, every day, today</p>
-          <h2 id="ac-mission-title" className={styles.slideTitleLight}>Our Mission</h2>
-          {MISSION_LINES.map((line, i) => (
-            <p key={i} className={styles.slideTextLight}>{line}</p>
-          ))}
-        </section>
-
-        <section className={styles.slideLight} aria-labelledby="ac-vision-title">
-          <h2 id="ac-vision-title" className={styles.slideTitleDark}>Our Vision</h2>
-          <p className={styles.slideTextDark}>{VISION_TEXT}</p>
-        </section>
-
-        <section className={styles.slideValues} aria-labelledby="ac-values-title">
-          <h2 id="ac-values-title" className={styles.slideTitleDark}>Our Values</h2>
-          <ul className={styles.valuesGrid} role="list">
-            {VALUES.map((v) => (
-              <li key={v.num} className={styles.valueCard}>
-                <div className={styles.valueTop}>
-                  <span className={styles.valueNum} aria-hidden="true">{v.num}</span>
-                  <span className={styles.valueIcon} aria-hidden="true">
-                    <Icon iconName={v.icon} />
-                  </span>
-                </div>
-                <h3 className={styles.valueName}>{v.name}</h3>
-                <p className={styles.valueText}>{v.text}</p>
-              </li>
+        {/* Per HR's direction: the MVV slides ARE the branding team's own
+            poster images (bundled: the source files live on the locked
+            Management site). The full text stays in the page for screen
+            readers; the printed 1-pagers remain print-only artifacts. */}
+        <section id="ac-mvv" className={styles.posterSlide} aria-labelledby="ac-mission-title">
+          <h2 id="ac-mission-title" className={styles.srOnly}>Our Mission</h2>
+          <img
+            src={require('../assets/mission-poster.jpg')}
+            alt=""
+            className={styles.posterImage}
+            loading="lazy"
+          />
+          <div className={styles.srOnly}>
+            {MISSION_LINES.map((line, i) => (
+              <p key={i}>{line}</p>
             ))}
-          </ul>
-          <p className={styles.taglineBand}>{TAGLINE}</p>
+          </div>
+        </section>
+
+        <section className={styles.posterSlide} aria-labelledby="ac-vision-title">
+          <h2 id="ac-vision-title" className={styles.srOnly}>Our Vision</h2>
+          <img
+            src={require('../assets/vision-poster.jpg')}
+            alt=""
+            className={styles.posterImage}
+            loading="lazy"
+          />
+          <p className={styles.srOnly}>{VISION_TEXT}</p>
+        </section>
+
+        <section className={styles.posterSlide} aria-labelledby="ac-values-title">
+          <h2 id="ac-values-title" className={styles.srOnly}>Our Values</h2>
+          <img
+            src={require('../assets/values-poster.jpg')}
+            alt=""
+            className={styles.posterImage}
+            loading="lazy"
+          />
+          <div className={styles.srOnly}>
+            {VALUES.map(v => (
+              <p key={v.num}>
+                {v.name}. {v.text}
+              </p>
+            ))}
+            <p>{TAGLINE}</p>
+          </div>
         </section>
 
         <section className={styles.section} aria-labelledby="ac-video-title">
@@ -233,7 +252,7 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
           )}
         </section>
 
-        <section className={styles.section} aria-labelledby="ac-history-title">
+        <section id="ac-history" className={styles.section} aria-labelledby="ac-history-title">
           <h2 id="ac-history-title" className={styles.sectionTitle}>
             <Icon iconName="History" className={styles.sectionIcon} aria-hidden="true" />
             Our History
@@ -246,7 +265,7 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
           </div>
         </section>
 
-        <section className={styles.section} aria-labelledby="ac-leadership-title">
+        <section id="ac-leadership" className={styles.section} aria-labelledby="ac-leadership-title">
           <h2 id="ac-leadership-title" className={styles.sectionTitle}>
             <Icon iconName="People" className={styles.sectionIcon} aria-hidden="true" />
             Meet Your Senior Leadership Team
@@ -301,6 +320,7 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
                         {l.role}
                       </p>
                     )}
+                    {l.bio && <p className={styles.leaderBio}>{l.bio}</p>}
                   </div>
                 </article>
               ))}
@@ -370,7 +390,7 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
           )}
         </section>
 
-        <section className={styles.section} aria-labelledby="ac-qms-title">
+        <section id="ac-qms" className={styles.section} aria-labelledby="ac-qms-title">
           <h2 id="ac-qms-title" className={styles.sectionTitle}>
             <Icon iconName="Ribbon" className={styles.sectionIcon} aria-hidden="true" />
             Quality Management System

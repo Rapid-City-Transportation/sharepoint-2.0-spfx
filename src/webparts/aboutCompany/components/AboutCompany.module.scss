@@ -117,144 +117,24 @@
   color: var(--rct-text-secondary, #4A5568);
 }
 
-// ── Mission / Vision / Values slides ────────────────────────────────────────
-// Each reads as its own full-width "slide" on the scroll, per HR's direction.
-.slideNavy {
-  margin-top: 24px;
-  background:
-    linear-gradient(135deg, var(--rct-primary, #1F4C7F) 0%, #173B62 100%);
-  color: #ffffff;
-  border-radius: 16px;
-  padding: 48px 32px 52px;
-  text-align: center;
-}
-
-.slideEyebrow {
-  margin: 0 0 10px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--rct-gold-light, #E8B832); // 4.62:1 on the navy band (AA)
-}
-
-.slideTitleLight {
-  margin: 0 0 18px;
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
-.slideTextLight {
-  margin: 0 auto 12px;
-  max-width: 60ch;
-  font-size: 19px;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.94);
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.slideLight {
+// ── Mission / Vision / Values poster slides ─────────────────────────────────
+// The branding team's own poster images, one slide per scroll section.
+.posterSlide {
   margin-top: 24px;
   background: #ffffff;
   border: 1px solid var(--rct-border, #D0D5DD);
   border-radius: 16px;
-  padding: 44px 32px 48px;
-  text-align: center;
+  overflow: hidden;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
-.slideTitleDark {
-  margin: 0 0 18px;
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  text-align: center;
-  color: var(--rct-primary, #1F4C7F);
-}
-
-.slideTextDark {
-  margin: 0 auto;
-  max-width: 60ch;
-  font-size: 21px;
-  line-height: 1.6;
-  color: var(--rct-text-primary, #262931);
-}
-
-.slideValues {
-  margin-top: 24px;
-}
-
-// ── Values ──────────────────────────────────────────────────────────────────
-.valuesGrid {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.valueCard {
-  background: #ffffff;
-  border: 1px solid var(--rct-border, #D0D5DD);
-  border-radius: 14px;
-  padding: 18px 20px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-}
-
-.valueTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.valueNum {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--rct-gold-accessible, #8A6A0C);
-}
-
-.valueIcon {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--rct-primary, #1F4C7F);
-  color: #ffffff;
-  font-size: 18px;
-}
-
-.valueName {
-  margin: 0 0 8px;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--rct-text-primary, #262931);
-}
-
-.valueText {
-  margin: 0;
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: var(--rct-text-secondary, #4A5568);
-}
-
-.taglineBand {
-  margin: 20px 0 0;
-  padding: 14px 20px;
-  border-radius: 12px;
-  background: var(--rct-surface-midnight, #262931);
-  color: var(--rct-gold-light, #E8B832); // 4.62:1 on dark (AA)
-  font-size: 16px;
-  font-weight: 600;
-  font-style: italic;
-  text-align: center;
+.posterImage {
+  display: block;
+  width: 100%;
+  height: auto; // each poster keeps its own shape; nothing to scroll or crop
+  // Reserves the slide's space before the lazy image arrives, so hash
+  // deep-links cannot land on a page that then grows above them.
+  aspect-ratio: 1400 / 933;
 }
 
 // ── Video ───────────────────────────────────────────────────────────────────
@@ -388,6 +268,13 @@
   font-weight: 700;
 }
 
+.leaderBio {
+  margin: var(--rct-spacing-sm, 8px) 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
 // ── Leadership updates ──────────────────────────────────────────────────────
 .updatesList {
   list-style: none;
@@ -497,10 +384,6 @@
 
 // ── Responsive ──────────────────────────────────────────────────────────────
 @media (max-width: 900px) {
-  .valuesGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .leadersGrid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -519,31 +402,8 @@
     border-radius: 14px;
   }
 
-  .slideNavy,
-  .slideLight {
-    padding: 30px 18px 34px;
-    border-radius: 14px;
-  }
-
-  .slideTitleLight,
-  .slideTitleDark {
-    font-size: 24px;
-  }
-
-  .slideTextLight {
-    font-size: 16px;
-  }
-
-  .slideTextDark {
-    font-size: 17px;
-  }
-
   .heroTitle {
     font-size: 27px;
-  }
-
-  .valuesGrid {
-    grid-template-columns: 1fr;
   }
 
   .leadersGrid {

@@ -64,15 +64,6 @@
 }
 
 // Greyed and inert. Disabled controls are exempt from contrast minimums.
-.linkDisabled {
-  color: rgba(255, 255, 255, 0.45);
-  cursor: default;
-
-  &:hover {
-    color: rgba(255, 255, 255, 0.45);
-    border-bottom-color: transparent;
-  }
-}
 
 .homeLink {
   display: flex;
@@ -128,6 +119,11 @@
   align-items: center;
   gap: 4px;
   white-space: nowrap;
+}
+
+// Greyed nav dropdown for a page that is not built yet.
+.dropdownTitleDisabled {
+  color: rgba(255, 255, 255, 0.45);
 }
 
 // Active dropdown: gold text + the bottom underline drawn on the wrapping <li>.

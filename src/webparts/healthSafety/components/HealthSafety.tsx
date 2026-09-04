@@ -6,6 +6,7 @@ import { defaultTheme, getThemeCssVariables } from '../../rapidCityHomepage/them
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
 import { useJhscMembers } from '../hooks/useJhscMembers';
+import IncidentReportForm from './IncidentReportForm';
 import {
   getEmployeeInitials,
   pickAccentFromString,
@@ -154,6 +155,22 @@ const HealthSafety: React.FC<IHealthSafetyProps> = () => {
   }, []);
 
   const { members, loading: membersLoading } = useJhscMembers();
+  const [incidentOpen, setIncidentOpen] = React.useState(false);
+
+  const openIncidentForm = React.useCallback((): void => {
+    setIncidentOpen(true);
+    // The section may still be collapsed at click time; scroll after render,
+    // hand focus to the form heading, and honor reduced-motion preferences.
+    window.setTimeout(() => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document
+        .getElementById('hs-incident')
+        ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+      document
+        .getElementById('hs-incident-title')
+        ?.focus({ preventScroll: true });
+    }, 60);
+  }, []);
 
   return (
     <div className={styles.page} style={themeVars}>
@@ -165,9 +182,19 @@ const HealthSafety: React.FC<IHealthSafetyProps> = () => {
           <div className={styles.heroText}>
             <h1 id="hs-title" className={styles.heroTitle}>Health &amp; Safety</h1>
             <p className={styles.heroIntro}>
-              What to do when someone is hurt, how to report a hazard, and where to find
-              the policies and the people who keep our workplace safe.
+              What to do when someone is hurt, how to report an incident, and where to
+              find the policies and the people who keep our workplace safe.
             </p>
+          </div>
+          <div className={styles.heroActions}>
+            <button
+              type="button"
+              className={styles.heroCta}
+              onClick={openIncidentForm}
+              aria-controls="hs-incident"
+            >
+              Submit an Incident Report
+            </button>
           </div>
         </section>
 
@@ -193,23 +220,34 @@ const HealthSafety: React.FC<IHealthSafetyProps> = () => {
               </ol>
               <p className={styles.emergencyThen}>
                 Then contact your direct manager; if they are not available, contact a member
-                of the Joint Health and Safety Committee. Depending on the incident, you may
-                be asked to help fill in the Incident Investigation Form.
+                of the Joint Health and Safety Committee. Once everyone is safe, submit an
+                incident report below so HR and the committee can follow up.
               </p>
             </div>
 
             <div className={styles.emergencyCard}>
               <h3 className={styles.hazardTitle}>
                 <Icon iconName="RedEye" className={styles.hazardIcon} aria-hidden="true" />
-                See a potential hazard?
+                Did an incident occur?
               </h3>
               <p className={styles.emergencyThen}>
-                Contact your direct manager to discuss it and correct it if possible. If they
-                are not available, contact a member of the Joint Health and Safety Committee.
+                Injuries, near misses, hazards, and confidential concerns can all be
+                reported online. Tell your direct manager when you can, and file the
+                report so nothing gets lost.
               </p>
+              <button
+                type="button"
+                className={styles.incidentInlineButton}
+                onClick={openIncidentForm}
+                aria-controls="hs-incident"
+              >
+                File an incident report
+              </button>
             </div>
           </div>
         </section>
+
+        <IncidentReportForm open={incidentOpen} onToggle={setIncidentOpen} />
 
         {/* Required to stay on the page at all times: rendered directly, never
             behind a tool tile, by H&S request. */}

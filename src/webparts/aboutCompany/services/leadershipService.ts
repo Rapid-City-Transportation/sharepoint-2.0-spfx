@@ -1,4 +1,6 @@
 import { fetchActiveEmployees } from '../../employeeDirectory/services/employeesService';
+import { getSP } from '../../employeeDirectory/services/spConfig';
+import { ET } from '../../employeeDirectory/services/fieldNames';
 import { IEmployee } from '../../employeeDirectory/components/types';
 
 /** One senior leadership card on the About the Company page, shaped for
@@ -16,6 +18,8 @@ export interface ILeader {
    *  Level renders no line rather than a filler label. */
   role?: string;
   photoUrl?: string;
+  /** Short professional bio from the LeadershipBio column, when present. */
+  bio?: string;
 }
 
 /** Same predicate the department hubs use for their management-first sort,
@@ -38,8 +42,36 @@ function isExecutive(emp: IEmployee): boolean {
  * the shared cached employees fetch; the host web part must have called the
  * employeeDirectory initializeSP() in onInit().
  */
+let _biosCache: { data: Map<string, string>; timestamp: number } | undefined;
+const BIOS_TTL_MS = 5 * 60 * 1000;
+
+/** Bios come from a targeted second read so the shared employees fetch never
+ *  depends on the LeadershipBio column existing; any failure means no bios,
+ *  never a broken page. Cached (including the miss) so a missing column does
+ *  not cost a failing round-trip on every mount. */
+async function fetchBios(): Promise<Map<string, string>> {
+  if (_biosCache && Date.now() - _biosCache.timestamp < BIOS_TTL_MS) {
+    return _biosCache.data;
+  }
+  const bios = new Map<string, string>();
+  try {
+    const rows: { Id: number; LeadershipBio?: string }[] = await getSP()
+      .web.lists.getByTitle(ET.LIST_TITLE)
+      .items.select(ET.Id, ET.LeadershipBio)
+      .top(5000)();
+    for (const row of rows) {
+      const bio = (row.LeadershipBio || '').trim();
+      if (bio) bios.set(String(row.Id), bio);
+    }
+  } catch {
+    // Fall through: cache the empty result either way.
+  }
+  _biosCache = { data: bios, timestamp: Date.now() };
+  return bios;
+}
+
 export async function fetchLeadership(): Promise<ILeader[]> {
-  const employees = await fetchActiveEmployees();
+  const [employees, bios] = await Promise.all([fetchActiveEmployees(), fetchBios()]);
   return employees
     .filter(isManagement)
     .sort((a, b) => {
@@ -58,6 +90,7 @@ export async function fetchLeadership(): Promise<ILeader[]> {
         leads: portfolio.length > 0 ? portfolio.join(', ') : undefined,
         role: portfolio.length === 0 ? emp.level || undefined : undefined,
         photoUrl: emp.photoUrl,
+        bio: bios.get(emp.id),
       };
     });
 }
