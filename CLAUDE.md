@@ -256,6 +256,7 @@ Decorative-only color must never carry information by itself. Naming trap: `--rc
 - Node 17, 19, 20+ fail the install; match the `engines` field.
 - Bundle OOMs without the 8 GB heap flag; do not strip it from the npm scripts.
 - Fluent UI v9 is not installed and must not be added.
+- Serve dying on startup usually means an orphaned node process is holding port 4321 (closing the terminal does not kill it on Windows): run `npm run free-port`, then serve again.
 - `gulp serve` against the hosted workbench needs a tenant URL in `config/serve.json` (each dev sets their own; do not commit personal tenant URLs).
 - `Navigation` depends on `customerContactCards`; a page that shows the nav but does not init that SP config will have a broken search/notification bell.
 - Employee data moved: the directory now reads `Employee Highlight` on the root site, while the Department page still reads `Employee Tracker` on `/sites/Management`. Do not assume one list.
