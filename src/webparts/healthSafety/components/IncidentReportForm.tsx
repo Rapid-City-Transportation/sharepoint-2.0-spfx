@@ -88,10 +88,14 @@ export const IncidentReportForm: React.FC<IIncidentReportFormProps> = ({ open, o
 
   // The hero and hazard-card buttons reopen the form after a submission;
   // name and email survive, everything about the last incident clears.
+  // Only a genuine closed-to-open transition resets: submitting leaves the
+  // thank-you card up, and it must stay up until the user acts.
+  const prevOpen = React.useRef(open);
   React.useEffect(() => {
-    if (open && state === 'done') {
+    if (open && !prevOpen.current && state === 'done') {
       resetForIncidentFields();
     }
+    prevOpen.current = open;
   }, [open, state, resetForIncidentFields]);
 
   /** Every open/close/submit unmounts the button that was focused, so focus
@@ -135,11 +139,14 @@ export const IncidentReportForm: React.FC<IIncidentReportFormProps> = ({ open, o
     try {
       await submitIncident(input);
       setState('done');
+      // Close the form so the thank-you card stands alone; reopening via
+      // any button starts a fresh report.
+      onToggle(false);
       focusHeading();
     } catch {
       setState('error');
     }
-  }, [valid, incidentType, name, email, date, location, needsSeverity, severity, description, witnesses, action, focusHeading]);
+  }, [valid, incidentType, name, email, date, location, needsSeverity, severity, description, witnesses, action, focusHeading, onToggle]);
 
   return (
     <section id="hs-incident" className={styles.incidentSection} aria-labelledby="hs-incident-title">
