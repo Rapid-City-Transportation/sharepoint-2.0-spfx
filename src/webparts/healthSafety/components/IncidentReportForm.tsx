@@ -95,9 +95,15 @@ export const IncidentReportForm: React.FC<IIncidentReportFormProps> = ({ open, o
   }, [open, state, resetForIncidentFields]);
 
   /** Every open/close/submit unmounts the button that was focused, so focus
-   *  is handed to the section heading instead of falling to the body. */
+   *  is handed to the section heading instead of falling to the body. The
+   *  section also scrolls into view: submitting collapses a tall form into a
+   *  short card, and without the scroll the confirmation lands off-screen. */
   const focusHeading = React.useCallback((): void => {
     window.setTimeout(() => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document
+        .getElementById('hs-incident')
+        ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
       document.getElementById('hs-incident-title')?.focus({ preventScroll: true });
     }, 60);
   }, []);
