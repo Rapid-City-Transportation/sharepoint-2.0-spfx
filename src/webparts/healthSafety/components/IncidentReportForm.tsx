@@ -12,11 +12,13 @@ import {
   submitIncident,
 } from '../services/incidentService';
 
+// Keys are the clean values HR reports on; the display text explains the
+// H&S jargon in plain language for everyone else.
 const TYPE_OPTIONS: IDropdownOption[] = [
-  { key: 'Injury or illness', text: 'Injury or illness' },
-  { key: 'Near miss', text: 'Near miss' },
-  { key: 'Hazard or unsafe condition', text: 'Hazard or unsafe condition' },
-  { key: 'Harassment or bullying', text: 'Harassment or bullying (confidential)' },
+  { key: 'Injury or illness', text: 'Injury or illness (someone got hurt or sick)' },
+  { key: 'Near miss', text: 'Near miss (someone almost got hurt, but no one was injured)' },
+  { key: 'Hazard or unsafe condition', text: 'Hazard (something unsafe that could hurt someone)' },
+  { key: 'Harassment or bullying', text: 'Harassment or bullying (confidential, goes to HR only)' },
 ];
 
 const SEVERITY_OPTIONS: IDropdownOption[] = [
