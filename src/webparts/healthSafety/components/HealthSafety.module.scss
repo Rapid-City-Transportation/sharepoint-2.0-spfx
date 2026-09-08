@@ -1323,6 +1323,12 @@
   outline-color: #ffffff;
 }
 
+// Only the post-submit action row needs its own gap; inside the form card
+// the flex column's gap already spaces the buttons.
+.incidentDoneCard + .incidentActions {
+  margin-top: 14px;
+}
+
 .incidentDoneCard {
   margin: 0;
   font-size: 15px;
