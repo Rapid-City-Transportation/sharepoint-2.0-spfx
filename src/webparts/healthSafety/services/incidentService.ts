@@ -56,12 +56,14 @@ export async function submitIncident(input: IIncidentInput): Promise<void> {
       // Anchored at noon: SharePoint reads offset-less strings as UTC, and
       // midnight UTC renders as the previous day in Ontario.
       IncidentDate: `${input.incidentDate}T12:00:00`,
-      Location: input.location,
+      // Blanks get explicit text so the HR notification email and list
+      // views never show dangling empty labels.
+      Location: input.location || 'Not specified',
       IncidentType: input.incidentType,
-      Severity: input.severity || null,
+      Severity: input.severity || 'N/A',
       Description: input.description,
-      Witnesses: input.witnesses || null,
-      ImmediateAction: input.immediateAction || null,
+      Witnesses: input.witnesses || 'None reported',
+      ImmediateAction: input.immediateAction || 'None reported',
       Confidential: isConfidential(input.incidentType),
       HRReviewed: false,
       ReleasedToHS: false,
