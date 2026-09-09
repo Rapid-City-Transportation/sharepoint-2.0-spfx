@@ -32,11 +32,6 @@ export default class RapidCityHomepageWebPart extends BaseClientSideWebPart<IRap
     ReactDom.render(element, this.domElement);
   }
 
-catch {
-      return DEFAULT_QUICK_LINKS;
-    }
-  }
-
   protected onDispose(): void {
     ReactDom.unmountComponentAtNode(this.domElement);
   }
