@@ -49,6 +49,19 @@ const HR_SUPPORT_URL = `${COMPASS}/SitePages/HRSupport.aspx`;
 const HEALTH_SAFETY_URL = `${COMPASS}/SitePages/HealthSafety.aspx`;
 const ABOUT_COMPANY_URL = `${COMPASS}/SitePages/AboutCompany.aspx`;
 
+/** Dropdown option labels keyed by the page they open, so the open list can
+ *  check the entry for the page the user is on. External links (ADP, Rise)
+ *  and pages that do not render this nav can never self-mark. */
+const CURRENT_PAGE_LABELS: Partial<Record<NavPage, string>> = {
+  contactCards: 'Customer',
+  outsourceCards: 'Outsource',
+  employeeDirectory: 'Employee Directory',
+  healthSafety: 'Health & Safety',
+  hrSupport: 'Human Resources Support',
+  itSupport: 'IT Support',
+  training: 'Training Hub',
+};
+
 /** Section anchors on the About the Company page, in the meeting's order. */
 const ABOUT_SECTIONS = [
   { key: '#ac-history', text: 'History of the Company' },
@@ -145,6 +158,7 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     activePage === 'hrSupport' ||
     activePage === 'healthSafety';
   const isCardsActive = activePage === 'contactCards' || activePage === 'outsourceCards';
+  const currentPageLabel = activePage ? CURRENT_PAGE_LABELS[activePage] || null : null;
   const homeUrl = props.homeUrl || HOME_URL;
   const contactCardsUrl = props.contactCardsUrl || CONTACT_CARDS_URL;
   const employeeDirectoryUrl = props.employeeDirectoryUrl || EMPLOYEE_DIRECTORY_URL;
@@ -467,6 +481,7 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
             <Dropdown
               placeholder="Contact Cards"
               options={cardsOptions}
+              selectedKey={currentPageLabel}
               onChange={onDeptChange}
               className={styles.dropdown}
               ariaLabel="Contact Cards menu"
@@ -515,6 +530,7 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
             <Dropdown
               placeholder="Employee Support"
               options={supportOptions}
+              selectedKey={currentPageLabel}
               onChange={onSupportChange}
               notifyOnReselect
               className={styles.dropdown}
@@ -687,15 +703,17 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
                 <ul id={panelId} className={styles.mobileSubList} hidden={!expanded}>
                   {section.links.map((link) => {
                     const isDisabled = link.disabled || link.href === '#';
+                    const isCurrent = !isDisabled && link.label === currentPageLabel;
                     return (
                       <li key={link.label}>
                         <a
                           href={link.href}
-                          className={`${styles.mobileSubLink} ${isDisabled ? styles.mobileSubLinkDisabled : ''}`}
+                          className={`${styles.mobileSubLink} ${isDisabled ? styles.mobileSubLinkDisabled : ''} ${isCurrent ? styles.mobileSubLinkActive : ''}`}
                           onClick={isDisabled
                             ? (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault()
                             : handleDrawerLink(link.href)}
                           {...(isDisabled ? { 'aria-disabled': 'true' as const, tabIndex: -1 } : {})}
+                          {...(isCurrent ? { 'aria-current': 'page' as const } : {})}
                           {...(link.newTab ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                         >
                           {link.label}

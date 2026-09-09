@@ -406,6 +406,13 @@
   border-left-color: var(--rct-gold-light);
 }
 
+// The drawer entry for the page the user is on, matching the section
+// trigger's gold active language.
+.mobileSubLinkActive {
+  color: var(--rct-gold-light);
+  font-weight: 600;
+}
+
 .mobileNavLinkLabel {
   display: inline-flex;
   align-items: center;
