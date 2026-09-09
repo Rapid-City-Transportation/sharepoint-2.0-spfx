@@ -266,8 +266,7 @@ export const IncidentReportForm: React.FC<IIncidentReportFormProps> = ({ open, o
               <span>
                 The report could not be submitted right now. Please contact HR
                 directly at{' '}
-                <a href="mailto:hr@rapidcitytransport.com">hr@rapidcitytransport.com</a>
-                {' '}or leave a voicemail at 905-831-1500 ext. 144.
+                <a href="mailto:hr@rapidcitytransport.com">hr@rapidcitytransport.com</a>.
               </span>
             </div>
           )}

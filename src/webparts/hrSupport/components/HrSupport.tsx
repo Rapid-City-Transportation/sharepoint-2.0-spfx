@@ -68,7 +68,6 @@ const CONTACTS: { purpose: string; email: string; note?: string }[] = [
   {
     purpose: 'Recruitment agencies, Service Canada, and CRA employee inquiries',
     email: HR_EMAIL,
-    note: 'Or leave a voicemail at 905-831-1500 ext. 144',
   },
 ];
 
