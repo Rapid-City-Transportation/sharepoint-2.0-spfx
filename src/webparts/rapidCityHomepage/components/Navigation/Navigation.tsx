@@ -47,6 +47,7 @@ const TRAINING_HUB_URL = `${COMPASS}/SitePages/TrainingHub.aspx`;
 const IT_SUPPORT_URL = `${COMPASS}/SitePages/ITSupport.aspx`;
 const HR_SUPPORT_URL = `${COMPASS}/SitePages/HRSupport.aspx`;
 const HEALTH_SAFETY_URL = `${COMPASS}/SitePages/HealthSafety.aspx`;
+const VIVETTA_URL = 'https://vivetta.rct.palantirfoundry.com/';
 const ABOUT_COMPANY_URL = `${COMPASS}/SitePages/AboutCompany.aspx`;
 
 /** Dropdown option labels keyed by the page they open, so the open list can
@@ -96,6 +97,8 @@ function buildEmployeeSupportOptions(
     { label: 'Rise Hub', href: RISE_HUB_URL, newTab: true },
     // Remove `disabled` once the Training Hub page is created on compass.
     { label: 'Training Hub', href: trainingHubUrl, disabled: true },
+    // Remove `disabled` when the Vivetta system launches.
+    { label: 'Vivetta', href: VIVETTA_URL, newTab: true, disabled: true },
     // Update remaining hrefs as those pages come online.
   ];
 }
