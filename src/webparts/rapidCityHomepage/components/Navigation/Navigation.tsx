@@ -91,7 +91,8 @@ function buildEmployeeSupportOptions(
   return [
     { label: 'ADP Web Clock', href: ADP_WEB_CLOCK_URL, newTab: true },
     { label: 'Employee Directory', href: employeeDirectoryUrl },
-    { label: 'Health & Safety', href: HEALTH_SAFETY_URL },
+    // Remove `disabled` when the Health & Safety page is ready to launch.
+    { label: 'Health & Safety', href: HEALTH_SAFETY_URL, disabled: true },
     { label: 'Human Resources Support', href: HR_SUPPORT_URL },
     { label: 'IT Support', href: IT_SUPPORT_URL },
     { label: 'Rise Hub', href: RISE_HUB_URL, newTab: true },
