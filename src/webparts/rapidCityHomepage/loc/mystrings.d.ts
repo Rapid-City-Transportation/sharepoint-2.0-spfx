@@ -1,7 +1,6 @@
 declare interface IRapidCityHomepageWebPartStrings {
   PropertyPaneDescription: string;
   BasicGroupName: string;
-  QuickLinksLabel: string;
   ContactCardsPageUrlLabel: string;
   FeedbackUrlLabel: string;
 }

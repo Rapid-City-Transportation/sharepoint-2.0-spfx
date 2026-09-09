@@ -56,7 +56,7 @@ Shared chrome on every page: Navigation + Footer + ThemeTokens (all from rapidCi
 ```
 src/webparts/
   rapidCityHomepage/      # home page + ALL shared chrome: Navigation, Footer, Hero,
-                          #   BannerCarousel, DailyHighlight, QuickLinks, WeatherWidget,
+                          #   BannerCarousel, DailyHighlight, WeatherWidget,
                           #   FeedbackModal, theme/
   customerContactCards/   # customer directory cards, detail view, drawers, notifications
   customerExperienceHub/  # CX team hub (private)
