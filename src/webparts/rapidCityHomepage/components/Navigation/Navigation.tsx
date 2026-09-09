@@ -62,12 +62,14 @@ const CURRENT_PAGE_LABELS: Partial<Record<NavPage, string>> = {
   training: 'Training Hub',
 };
 
-/** Section anchors on the About the Company page, in the meeting's order. */
+/** One page per About section (each hosts the aboutCompany web part with
+ *  its `section` property set), so no single page is absurdly long. In the
+ *  meeting's order. */
 const ABOUT_SECTIONS = [
-  { key: '#ac-history', text: 'History of the Company' },
-  { key: '#ac-leadership', text: 'Meet Your Senior Leaders' },
-  { key: '#ac-mvv', text: 'Mission, Vision & Values' },
-  { key: '#ac-qms', text: 'Quality Management System' },
+  { key: `${COMPASS}/SitePages/CompanyHistory.aspx`, text: 'History of the Company' },
+  { key: `${COMPASS}/SitePages/SeniorLeadership.aspx`, text: 'Meet Your Senior Leaders' },
+  { key: `${COMPASS}/SitePages/MissionVisionValues.aspx`, text: 'Mission, Vision & Values' },
+  { key: `${COMPASS}/SitePages/QualityManagementSystem.aspx`, text: 'Quality Management System' },
 ];
 const CX_PUBLIC_URL = `${COMPASS}/SitePages/CustomerExperience.aspx`;
 const IT_PUBLIC_URL = `${COMPASS}/SitePages/InformationTechnology.aspx`;
@@ -417,15 +419,7 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
   );
 
   const onAboutChange: IDropdownProps['onChange'] = (_ev, option) => {
-    if (!option) return;
-    // Same-page hash changes do not re-fire the About page's scroll effect,
-    // so scroll directly when already there; navigate otherwise.
-    const anchor = String(option.key);
-    if (activePage === 'aboutCompany') {
-      document.getElementById(anchor.replace('#', ''))?.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      window.location.assign(`${ABOUT_COMPANY_URL}${anchor}`);
-    }
+    if (option) window.location.assign(String(option.key));
   };
 
   return (

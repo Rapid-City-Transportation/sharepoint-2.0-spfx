@@ -3,18 +3,20 @@ import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
 import {
   type IPropertyPaneConfiguration,
+  PropertyPaneDropdown,
   PropertyPaneTextField,
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
 import AboutCompany from './components/AboutCompany';
-import { IAboutCompanyProps } from './components/IAboutCompanyProps';
+import { AboutSection, IAboutCompanyProps } from './components/IAboutCompanyProps';
 import { initializeSP as initializeEmployeesSP } from '../employeeDirectory/services/spConfig';
 import { initializeSP as initializeAnnouncementsSP } from '../rapidCityHomepage/services/announcementsSpConfig';
 import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
 
 export interface IAboutCompanyWebPartProps {
   videoUrl: string;
+  section: AboutSection;
 }
 
 /** Entry point for the public "All About the Company" page. The page reads
@@ -34,6 +36,7 @@ export default class AboutCompanyWebPart extends BaseClientSideWebPart<IAboutCom
   public render(): void {
     const element: React.ReactElement<IAboutCompanyProps> = React.createElement(AboutCompany, {
       videoUrl: this.properties.videoUrl,
+      section: this.properties.section,
     });
     ReactDom.render(element, this.domElement);
   }
@@ -52,6 +55,22 @@ export default class AboutCompanyWebPart extends BaseClientSideWebPart<IAboutCom
         {
           header: { description: 'All About the Company Settings' },
           groups: [
+            {
+              groupName: 'Page section',
+              groupFields: [
+                PropertyPaneDropdown('section', {
+                  label: 'Which section does this page show?',
+                  options: [
+                    { key: 'all', text: 'Everything (single page)' },
+                    { key: 'mvv', text: 'Mission, Vision & Values' },
+                    { key: 'history', text: 'History of the Company' },
+                    { key: 'leadership', text: 'Senior Leadership' },
+                    { key: 'qms', text: 'Quality Management System' },
+                  ],
+                  selectedKey: 'all',
+                }),
+              ],
+            },
             {
               groupName: 'Mission, Vision & Values video',
               groupFields: [

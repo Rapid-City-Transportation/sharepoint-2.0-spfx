@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import { Dialog, DialogType } from '@fluentui/react/lib/Dialog';
 import styles from './AboutCompany.module.scss';
-import { IAboutCompanyProps } from './IAboutCompanyProps';
+import { AboutSection, IAboutCompanyProps } from './IAboutCompanyProps';
 import { defaultTheme, getThemeCssVariables } from '../../rapidCityHomepage/theme/ThemeTokens';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
@@ -128,6 +128,29 @@ interface IOpenUpdate {
  *  senior leadership roster, Leadership Updates feed, and the QMS document
  *  viewer. Static copy lives in the constants above; the roster and updates
  *  are list-driven. */
+const HERO_COPY: Record<AboutSection, { title: string; intro: string }> = {
+  all: {
+    title: 'All About the Company',
+    intro: 'Our mission, our story, and the people leading the way.',
+  },
+  mvv: {
+    title: 'Mission, Vision & Values',
+    intro: 'What we do, every day, today.',
+  },
+  history: {
+    title: 'History of the Company',
+    intro: 'Where Rapid City Transportation came from.',
+  },
+  leadership: {
+    title: 'Meet Your Senior Leadership',
+    intro: 'The people leading the company, and their latest updates.',
+  },
+  qms: {
+    title: 'Quality Management System',
+    intro: 'How we document, measure, and improve the way we work.',
+  },
+};
+
 const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
   const themeVars = React.useMemo(
     () => getThemeCssVariables(defaultTheme) as React.CSSProperties,
@@ -147,6 +170,9 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
   }, []);
 
   const videoUrl = (props.videoUrl || '').trim();
+  const section: AboutSection = props.section || 'all';
+  const show = (key: AboutSection): boolean => section === 'all' || section === key;
+  const hero = HERO_COPY[section];
 
   // The nav's About dropdown deep-links to #ac-* sections. Sections above
   // the target keep growing as list data and images arrive, so the scroll
@@ -170,13 +196,13 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
       <main id="ac-main" className={styles.main} role="main" tabIndex={-1}>
         <section className={styles.hero} aria-labelledby="ac-title">
           <div className={styles.heroText}>
-            <h1 id="ac-title" className={styles.heroTitle}>All About the Company</h1>
-            <p className={styles.heroIntro}>
-              Our mission, our story, and the people leading the way.
-            </p>
+            <h1 id="ac-title" className={styles.heroTitle}>{hero.title}</h1>
+            <p className={styles.heroIntro}>{hero.intro}</p>
           </div>
         </section>
 
+        {show('mvv') && (
+          <>
         {/* Per HR's direction: the MVV slides ARE the branding team's own
             poster images (bundled: the source files live on the locked
             Management site). The full text stays in the page for screen
@@ -251,7 +277,11 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
             </div>
           )}
         </section>
+          </>
+        )}
 
+        {show('history') && (
+          <>
         <section id="ac-history" className={styles.section} aria-labelledby="ac-history-title">
           <h2 id="ac-history-title" className={styles.sectionTitle}>
             <Icon iconName="History" className={styles.sectionIcon} aria-hidden="true" />
@@ -264,7 +294,11 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
             </p>
           </div>
         </section>
+          </>
+        )}
 
+        {show('leadership') && (
+          <>
         <section id="ac-leadership" className={styles.section} aria-labelledby="ac-leadership-title">
           <h2 id="ac-leadership-title" className={styles.sectionTitle}>
             <Icon iconName="People" className={styles.sectionIcon} aria-hidden="true" />
@@ -389,7 +423,11 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
             </ul>
           )}
         </section>
+          </>
+        )}
 
+        {show('qms') && (
+          <>
         <section id="ac-qms" className={styles.section} aria-labelledby="ac-qms-title">
           <h2 id="ac-qms-title" className={styles.sectionTitle}>
             <Icon iconName="Ribbon" className={styles.sectionIcon} aria-hidden="true" />
@@ -512,6 +550,9 @@ const AboutCompany: React.FC<IAboutCompanyProps> = (props) => {
             </div>
           </div>
         </section>
+          </>
+        )}
+
       </main>
 
       <Dialog
