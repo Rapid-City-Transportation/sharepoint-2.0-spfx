@@ -76,34 +76,30 @@
   font-size: 18px;
 }
 
-// Vivetta launcher: the product's own gradient mark, sized to the Home slot.
+// Vivetta nav item: the product's gradient mark sits beside its name like
+// a favicon; everything else about the item is a plain nav link.
 .vivettaLink {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover .vivettaMark {
-    filter: brightness(1.15);
-  }
-
-  &:focus-visible {
-    outline: 3px solid var(--rct-gold-light);
-    outline-offset: 2px;
-  }
+  gap: 7px;
 }
 
 .vivettaMark {
   display: block;
-  width: 26px;
-  height: 26px;
+  width: 18px;
+  height: 18px;
 }
 
-.vivettaLinkDisabled {
+// Greyed pre-launch treatment for plain nav links.
+.linkDisabled {
+  color: rgba(255, 255, 255, 0.45);
   cursor: default;
 
-  .vivettaMark,
-  &:hover .vivettaMark {
-    filter: grayscale(1) opacity(0.45);
+  &:hover {
+    color: rgba(255, 255, 255, 0.45);
+    border-bottom-color: transparent;
+  }
+
+  .vivettaMark {
+    filter: grayscale(1) opacity(0.5);
   }
 }
 
