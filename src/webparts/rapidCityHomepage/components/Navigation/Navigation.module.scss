@@ -84,24 +84,24 @@
 
 .vivettaMark {
   display: block;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
 }
 
 // Greyed pre-launch treatment for plain nav links.
 .linkDisabled {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.75);
   cursor: default;
 
   &:hover {
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(255, 255, 255, 0.75);
     border-bottom-color: transparent;
   }
 
-  // The mark keeps its brand color: dimming says "not yet", but
-  // desaturating a gradient over navy makes it disappear entirely.
+  // The mark stays at full strength: the muted label carries the
+  // "not yet" signal, and a brand logo's only job here is to be seen.
   .vivettaMark {
-    opacity: 0.75;
+    opacity: 1;
   }
 }
 
@@ -152,7 +152,7 @@
 
 // Greyed nav dropdown for a page that is not built yet.
 .dropdownTitleDisabled {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 // Active dropdown: gold text + the bottom underline drawn on the wrapping <li>.
@@ -485,7 +485,7 @@
 // Matches the desktop disabled treatment.
 .mobileNavLinkDisabled,
 .mobileSubLinkDisabled {
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.75);
   cursor: default;
 
   &:hover { color: rgba(255, 255, 255, 0.4); }
