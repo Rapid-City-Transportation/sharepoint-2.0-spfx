@@ -76,30 +76,26 @@
   font-size: 18px;
 }
 
-// Letter-mark launcher for the Vivetta system, sized to the Home icon slot.
+// Vivetta launcher: the product's own gradient mark, sized to the Home slot.
 .vivettaLink {
   display: flex;
   align-items: center;
   justify-content: center;
 
   &:hover .vivettaMark {
-    border-color: var(--rct-gold-light);
-    color: var(--rct-gold-light);
+    filter: brightness(1.15);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-gold-light);
+    outline-offset: 2px;
   }
 }
 
 .vivettaMark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   width: 26px;
   height: 26px;
-  border: 1.5px solid rgba(255, 255, 255, 0.75);
-  border-radius: 7px;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: #ffffff;
 }
 
 .vivettaLinkDisabled {
@@ -107,8 +103,7 @@
 
   .vivettaMark,
   &:hover .vivettaMark {
-    border-color: rgba(255, 255, 255, 0.35);
-    color: rgba(255, 255, 255, 0.45);
+    filter: grayscale(1) opacity(0.45);
   }
 }
 

@@ -450,11 +450,10 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
             </a>
           </li>
 
-          {/* Vivetta launcher: the flagship system gets a one-click mark
-              beside Home instead of a dropdown entry. On launch: drop the
-              disabled class and guards, add target="_blank"
-              rel="noopener noreferrer", and append " (opens in new tab)"
-              to the aria-label. */}
+          {/* Vivetta launcher: the product's own gradient mark beside Home
+              instead of a dropdown entry. On launch: drop the disabled class
+              and guards, add target="_blank" rel="noopener noreferrer", and
+              append " (opens in new tab)" to the aria-label. */}
           <li className={styles.listItem}>
             <a
               href={VIVETTA_URL}
@@ -465,7 +464,11 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
               title="Vivetta"
               aria-label="Launch Vivetta"
             >
-              <span className={styles.vivettaMark} aria-hidden="true">V</span>
+              <img
+                src={require('../../assets/vivetta-mark.png')}
+                alt=""
+                className={styles.vivettaMark}
+              />
             </a>
           </li>
 
