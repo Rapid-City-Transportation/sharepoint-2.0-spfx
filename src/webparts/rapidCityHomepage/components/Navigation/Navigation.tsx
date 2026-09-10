@@ -98,8 +98,6 @@ function buildEmployeeSupportOptions(
     { label: 'Rise Hub', href: RISE_HUB_URL, newTab: true },
     // Remove `disabled` once the Training Hub page is created on compass.
     { label: 'Training Hub', href: trainingHubUrl, disabled: true },
-    // Remove `disabled` when the Vivetta system launches.
-    { label: 'Vivetta', href: VIVETTA_URL, newTab: true, disabled: true },
     // Update remaining hrefs as those pages come online.
   ];
 }
@@ -452,6 +450,25 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
             </a>
           </li>
 
+          {/* Vivetta launcher: the flagship system gets a one-click mark
+              beside Home instead of a dropdown entry. On launch: drop the
+              disabled class and guards, add target="_blank"
+              rel="noopener noreferrer", and append " (opens in new tab)"
+              to the aria-label. */}
+          <li className={styles.listItem}>
+            <a
+              href={VIVETTA_URL}
+              className={`${styles.vivettaLink} ${styles.vivettaLinkDisabled}`}
+              onClick={(e) => e.preventDefault()}
+              aria-disabled="true"
+              tabIndex={-1}
+              title="Vivetta"
+              aria-label="Launch Vivetta"
+            >
+              <span className={styles.vivettaMark} aria-hidden="true">V</span>
+            </a>
+          </li>
+
           {/* 2. All About the Company: a section dropdown (History, Senior
               Leaders, MVV, QMS) deep-linking into the one page. Remove
               `disabled` once AboutCompany.aspx is created on compass. */}
@@ -679,6 +696,19 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
               tabIndex={-1}
             >
               <span className={styles.mobileNavLinkLabel}>All About the Company</span>
+            </a>
+          </li>
+
+          <li>
+            {/* Un-grey together with the desktop Vivetta mark at launch. */}
+            <a
+              href={VIVETTA_URL}
+              className={`${styles.mobileNavLink} ${styles.mobileNavLinkDisabled}`}
+              onClick={(e) => e.preventDefault()}
+              aria-disabled="true"
+              tabIndex={-1}
+            >
+              <span className={styles.mobileNavLinkLabel}>Vivetta</span>
             </a>
           </li>
 

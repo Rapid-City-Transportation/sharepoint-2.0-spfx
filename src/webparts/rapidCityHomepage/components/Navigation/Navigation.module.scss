@@ -76,6 +76,42 @@
   font-size: 18px;
 }
 
+// Letter-mark launcher for the Vivetta system, sized to the Home icon slot.
+.vivettaLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover .vivettaMark {
+    border-color: var(--rct-gold-light);
+    color: var(--rct-gold-light);
+  }
+}
+
+.vivettaMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+}
+
+.vivettaLinkDisabled {
+  cursor: default;
+
+  .vivettaMark,
+  &:hover .vivettaMark {
+    border-color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.45);
+  }
+}
+
 .dropdown {
   display: flex;
   align-items: stretch;   /* fill the full nav height so the label lines up with the anchor links */
