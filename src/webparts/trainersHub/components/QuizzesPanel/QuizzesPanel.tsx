@@ -256,7 +256,7 @@ const ItemRow: React.FC<IItemRowProps> = ({ item, kind, done, onToggle, onOpen }
         onClick={onOpen}
         disabled={!hasUrl}
         title={hasUrl ? actionLabel : 'Coming soon'}
-        aria-label={hasUrl ? `${actionLabel}: ${item.label}` : `${item.label} — coming soon`}
+        aria-label={hasUrl ? `${actionLabel}: ${item.label}` : `${item.label}: coming soon`}
       >
         <Icon iconName={hasUrl ? actionIcon : 'ConstructionCone'} aria-hidden="true" />
         <span className={styles.itemActionLabel}>
