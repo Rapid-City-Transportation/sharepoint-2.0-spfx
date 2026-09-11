@@ -452,15 +452,14 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
 
           {/* Vivetta: the product mark plus its name as one labeled nav
               item; the nav speaks text, so a lone unlabeled logo reads as a
-              mystery glyph. On launch: drop the disabled class and guards,
-              and add target="_blank" rel="noopener noreferrer". */}
+              mystery glyph. */}
           <li className={styles.listItem}>
             <a
               href={VIVETTA_URL}
-              className={`${styles.link} ${styles.vivettaLink} ${styles.linkDisabled}`}
-              onClick={(e) => e.preventDefault()}
-              aria-disabled="true"
-              tabIndex={-1}
+              className={`${styles.link} ${styles.vivettaLink}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Vivetta (opens in new tab)"
             >
               <img
                 src={require('../../assets/vivetta-mark.png')}
@@ -702,13 +701,12 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
           </li>
 
           <li>
-            {/* Un-grey together with the desktop Vivetta mark at launch. */}
             <a
               href={VIVETTA_URL}
-              className={`${styles.mobileNavLink} ${styles.mobileNavLinkDisabled}`}
-              onClick={(e) => e.preventDefault()}
-              aria-disabled="true"
-              tabIndex={-1}
+              className={styles.mobileNavLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Vivetta (opens in new tab)"
             >
               <span className={styles.mobileNavLinkLabel}>Vivetta</span>
             </a>

@@ -88,23 +88,6 @@
   height: 22px;
 }
 
-// Greyed pre-launch treatment for plain nav links.
-.linkDisabled {
-  color: rgba(255, 255, 255, 0.75);
-  cursor: default;
-
-  &:hover {
-    color: rgba(255, 255, 255, 0.75);
-    border-bottom-color: transparent;
-  }
-
-  // The mark stays at full strength: the muted label carries the
-  // "not yet" signal, and a brand logo's only job here is to be seen.
-  .vivettaMark {
-    opacity: 1;
-  }
-}
-
 .dropdown {
   display: flex;
   align-items: stretch;   /* fill the full nav height so the label lines up with the anchor links */
