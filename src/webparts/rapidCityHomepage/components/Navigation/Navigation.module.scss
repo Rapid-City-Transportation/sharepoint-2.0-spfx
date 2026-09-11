@@ -119,6 +119,9 @@
 
   :global(.ms-Dropdown:hover .ms-Dropdown-title) {
     color: var(--rct-gold-light);
+    // Without this, Fluent's own hover border-color (near-black) paints the
+    // 3px underline; the plain nav links hover gold, so dropdowns must too.
+    border-bottom-color: var(--rct-gold-light);
   }
 
   :global(.ms-Dropdown-caretDownWrapper) {
