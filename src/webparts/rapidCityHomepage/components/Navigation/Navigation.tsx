@@ -74,6 +74,7 @@ const ABOUT_SECTIONS = [
 ];
 const CX_PUBLIC_URL = `${COMPASS}/SitePages/CustomerExperience.aspx`;
 const IT_PUBLIC_URL = `${COMPASS}/SitePages/InformationTechnology.aspx`;
+const HR_PUBLIC_URL = `${COMPASS}/SitePages/HumanResources.aspx`;
 // RISE Hub lives in Viva Engage (same community deep link the CX Hub embeds).
 const RISE_HUB_URL =
   'https://engage.cloud.microsoft/main/org/rapidcitytransport.com/groups/eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIyMjgxNzMxMzU4NzIifQ/all';
@@ -109,7 +110,7 @@ const DEPARTMENT_HUBS_OPTIONS: INavLink[] = [
   { label: 'Customer Experience', href: CX_PUBLIC_URL },
   { label: 'Dispatch', href: '#' },
   { label: 'Fleet', href: '#' },
-  { label: 'Human Resources', href: '#' },
+  { label: 'Human Resources', href: HR_PUBLIC_URL },
   { label: 'Information Technology', href: IT_PUBLIC_URL },
 ];
 
