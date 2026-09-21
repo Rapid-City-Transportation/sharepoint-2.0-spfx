@@ -3,18 +3,19 @@ import { getSP } from './spConfig';
 /**
  * The online incident report, replacing the old Excel Incident Investigation
  * Form for first submissions. Rows land in the "Incident Reports" list on
- * compass with HRReviewed=false: HR (Liana) reviews every report first, and
- * only non-confidential reports she releases go on to the Health & Safety
- * mailbox (both notifications are Power Automate flows on the list, not
- * code). Harassment reports are flagged Confidential and never leave HR.
+ * compass with HRReviewed=false, and a Power Automate flow on the list emails
+ * HR. That is the whole routing: HR reviews each report on the incidentReview
+ * page, exports a PDF when WSIB or the safety committee needs a copy, and
+ * marks it filed (HRReviewed=true). There is no separate Health & Safety
+ * mailbox. Harassment reports are flagged Confidential.
  *
  * Create the list with EXACTLY these single-word column names:
  * Title (built in), ReporterName (text), ReporterEmail (text),
- * IncidentDate (date), Location (text), IncidentType (choice), Severity
- * (choice: Minor/Major/Critical), Description (multi-line plain),
- * Witnesses (text), ImmediateAction (multi-line plain), Confidential
- * (Yes/No), HRReviewed (Yes/No, default No), ReleasedToHS (Yes/No,
- * default No). Then lock it down: item-level permissions = read/edit own
+ * IncidentDate (date), Location (text), IncidentType (choice: Injury or
+ * illness / Near miss / Hazard or unsafe condition / Harassment or bullying /
+ * Other), Severity (choice: Minor/Major/Critical/N/A), Description
+ * (multi-line plain), Witnesses (text), ImmediateAction (multi-line plain),
+ * Confidential (Yes/No), HRReviewed (Yes/No, default No). Then lock it down: item-level permissions = read/edit own
  * items only, plus unique list permissions granting HR Full Control (the
  * level that carries Override List Behaviors, which is what lets HR see
  * past the item-level restriction; incidentReview keys off that permission).
@@ -26,7 +27,8 @@ export type IncidentType =
   | 'Injury or illness'
   | 'Near miss'
   | 'Hazard or unsafe condition'
-  | 'Harassment or bullying';
+  | 'Harassment or bullying'
+  | 'Other';
 
 export type IncidentSeverity = 'Minor' | 'Major' | 'Critical';
 
@@ -69,6 +71,5 @@ export async function submitIncident(input: IIncidentInput): Promise<void> {
       ImmediateAction: input.immediateAction || 'None reported',
       Confidential: isConfidential(input.incidentType),
       HRReviewed: false,
-      ReleasedToHS: false,
     });
 }

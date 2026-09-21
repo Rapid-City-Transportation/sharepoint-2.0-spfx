@@ -18,7 +18,8 @@ const TYPE_OPTIONS: IDropdownOption[] = [
   { key: 'Injury or illness', text: 'Injury or illness (someone got hurt or sick)' },
   { key: 'Near miss', text: 'Near miss (someone almost got hurt, but no one was injured)' },
   { key: 'Hazard or unsafe condition', text: 'Hazard (something unsafe that could hurt someone)' },
-  { key: 'Harassment or bullying', text: 'Harassment or bullying (confidential, goes to HR only)' },
+  { key: 'Harassment or bullying', text: 'Harassment or bullying (confidential)' },
+  { key: 'Other', text: 'Other (anything not listed above)' },
 ];
 
 const SEVERITY_OPTIONS: IDropdownOption[] = [
@@ -158,10 +159,9 @@ export const IncidentReportForm: React.FC<IIncidentReportFormProps> = ({ open, o
       {!open && state !== 'done' && (
         <div className={styles.incidentIntroCard}>
           <p className={styles.incidentIntroText}>
-            Injuries, near misses, hazards, and confidential concerns all start
-            here. Your report goes to HR for review first; depending on what you
-            submit, HR follows up with you and notifies the Health &amp; Safety
-            committee.
+            Injuries, near misses, hazards, confidential concerns, and anything
+            else safety-related all start here. Your report goes straight to HR,
+            who will follow up with you.
           </p>
           <button
             type="button"
@@ -213,8 +213,8 @@ export const IncidentReportForm: React.FC<IIncidentReportFormProps> = ({ open, o
             <div className={styles.incidentConfidentialNote} role="note">
               <Icon iconName="Lock" aria-hidden="true" />
               <span>
-                Harassment and bullying reports are confidential. This goes to
-                HR only; it is not shared with the Health &amp; Safety committee.
+                Harassment and bullying reports are confidential and handled by
+                HR only.
               </span>
             </div>
           )}

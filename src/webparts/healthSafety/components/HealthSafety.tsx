@@ -221,7 +221,7 @@ const HealthSafety: React.FC<IHealthSafetyProps> = () => {
               <p className={styles.emergencyThen}>
                 Then contact your direct manager; if they are not available, contact a member
                 of the Joint Health and Safety Committee. Once everyone is safe, submit an
-                incident report below so HR and the committee can follow up.
+                incident report below so HR can follow up.
               </p>
             </div>
 
@@ -231,8 +231,8 @@ const HealthSafety: React.FC<IHealthSafetyProps> = () => {
                 Did an incident occur?
               </h3>
               <p className={styles.emergencyThen}>
-                Injuries, near misses, hazards, and confidential concerns can all be
-                reported online. Tell your direct manager when you can, and file the
+                Injuries, near misses, hazards, confidential concerns, and anything
+                else safety-related can all be reported online. Tell your direct manager when you can, and file the
                 report so nothing gets lost.
               </p>
               <button
