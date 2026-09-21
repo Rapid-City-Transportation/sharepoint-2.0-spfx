@@ -119,9 +119,10 @@ const HrSupport: React.FC<IHrSupportProps> = () => {
           <div className={styles.heroText}>
             <h1 id="hr-support-title" className={styles.heroTitle}>HR Support</h1>
             <p className={styles.heroIntro}>
-              Questions about payroll, policies, training, or employee programs? Start with
-              the guides below, or send HR a request and a member of the team will follow
-              up within 2 to 5 days.
+              Questions about payroll, policies, training, or employee programs?
+              <br />
+              Start with the guides below, or send HR a request and a member of the team
+              will follow up within 2 to 5 days.
             </p>
           </div>
           <div className={styles.heroActions}>
