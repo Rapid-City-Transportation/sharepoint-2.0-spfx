@@ -11,8 +11,6 @@ import { DefaultButton } from '@fluentui/react/lib/Button';
 import { sanitizeHtml } from '../../customerContactCards/utils/sanitize';
 import styles from './DepartmentPublicPage.module.scss';
 
-// ── Placeholder data (static until real data sources are wired up) ──────────
-
 /** Neutral dark hero backdrop; tinted per-department by the accent scrim. */
 const HEADER_BACKDROP = require('../assets/dept-header-backdrop.png');
 
@@ -28,12 +26,6 @@ function telHref(display: string): string {
 const HEADER_BACKDROPS: Partial<Record<DepartmentKey, string>> = {
   informationTechnology: require('../assets/it-external-banner.png'),
 };
-
-const PLACEHOLDER_NEWS = [
-  { title: 'Example Update Title', date: '[Date]', author: '[Name]' },
-  { title: 'Example Update Title', date: '[Date]', author: '[Name]' },
-  { title: 'Example Update Title', date: '[Date]', author: '[Name]' },
-];
 
 
 /** "#1F4C7F" -> "31, 76, 127", for use in rgba(var(--dept-accent-rgb), alpha). */
@@ -173,27 +165,18 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
     config?.announcementPage || (config ? `${config.displayName} Public` : 'Customer Experience Public');
   const { announcements } = useAnnouncements(announcementPage);
 
-  const allNews: Array<{
-    title: string;
-    date: string;
-    author: string;
-    imageUrl?: string;
-    isNews?: boolean;
-    bodyHtml?: string;
-    linkUrl?: string;
-  }> =
-    announcements.length > 0
-      ? announcements.map(a => ({
-          title: a.title,
-          date: a.time,
-          author: a.author || '[Name]',
-          imageUrl: a.imageUrl,
-          // Only News items with body text get a "Read more" modal.
-          isNews: a.category.toLowerCase() === 'news' && !!a.bodyHtml.trim(),
-          bodyHtml: a.bodyHtml,
-          linkUrl: a.linkUrl,
-        }))
-      : PLACEHOLDER_NEWS;
+  // No announcements means no What's New section at all: example cards on a
+  // public page read as unfinished, and an empty heading promises nothing.
+  const allNews = announcements.map(a => ({
+    title: a.title,
+    date: a.time,
+    author: a.author || '',
+    imageUrl: a.imageUrl,
+    // Only News items with body text get a "Read more" modal.
+    isNews: a.category.toLowerCase() === 'news' && !!a.bodyHtml.trim(),
+    bodyHtml: a.bodyHtml,
+    linkUrl: a.linkUrl,
+  }));
   const newsItems   = showAllNews ? allNews : allNews.slice(0, 3);
   const hasMoreNews = allNews.length > 3;
 
@@ -314,6 +297,7 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
         </section>
 
         {/* ── B) What's New ──────────────────────────────────────────────── */}
+        {allNews.length > 0 && (
         <section className={styles.whatsNewSection} aria-labelledby="whats-new-title">
           <div className={styles.sectionInner}>
             <div className={styles.sectionHeader}>
@@ -351,7 +335,7 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
                   <div className={styles.newsBody}>
                     <h3 className={styles.newsTitle}>{item.title}</h3>
                     <p className={styles.newsMeta}>
-                      Posted {item.date} by {item.author}
+                      Posted {item.date}{item.author ? ` by ${item.author}` : ''}
                     </p>
                     {item.isNews && item.bodyHtml && (
                       <div className={styles.newsActions}>
@@ -379,6 +363,7 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
             </div>
           </div>
         </section>
+        )}
 
         {/* ── C) Meet the Department Leaders ─────────────────────────────── */}
         <section className={styles.leadersSection} aria-labelledby="leaders-title">
