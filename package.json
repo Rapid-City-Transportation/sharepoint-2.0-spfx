@@ -4,11 +4,15 @@
   "private": true,
   "main": "lib/index.js",
   "scripts": {
+    "prebuild": "node config/check-node.js",
     "build": "node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js bundle",
+    "prebuild:ship": "node config/check-node.js",
     "build:ship": "node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js bundle --ship",
+    "preserve": "node config/check-node.js",
     "serve": "node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js serve",
     "clean": "gulp clean",
     "test": "gulp test",
+    "preship": "node config/check-node.js",
     "ship": "node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js bundle --ship && node --max-old-space-size=8192 node_modules/gulp/bin/gulp.js package-solution --ship",
     "free-port": "powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 4321 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }; 'port 4321 freed'\""
   },
