@@ -1,20 +1,21 @@
 import * as React from 'react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import styles from './IncidentReview.module.scss';
-import {
-  IIncidentReport,
-  ReviewDecision,
-  statusOf,
-} from '../services/incidentReviewService';
+import { IIncidentReport } from '../services/incidentReviewService';
+import { exportReportPdf } from '../utils/exportReportPdf';
 
 interface IReportCardProps {
   report: IIncidentReport;
-  /** Review controls render only for reviewers; submitters get a read-only card. */
+  /** Filing controls render only for reviewers; submitters get a read-only card. */
   canReview: boolean;
-  /** Resolves once the decision is saved; rejects so the card can show the
+  /** Printed on the exported PDF as the person who exported it. */
+  viewerName?: string;
+  /** Resolves once the change is saved; rejects so the card can show the
    *  failure in place instead of losing the reviewer's context. */
-  onDecision: (report: IIncidentReport, decision: ReviewDecision) => Promise<void>;
+  onFile: (report: IIncidentReport, filed: boolean) => Promise<void>;
 }
+
+type CardError = 'save' | 'popup' | null;
 
 function formatDate(iso?: string): string {
   if (!iso) return 'Not specified';
@@ -30,77 +31,47 @@ function isPlainEmail(value?: string): value is string {
   return !!value && /^[^\s@?&<>"']+@[^\s@?&<>"']+\.[^\s@?&<>"']+$/.test(value);
 }
 
-function statusText(report: IIncidentReport): string {
-  const status = statusOf(report);
-  if (status === 'awaiting') return 'Awaiting HR review';
-  if (status === 'released') {
-    // hsNotified is the release flow's own sent-marker; false means the
-    // email has not gone out yet, undefined means the list does not track it.
-    return report.hsNotified === false
-      ? 'Released: committee email pending'
-      : 'Released to Health & Safety';
-  }
-  return report.confidential ? 'Reviewed: confidential, HR only' : 'Reviewed: HR only';
-}
-
 /**
- * One incident report. For reviewers it turns the list's raw review
- * checkboxes into two decisions: release to the Health & Safety committee
- * (confirmed first, because it sends an email that cannot be recalled) or
- * keep with HR. Confidential reports never offer release at all, so the rule
- * cannot be broken from this page.
+ * One incident report. Reviewers mark it filed once handled (and can reopen
+ * it, since filing sends nothing anywhere); everyone who can see it can
+ * export it as a PDF, which is how a single report goes to WSIB or the
+ * safety committee.
  */
-const ReportCard: React.FC<IReportCardProps> = ({ report, canReview, onDecision }) => {
-  const [confirming, setConfirming] = React.useState(false);
-  const [pending, setPending] = React.useState<ReviewDecision | null>(null);
-  const [failed, setFailed] = React.useState(false);
+const ReportCard: React.FC<IReportCardProps> = ({ report, canReview, viewerName, onFile }) => {
+  const [pending, setPending] = React.useState(false);
+  const [cardError, setCardError] = React.useState<CardError>(null);
   const titleRef = React.useRef<HTMLHeadingElement>(null);
-  const confirmRef = React.useRef<HTMLButtonElement>(null);
-  const releaseRef = React.useRef<HTMLButtonElement>(null);
-  const restoreFocus = React.useRef(false);
   const mounted = React.useRef(true);
 
   React.useEffect(() => () => { mounted.current = false; }, []);
 
-  // Opening the confirmation swaps the buttons under the reviewer's cursor,
-  // so focus follows into it, and comes back to Release when they cancel.
-  React.useEffect(() => {
-    if (confirming) {
-      confirmRef.current?.focus();
-    } else if (restoreFocus.current) {
-      restoreFocus.current = false;
-      releaseRef.current?.focus();
-    }
-  }, [confirming]);
-
-  const run = async (decision: ReviewDecision): Promise<void> => {
+  const toggleFiled = async (): Promise<void> => {
     if (pending) return;
-    setFailed(false);
-    setPending(decision);
+    setCardError(null);
+    setPending(true);
     try {
-      await onDecision(report, decision);
+      await onFile(report, !report.filed);
       // Still mounted means the active filter kept this card on screen. The
-      // button that was pressed is gone now, so focus lands on the card's
-      // own title instead of dropping to the page body.
+      // button that was pressed changed label under the cursor, so focus
+      // lands on the card's own title instead of dropping to the page body.
       if (mounted.current) {
-        setPending(null);
-        setConfirming(false);
+        setPending(false);
         titleRef.current?.focus();
       }
     } catch {
       if (mounted.current) {
-        setPending(null);
-        setFailed(true);
+        setPending(false);
+        setCardError('save');
       }
     }
   };
 
-  const status = statusOf(report);
+  const handleExport = (): void => {
+    setCardError(exportReportPdf(report, viewerName) ? null : 'popup');
+  };
+
   const titleId = `ir-report-${report.id}`;
-  const confirmTextId = `ir-confirm-${report.id}`;
   const showSeverity = !!report.severity && report.severity !== 'N/A';
-  const canRelease = canReview && !report.confidential && status !== 'released';
-  const canKeep = canReview && status === 'awaiting';
   // aria-disabled instead of disabled: a disabled button drops keyboard focus
   // to the page body while the save is in flight.
   const busyAttr = pending ? ({ 'aria-disabled': 'true' as const }) : {};
@@ -117,13 +88,6 @@ const ReportCard: React.FC<IReportCardProps> = ({ report, canReview, onDecision 
       ? report.authorEmail
       : undefined;
 
-  const statusPillClass =
-    status === 'awaiting'
-      ? styles.pillAwaiting
-      : status === 'released'
-        ? styles.pillReleased
-        : styles.pillHrOnly;
-
   return (
     <li className={`${styles.card} ${report.confidential ? styles.cardConfidential : ''}`}>
       <article aria-labelledby={titleId}>
@@ -133,7 +97,7 @@ const ReportCard: React.FC<IReportCardProps> = ({ report, canReview, onDecision 
               {report.incidentType}
             </h3>
             <p className={styles.cardSubmitted}>
-              Submitted {formatDate(report.submitted)} by {submittedBy}
+              Report #{report.id}, submitted {formatDate(report.submitted)} by {submittedBy}
               {nameDiffers ? ` (name on report: ${report.reporterName})` : ''}
             </p>
           </div>
@@ -144,7 +108,7 @@ const ReportCard: React.FC<IReportCardProps> = ({ report, canReview, onDecision 
                   report.severity === 'Critical' ? styles.pillCritical : styles.pillSeverity
                 }`}
               >
-                Severity: {report.severity}
+                Injury: {report.severity}
               </span>
             )}
             {report.confidential && (
@@ -153,9 +117,9 @@ const ReportCard: React.FC<IReportCardProps> = ({ report, canReview, onDecision 
                 Confidential
               </span>
             )}
-            <span className={`${styles.pill} ${statusPillClass}`}>
-              <Icon iconName={status === 'awaiting' ? 'Clock' : 'CheckMark'} aria-hidden="true" />
-              {statusText(report)}
+            <span className={`${styles.pill} ${report.filed ? styles.pillFiled : styles.pillAwaiting}`}>
+              <Icon iconName={report.filed ? 'CheckMark' : 'Clock'} aria-hidden="true" />
+              {report.filed ? 'Filed' : 'New: awaiting review'}
             </span>
           </div>
         </header>
@@ -198,93 +162,54 @@ const ReportCard: React.FC<IReportCardProps> = ({ report, canReview, onDecision 
           </div>
         </div>
 
-        {canReview && status !== 'awaiting' && report.lastChangedBy && (
+        {canReview && report.filed && report.lastChangedBy && (
           <p className={styles.lastChanged}>
             Last changed by {report.lastChangedBy} on {formatDate(report.modified)}
           </p>
         )}
 
-        {canReview && report.confidential && status === 'awaiting' && (
+        {canReview && report.confidential && (
           <p className={styles.confidentialNote}>
             <Icon iconName="Lock" aria-hidden="true" />
             <span>
-              Harassment and bullying reports stay with HR. This report is never sent
-              to the Health &amp; Safety committee.
+              Harassment and bullying reports are confidential. Share an exported copy
+              only with the people who need it.
             </span>
           </p>
         )}
 
-        {failed && (
+        {cardError && (
           <p className={styles.cardError} role="alert">
             <Icon iconName="Warning" aria-hidden="true" />
-            <span>This change could not be saved. Check your connection and try again.</span>
+            <span>
+              {cardError === 'save'
+                ? 'This change could not be saved. Check your connection and try again.'
+                : 'Your browser blocked the export. Allow pop-ups for this site, then try again.'}
+            </span>
           </p>
         )}
 
-        {(canRelease || canKeep) && !confirming && (
-          <div className={styles.actions}>
-            {canRelease && (
-              <button
-                ref={releaseRef}
-                type="button"
-                className={styles.primaryButton}
-                onClick={() => { if (!pending) setConfirming(true); }}
-                {...busyAttr}
-              >
-                Release to Health &amp; Safety
-              </button>
-            )}
-            {canKeep && (
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={() => run('hrOnly')}
-                {...busyAttr}
-              >
-                {pending === 'hrOnly'
-                  ? 'Saving…'
-                  : report.confidential
-                    ? 'Mark as reviewed'
-                    : 'Keep with HR only'}
-              </button>
-            )}
-          </div>
-        )}
-
-        {canRelease && confirming && (
-          <div className={styles.confirmRow} role="group" aria-label="Release confirmation">
-            <p id={confirmTextId} className={styles.confirmText}>
-              Releasing emails this report to the Health &amp; Safety committee. This
-              cannot be undone.
-            </p>
-            <div className={styles.actions}>
-              {/* Focus jumps straight to this button, past the warning above,
-                  so the warning is attached to it as its description. */}
-              <button
-                ref={confirmRef}
-                type="button"
-                className={styles.primaryButton}
-                onClick={() => run('release')}
-                aria-describedby={confirmTextId}
-                {...busyAttr}
-              >
-                {pending === 'release' ? 'Releasing…' : 'Confirm release'}
-              </button>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={() => {
-                  if (pending) return;
-                  restoreFocus.current = true;
-                  setConfirming(false);
-                }}
-                {...busyAttr}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
+        <div className={styles.actions}>
+          {canReview && (
+            <button
+              type="button"
+              className={report.filed ? styles.secondaryButton : styles.primaryButton}
+              onClick={toggleFiled}
+              {...busyAttr}
+            >
+              {pending ? 'Saving…' : report.filed ? 'Reopen' : 'Mark as filed'}
+            </button>
+          )}
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={handleExport}
+            aria-label={`Export PDF of report ${report.id}`}
+          >
+            <Icon iconName="PDF" aria-hidden="true" />
+            Export PDF
+          </button>
+        </div>
       </article>
     </li>
   );

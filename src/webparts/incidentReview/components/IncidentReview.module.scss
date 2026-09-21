@@ -96,37 +96,63 @@
   color: var(--rct-primary, #1F4C7F);
 }
 
-// ── Queue counts ────────────────────────────────────────────────────────────
-.statsRow {
-  list-style: none;
-  margin: 20px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.statTile {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+// ── How this works: the workflow in three numbered steps ────────────────────
+.stepsSection {
+  margin-top: 20px;
   background: #ffffff;
   border: 1px solid var(--rct-border, #D0D5DD);
   border-radius: 14px;
-  padding: 16px 20px;
+  padding: 18px 22px 20px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
-.statValue {
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1.1;
-  color: var(--rct-primary, #1F4C7F);
+.stepsTitle {
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
 }
 
-.statLabel {
-  font-size: 13px;
-  font-weight: 600;
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.stepNumber {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--rct-primary, #1F4C7F);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.stepTitle {
+  margin: 3px 0 4px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+}
+
+.stepText {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
   color: var(--rct-text-secondary, #4A5568);
 }
 
@@ -371,11 +397,10 @@
   color: var(--rct-gold-accessible, #8A6A0C); // 5.09:1
 }
 
-.pillReleased {
+.pillFiled {
   color: var(--rct-blue-accessible, #187389); // 5.45:1
 }
 
-.pillHrOnly,
 .pillSeverity {
   color: var(--rct-text-secondary, #4A5568); // 7.51:1
 }
@@ -494,6 +519,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   min-height: 44px;
   padding: 10px 20px;
   border-radius: 8px;
@@ -535,26 +561,6 @@
   }
 }
 
-.confirmRow {
-  margin-top: 16px;
-  padding: 14px 16px;
-  border-radius: 10px;
-  background: rgba(210, 159, 28, 0.10);
-  border: 1px solid var(--rct-gold-accessible, #8A6A0C);
-
-  .actions {
-    margin-top: 12px;
-  }
-}
-
-.confirmText {
-  margin: 0;
-  font-size: 14.5px;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--rct-text-primary, #262931);
-}
-
 // ── Responsive ──────────────────────────────────────────────────────────────
 @media (max-width: 900px) {
   .metaGrid {
@@ -579,9 +585,9 @@
     font-size: 27px;
   }
 
-  .statsRow {
+  .steps {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 14px;
   }
 
   .sectionHead {

@@ -6,29 +6,42 @@ import { defaultTheme, getThemeCssVariables } from '../../rapidCityHomepage/them
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
 import { useIncidentReports } from '../hooks/useIncidentReports';
-import {
-  IIncidentReport,
-  ReviewDecision,
-  statusOf,
-} from '../services/incidentReviewService';
+import { IIncidentReport } from '../services/incidentReviewService';
 import ReportCard from './ReportCard';
 
-type FilterKey = 'awaiting' | 'reviewed' | 'all';
+type FilterKey = 'awaiting' | 'filed' | 'all';
 
 const FILTERS: { key: FilterKey; label: string }[] = [
-  { key: 'awaiting', label: 'Awaiting review' },
-  { key: 'reviewed', label: 'Reviewed' },
+  { key: 'awaiting', label: 'New' },
+  { key: 'filed', label: 'Filed' },
   { key: 'all', label: 'All' },
+];
+
+/** The whole workflow in three steps, shown to HR on the page itself so
+ *  nobody has to remember how it works. */
+const STEPS: { title: string; text: string }[] = [
+  {
+    title: 'A report comes in',
+    text: 'Anyone can submit one from the Health & Safety page. HR gets an email, and the report shows up here as New.',
+  },
+  {
+    title: 'Review it',
+    text: 'Read the details and follow up with the person if you need more. Nothing is sent anywhere else automatically.',
+  },
+  {
+    title: 'Export and file',
+    text: 'If WSIB or the safety committee needs a copy, use Export PDF. Then mark the report as filed.',
+  },
 ];
 
 /**
  * HR's incident review page. Reviewers (anyone holding Override List
  * Behaviors on the Incident Reports list, the permission that lifts its
- * item-level restrictions) get the whole queue with release and keep-with-HR
- * decisions; every other visitor gets a read-only view of the reports they
- * submitted, and their read is scoped to their own user id as well.
- * The page is deliberately absent from the nav: it is reached from the HR
- * notification email or a bookmark.
+ * item-level restrictions) get the whole queue with filing controls; every
+ * other visitor gets a read-only view of the reports they submitted, and
+ * their read is scoped to their own user id as well. The page is deliberately
+ * absent from the nav: it is reached from the HR notification email or a
+ * bookmark.
  */
 const IncidentReview: React.FC<IIncidentReviewProps> = () => {
   const themeVars = React.useMemo(
@@ -36,54 +49,47 @@ const IncidentReview: React.FC<IIncidentReviewProps> = () => {
     []
   );
 
-  const { reports, canReview, loading, error, decide, reload } = useIncidentReports();
+  const { reports, canReview, viewerName, loading, error, file, reload } = useIncidentReports();
   const [filter, setFilter] = React.useState<FilterKey>('awaiting');
-  // The id re-keys the live region's text node: two identical decisions in
-  // a row produce identical words, and an unchanged node is never announced.
+  // The id re-keys the live region's text node: two identical outcomes in a
+  // row produce identical words, and an unchanged node is never announced.
   const [announcement, setAnnouncement] = React.useState<{ id: number; text: string }>({
     id: 0,
     text: '',
   });
   const resultsHeadingRef = React.useRef<HTMLHeadingElement>(null);
 
-  const awaiting = reports.filter(r => statusOf(r) === 'awaiting');
-  const released = reports.filter(r => statusOf(r) === 'released');
-  const hrOnly = reports.filter(r => statusOf(r) === 'hrOnly');
+  const awaiting = reports.filter(r => !r.filed);
+  const filed = reports.filter(r => r.filed);
 
   const visible: IIncidentReport[] = !canReview
     ? reports
     : filter === 'awaiting'
       ? awaiting
-      : filter === 'reviewed'
-        ? reports.filter(r => statusOf(r) !== 'awaiting')
+      : filter === 'filed'
+        ? filed
         : reports;
 
   const filterCount = (key: FilterKey): number =>
-    key === 'awaiting'
-      ? awaiting.length
-      : key === 'reviewed'
-        ? released.length + hrOnly.length
-        : reports.length;
+    key === 'awaiting' ? awaiting.length : key === 'filed' ? filed.length : reports.length;
 
-  // In the Awaiting filter a saved decision removes the acted-on card, so
-  // focus moves to the results heading; in the other filters the card stays
-  // and keeps focus itself. Either way the outcome is announced in words.
-  const handleDecision = React.useCallback(
-    async (report: IIncidentReport, decision: ReviewDecision): Promise<void> => {
-      await decide(report, decision);
-      const subject = `${report.incidentType} report from ${report.authorName || report.reporterName}`;
+  // A change that moves the card out of the active filter unmounts it, so
+  // focus goes to the results heading; otherwise the card keeps focus itself.
+  const handleFile = React.useCallback(
+    async (report: IIncidentReport, nowFiled: boolean): Promise<void> => {
+      await file(report, nowFiled);
+      const subject = `Report ${report.id} (${report.incidentType})`;
       setAnnouncement(prev => ({
         id: prev.id + 1,
-        text:
-          decision === 'release'
-            ? `${subject} released. The Health & Safety committee will be emailed shortly.`
-            : `${subject} marked as reviewed and kept with HR.`,
+        text: nowFiled ? `${subject} marked as filed.` : `${subject} reopened.`,
       }));
-      if (filter === 'awaiting') {
+      const leavesFilter =
+        (filter === 'awaiting' && nowFiled) || (filter === 'filed' && !nowFiled);
+      if (leavesFilter) {
         resultsHeadingRef.current?.focus();
       }
     },
-    [decide, filter]
+    [file, filter]
   );
 
   // Naming the filter keeps the text changing (and therefore announced) when
@@ -106,41 +112,37 @@ const IncidentReview: React.FC<IIncidentReviewProps> = () => {
       <main id="ir-main" className={styles.main} role="main" tabIndex={-1}>
         <section className={styles.hero} aria-labelledby="ir-title">
           <div className={styles.heroText}>
-            <h1 id="ir-title" className={styles.heroTitle}>Incident Review</h1>
+            <h1 id="ir-title" className={styles.heroTitle}>Incident Reports</h1>
             <p className={styles.heroIntro}>
               {canReview
-                ? 'Review each new incident report, then release it to the Health & Safety committee or keep it with HR.'
+                ? 'Every incident report submitted on Compass comes to HR and lands here.'
                 : 'The incident reports you have submitted, and where each one stands.'}
             </p>
           </div>
         </section>
 
-        {!loading && !error && (
-          <p className={styles.infoNote}>
-            <Icon iconName="Info" className={styles.infoIcon} aria-hidden="true" />
-            <span>
-              {canReview
-                ? 'Releasing a report emails the Health & Safety committee. Reports about harassment or bullying are confidential: they stay with HR and can never be released.'
-                : 'Only you and HR can see the reports you submit. HR reviews every report first.'}
-            </span>
-          </p>
+        {!loading && !error && canReview && (
+          <section className={styles.stepsSection} aria-labelledby="ir-steps-title">
+            <h2 id="ir-steps-title" className={styles.stepsTitle}>How this works</h2>
+            <ol className={styles.steps} role="list">
+              {STEPS.map((step, i) => (
+                <li key={step.title} className={styles.step}>
+                  <span className={styles.stepNumber} aria-hidden="true">{i + 1}</span>
+                  <div>
+                    <h3 className={styles.stepTitle}>{step.title}</h3>
+                    <p className={styles.stepText}>{step.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
         )}
 
-        {!loading && !error && canReview && (
-          <ul className={styles.statsRow} role="list">
-            <li className={styles.statTile}>
-              <span className={styles.statValue}>{awaiting.length}</span>
-              <span className={styles.statLabel}>Awaiting review</span>
-            </li>
-            <li className={styles.statTile}>
-              <span className={styles.statValue}>{released.length}</span>
-              <span className={styles.statLabel}>Released to Health &amp; Safety</span>
-            </li>
-            <li className={styles.statTile}>
-              <span className={styles.statValue}>{hrOnly.length}</span>
-              <span className={styles.statLabel}>Kept with HR</span>
-            </li>
-          </ul>
+        {!loading && !error && !canReview && (
+          <p className={styles.infoNote}>
+            <Icon iconName="Info" className={styles.infoIcon} aria-hidden="true" />
+            <span>Only you and HR can see the reports you submit.</span>
+          </p>
         )}
 
         <section className={styles.section} aria-labelledby="ir-results-title">
@@ -211,7 +213,7 @@ const IncidentReview: React.FC<IIncidentReviewProps> = () => {
                 {!canReview
                   ? 'You have not submitted any incident reports.'
                   : filter === 'awaiting'
-                    ? 'Nothing is waiting for review.'
+                    ? 'No new reports. Everything has been filed.'
                     : 'No reports match this filter.'}
               </p>
             </div>
@@ -224,7 +226,8 @@ const IncidentReview: React.FC<IIncidentReviewProps> = () => {
                   key={report.id}
                   report={report}
                   canReview={canReview}
-                  onDecision={handleDecision}
+                  viewerName={viewerName}
+                  onFile={handleFile}
                 />
               ))}
             </ul>

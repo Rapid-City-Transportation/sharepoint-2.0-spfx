@@ -16,9 +16,9 @@
     {
       "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
       "group": { "default": "Advanced" },
-      "title": { "default": "Incident Review (HR)" },
+      "title": { "default": "Incident Reports (HR)" },
       "description": {
-        "default": "HR review queue for submitted incident reports: release to Health & Safety or keep with HR."
+        "default": "HR's queue for submitted incident reports: review each one, export a PDF when needed, and mark it filed."
       },
       "officeFabricIconFontName": "ReportDocument",
       "properties": {}

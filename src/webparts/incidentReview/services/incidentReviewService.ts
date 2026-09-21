@@ -3,16 +3,16 @@ import { PermissionKind } from '@pnp/sp/security';
 import { getSP } from '../../healthSafety/services/spConfig';
 
 /**
- * Read-and-decide side of the Incident Reports list. The submit side lives in
+ * Read-and-file side of the Incident Reports list. The submit side lives in
  * healthSafety/services/incidentService.ts, which also documents the column
- * spec. HR's review is two verbs here instead of the raw HRReviewed and
- * ReleasedToHS checkboxes; the Power Automate flows on the list still send the
- * emails, so this module only ever sets those two columns and never touches
- * Confidential (stamped at submission) or HSNotified (owned by the flow).
+ * spec. The workflow is deliberately small: every report goes to HR (a
+ * Power Automate flow emails HR on each new row), HR reviews it here,
+ * exports a PDF when WSIB or the safety committee needs a copy, and marks it
+ * filed. Filing is just the HRReviewed column; nothing is emailed onward.
  */
 const LIST_TITLE = 'Incident Reports';
 
-const BASE_FIELDS: readonly string[] = [
+const FIELDS: readonly string[] = [
   'Id',
   'Title',
   'ReporterName',
@@ -26,7 +26,6 @@ const BASE_FIELDS: readonly string[] = [
   'ImmediateAction',
   'Confidential',
   'HRReviewed',
-  'ReleasedToHS',
   'Created',
   'Modified',
   'Author/Title',
@@ -35,10 +34,6 @@ const BASE_FIELDS: readonly string[] = [
 ];
 
 const EXPAND_FIELDS: readonly string[] = ['Author', 'Editor'];
-
-/** The release flow's sent-marker. Selected separately because the page must
- *  keep working on a list where that optional column was never added. */
-const HS_NOTIFIED = 'HSNotified';
 
 export interface IIncidentReport {
   id: number;
@@ -49,7 +44,7 @@ export interface IIncidentReport {
   /** The signed-in account that created the row: the identity HR can trust. */
   authorName?: string;
   authorEmail?: string;
-  /** Who last saved the row, so a review HR did not make is visible. */
+  /** Who last saved the row. */
   lastChangedBy?: string;
   modified?: string;
   /** ISO datetime; the submit side anchors it at noon so it never shifts a day. */
@@ -62,10 +57,8 @@ export interface IIncidentReport {
   witnesses?: string;
   immediateAction?: string;
   confidential: boolean;
-  hrReviewed: boolean;
-  releasedToHS: boolean;
-  /** Undefined when the list has no HSNotified column. */
-  hsNotified?: boolean;
+  /** HR has reviewed and filed the report (the list's HRReviewed column). */
+  filed: boolean;
 }
 
 export interface IViewer {
@@ -73,21 +66,8 @@ export interface IViewer {
   canReview: boolean;
   /** SharePoint user id, used to scope a submitter's reads to their own rows. */
   userId?: number;
-}
-
-export type ReviewStatus = 'awaiting' | 'released' | 'hrOnly';
-
-/** HR's two possible decisions on a report. */
-export type ReviewDecision = 'release' | 'hrOnly';
-
-/**
- * Where a report stands. A confidential report can never count as released,
- * even if someone ticks ReleasedToHS on the raw list: the release flow refuses
- * to forward it, so calling it released would be a lie.
- */
-export function statusOf(report: IIncidentReport): ReviewStatus {
-  if (!report.hrReviewed) return 'awaiting';
-  return report.releasedToHS && !report.confidential ? 'released' : 'hrOnly';
+  /** Display name, printed on exported PDFs as the person who exported them. */
+  userName?: string;
 }
 
 type RawRow = Record<string, unknown>;
@@ -119,8 +99,8 @@ function personField(value: unknown, key: 'Title' | 'EMail'): string | undefined
 /**
  * Harassment reports are confidential by definition. The Confidential column
  * is only a copy of that fact, and a submitter can edit their own row, so the
- * type is checked too: a cleared flag must never make such a report
- * releasable from this page.
+ * type is checked too: a cleared flag must not drop the confidential marking
+ * from the review card or the exported PDF.
  */
 function isConfidentialRow(row: RawRow, incidentType: string): boolean {
   return row.Confidential === true || incidentType.toLowerCase().indexOf('harassment') !== -1;
@@ -146,9 +126,7 @@ function mapRow(row: RawRow): IIncidentReport {
     witnesses: optionalText(row.Witnesses),
     immediateAction: optionalText(row.ImmediateAction),
     confidential: isConfidentialRow(row, incidentType),
-    hrReviewed: row.HRReviewed === true,
-    releasedToHS: row.ReleasedToHS === true,
-    hsNotified: typeof row[HS_NOTIFIED] === 'boolean' ? (row[HS_NOTIFIED] as boolean) : undefined,
+    filed: row.HRReviewed === true,
   };
 }
 
@@ -160,24 +138,14 @@ function mapRow(row: RawRow): IIncidentReport {
  * through this page.
  */
 export async function fetchIncidentReports(viewer: IViewer): Promise<IIncidentReport[]> {
-  const list = getSP().web.lists.getByTitle(LIST_TITLE);
-  const scope =
-    !viewer.canReview && typeof viewer.userId === 'number'
-      ? `AuthorId eq ${viewer.userId}`
-      : undefined;
-
-  const query = (fields: readonly string[]): Promise<RawRow[]> => {
-    let items = list.items.select(...fields).expand(...EXPAND_FIELDS);
-    if (scope) items = items.filter(scope);
-    return items.orderBy('Created', false).top(500)();
-  };
-
-  let rows: RawRow[];
-  try {
-    rows = await query([...BASE_FIELDS, HS_NOTIFIED]);
-  } catch {
-    rows = await query(BASE_FIELDS);
+  let items = getSP()
+    .web.lists.getByTitle(LIST_TITLE)
+    .items.select(...FIELDS)
+    .expand(...EXPAND_FIELDS);
+  if (!viewer.canReview && typeof viewer.userId === 'number') {
+    items = items.filter(`AuthorId eq ${viewer.userId}`);
   }
+  const rows: RawRow[] = await items.orderBy('Created', false).top(500)();
   return rows.map(mapRow);
 }
 
@@ -193,9 +161,11 @@ export async function fetchIncidentReports(viewer: IViewer): Promise<IIncidentRe
 export async function fetchViewer(): Promise<IViewer> {
   const sp = getSP();
   let userId: number | undefined;
+  let userName: string | undefined;
   try {
-    const me = await sp.web.currentUser.select('Id')();
+    const me = await sp.web.currentUser.select('Id', 'Title')();
     userId = typeof me.Id === 'number' ? me.Id : undefined;
+    userName = me.Title || undefined;
   } catch {
     userId = undefined;
   }
@@ -206,28 +176,27 @@ export async function fetchViewer(): Promise<IViewer> {
       list.currentUserHasPermissions(PermissionKind.CancelCheckout),
       list.currentUserHasPermissions(PermissionKind.EditListItems),
     ]);
-    return { canReview: overrides && edits, userId };
+    return { canReview: overrides && edits, userId, userName };
   } catch {
-    return { canReview: false, userId };
+    return { canReview: false, userId, userName };
   }
 }
 
 /**
- * Saves HR's decision. Releasing sets both review columns, which is what the
- * release flow watches for. Keeping a report with HR also clears ReleasedToHS:
- * a row where that box was already ticked would otherwise satisfy the flow the
- * moment HRReviewed flips, and email the committee the report HR just chose to
- * keep. Confidential reports are refused here as well as by the flow.
+ * Marks a report filed, or reopens it. Filing also clears ReleasedToHS: the
+ * list predates the simpler workflow, and a leftover "release to Health &
+ * Safety" flow would fire on any row carrying HRReviewed and ReleasedToHS
+ * together. Lists where that column has been deleted get the plain update.
  */
-export async function applyReviewDecision(
-  report: IIncidentReport,
-  decision: ReviewDecision
-): Promise<void> {
-  if (decision === 'release' && report.confidential) {
-    throw new Error('Confidential reports are never released to Health & Safety.');
+export async function setFiled(report: IIncidentReport, filed: boolean): Promise<void> {
+  const item = getSP().web.lists.getByTitle(LIST_TITLE).items.getById(report.id);
+  if (!filed) {
+    await item.update({ HRReviewed: false });
+    return;
   }
-  await getSP()
-    .web.lists.getByTitle(LIST_TITLE)
-    .items.getById(report.id)
-    .update({ HRReviewed: true, ReleasedToHS: decision === 'release' });
+  try {
+    await item.update({ HRReviewed: true, ReleasedToHS: false });
+  } catch {
+    await item.update({ HRReviewed: true });
+  }
 }

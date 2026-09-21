@@ -1,10 +1,9 @@
 import * as React from 'react';
 import {
-  applyReviewDecision,
   fetchIncidentReports,
   fetchViewer,
   IIncidentReport,
-  ReviewDecision,
+  setFiled,
 } from '../services/incidentReviewService';
 
 interface IUseIncidentReports {
@@ -12,11 +11,13 @@ interface IUseIncidentReports {
   /** False until proven: a visitor is treated as a submitter, never as HR,
    *  while the permission check is in flight or if it fails. */
   canReview: boolean;
+  /** Printed on exported PDFs as the person who exported them. */
+  viewerName?: string;
   loading: boolean;
   error: boolean;
-  /** Saves a decision, then patches local state. Rejects on failure so the
-   *  card that asked can show the problem in place. */
-  decide: (report: IIncidentReport, decision: ReviewDecision) => Promise<void>;
+  /** Files or reopens a report, then patches local state. Rejects on failure
+   *  so the card that asked can show the problem in place. */
+  file: (report: IIncidentReport, filed: boolean) => Promise<void>;
   reload: () => void;
 }
 
@@ -28,29 +29,31 @@ interface IUseIncidentReports {
 export function useIncidentReports(): IUseIncidentReports {
   const [reports, setReports] = React.useState<IIncidentReport[]>([]);
   const [canReview, setCanReview] = React.useState(false);
+  const [viewerName, setViewerName] = React.useState<string | undefined>(undefined);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(false);
   const [reloadKey, setReloadKey] = React.useState(0);
-  // Counts saved decisions. A fetch that started before a save finished may
-  // carry pre-save rows; applying it would resurrect a decided report with
-  // live buttons, so such a fetch is thrown away and run again.
-  const savedDecisions = React.useRef(0);
+  // Counts saved changes. A fetch that started before a save finished may
+  // carry pre-save rows; applying it would undo the change on screen, so such
+  // a fetch is thrown away and run again.
+  const savedChanges = React.useRef(0);
 
   React.useEffect(() => {
     let cancelled = false;
-    const startedAt = savedDecisions.current;
+    const startedAt = savedChanges.current;
     setLoading(true);
     setError(false);
     fetchViewer()
       .then(viewer => fetchIncidentReports(viewer).then(items => ({ viewer, items })))
       .then(({ viewer, items }) => {
         if (cancelled) return;
-        if (savedDecisions.current !== startedAt) {
+        if (savedChanges.current !== startedAt) {
           setReloadKey(k => k + 1);
           return;
         }
         setReports(items);
         setCanReview(viewer.canReview);
+        setViewerName(viewer.userName);
         setLoading(false);
       })
       .catch(() => {
@@ -61,24 +64,25 @@ export function useIncidentReports(): IUseIncidentReports {
     return () => { cancelled = true; };
   }, [reloadKey]);
 
-  const decide = React.useCallback(
-    async (report: IIncidentReport, decision: ReviewDecision): Promise<void> => {
-      await applyReviewDecision(report, decision);
-      savedDecisions.current += 1;
+  const file = React.useCallback(
+    async (report: IIncidentReport, filed: boolean): Promise<void> => {
+      await setFiled(report, filed);
+      savedChanges.current += 1;
+      const changedAt = new Date().toISOString();
       setReports(prev =>
         prev.map(r =>
           r.id === report.id
-            ? { ...r, hrReviewed: true, releasedToHS: decision === 'release' }
+            ? { ...r, filed, lastChangedBy: viewerName || r.lastChangedBy, modified: changedAt }
             : r
         )
       );
     },
-    []
+    [viewerName]
   );
 
   const reload = React.useCallback((): void => {
     setReloadKey(k => k + 1);
   }, []);
 
-  return { reports, canReview, loading, error, decide, reload };
+  return { reports, canReview, viewerName, loading, error, file, reload };
 }
