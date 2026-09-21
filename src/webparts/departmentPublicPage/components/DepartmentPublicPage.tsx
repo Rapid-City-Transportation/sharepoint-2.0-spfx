@@ -25,6 +25,7 @@ function telHref(display: string): string {
  *  neutral backdrop above; the rest fall back to it. */
 const HEADER_BACKDROPS: Partial<Record<DepartmentKey, string>> = {
   informationTechnology: require('../assets/it-external-banner.png'),
+  humanResources: require('../assets/hr-external-banner.png'),
 };
 
 
