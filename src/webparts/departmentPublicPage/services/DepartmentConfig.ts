@@ -168,11 +168,15 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
       },
     ],
     // Private hub page (create with exactly this name).
-    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/HumanResourcesHub.aspx',
+    // Blank until the HR hub is a real page: the public page hides its
+    // "View Department Hub" button rather than link to a mock.
+    resourcePageUrl: '',
     groupId: '00000000-0000-0000-0000-000000000004', // Replace with real GUID
-    accentColor:      '#262931', // Dark Navy: 14.54:1 on white (AAA)
-    accentColorHover: '#15171B',
-    accentTint:       '#EAEBED',
+    // Primary Blue, matching Customer Experience: the accent tints the hero
+    // banner, and Dark Navy turned it near-black.
+    accentColor:      '#1F4C7F', // Primary Blue: 8.71:1 on white (AAA)
+    accentColorHover: '#173B62',
+    accentTint:       '#EAF0F7',
   },
   informationTechnology: {
     key: 'informationTechnology',

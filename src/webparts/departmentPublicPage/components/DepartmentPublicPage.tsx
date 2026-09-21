@@ -114,7 +114,7 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
   // rather than showing a fake number (e.g. IT is email-only).
   const phone     = props.contactPhone  || config?.contactPhone  || '';
   const hours     = props.contactHours  || config?.contactHours  || '';
-  const resourceUrl = props.resourcePageUrl || config?.resourcePageUrl || '#';
+  const resourceUrl = props.resourcePageUrl || config?.resourcePageUrl || '';
   const groupId     = props.allowedGroupId  || config?.groupId        || '';
   const headerBackdrop = (config && HEADER_BACKDROPS[config.key]) || HEADER_BACKDROP;
 
@@ -138,7 +138,8 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
   // can be demoed before group security is configured.
   const isMember = useDepartmentMembership(props.context, groupId);
   const isGroupGated = !!groupId && !groupId.startsWith('00000000');
-  const showResourceButton = !isGroupGated || isMember;
+  // No URL means no hub to go to yet: hide the button instead of linking to '#'.
+  const showResourceButton = !!resourceUrl && (!isGroupGated || isMember);
 
   // "See all" toggle for the What's New section.
   const [showAllNews, setShowAllNews] = React.useState(false);
