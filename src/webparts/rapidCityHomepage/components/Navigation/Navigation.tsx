@@ -126,7 +126,10 @@ export type NavPage =
   | 'itSupport'
   | 'hrSupport'
   | 'healthSafety'
-  | 'aboutCompany';
+  | 'aboutCompany'
+  // Unlisted pages pass their own value so the nav does not fall back to
+  // marking Home as the current page.
+  | 'incidentReview';
 
 export interface INavigationProps {
   /** Legacy: the nav search bar was removed (search lives in each directory);

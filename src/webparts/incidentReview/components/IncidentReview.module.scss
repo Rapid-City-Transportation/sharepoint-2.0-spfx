@@ -1,0 +1,629 @@
+@import '../../rapidCityHomepage/theme/themeVariables.module.scss';
+// _rct-components is deliberately NOT imported: it emits real classes
+// (.hero, .card, .sectionTitle, ...) that CSS Modules would merge into the
+// same-named classes below, as it does not for the sibling support pages.
+
+// ── SPFx full-width override ────────────────────────────────────────────────
+// Modern pages cap web parts at the canvas section width; every page-level web
+// part in this solution breaks out so the nav/hero span the full page.
+:global {
+  #workbenchPageContent,
+  .CanvasComponent.LCS .CanvasZone {
+    max-width: 100% !important;
+  }
+}
+
+.page {
+  background: var(--rct-surface-page, #F4F6FA);
+  min-height: 100vh;
+  color: var(--rct-text-primary, #262931);
+}
+
+// Visible only when focused (keyboard skip link).
+.skipLink {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 10px 16px;
+  background: #ffffff;
+  color: var(--rct-primary, #1F4C7F);
+  font-weight: 700;
+  border-radius: 0 0 8px 0;
+
+  &:focus {
+    left: 0;
+  }
+}
+
+.main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 24px 8px;
+}
+
+// ── Hero band (same recipe as the support pages) ────────────────────────────
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  background:
+    linear-gradient(135deg, var(--rct-primary, #1F4C7F) 0%, #173B62 100%);
+  color: #ffffff;
+  border-radius: 16px;
+  padding: 30px 32px;
+}
+
+.heroText {
+  min-width: 0;
+}
+
+.heroTitle {
+  margin: 0 0 8px;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.heroIntro {
+  margin: 0;
+  max-width: 60ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+// ── The one-paragraph mental model, so nobody has to remember the rules ─────
+.infoNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: rgba(31, 76, 127, 0.06);
+  border: 1px solid var(--rct-border, #D0D5DD);
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--rct-text-primary, #262931);
+}
+
+.infoIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 16px;
+  color: var(--rct-primary, #1F4C7F);
+}
+
+// ── Queue counts ────────────────────────────────────────────────────────────
+.statsRow {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.statTile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--rct-primary, #1F4C7F);
+}
+
+.statLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+// ── Results section ─────────────────────────────────────────────────────────
+.section {
+  margin-top: 24px;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+
+  // Receives focus after a decision; it is a landing spot, not a control.
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+}
+
+.sectionIcon {
+  font-size: 18px;
+  color: var(--rct-primary, #1F4C7F);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filterGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filterButton,
+.refreshButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--rct-primary, #1F4C7F);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(31, 76, 127, 0.06);
+    border-color: var(--rct-primary, #1F4C7F);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+// Selected filter: white on primary is 8.71:1 (AAA); the pressed state is
+// also exposed through aria-pressed, so it never rides on color alone.
+.filterButtonActive {
+  background: var(--rct-primary, #1F4C7F);
+  border-color: var(--rct-primary, #1F4C7F);
+  color: #ffffff;
+
+  &:hover {
+    background: #173B62;
+    border-color: #173B62;
+  }
+}
+
+.statusLine {
+  margin: 12px 0 0;
+  min-height: 20px;
+  font-size: 14px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.errorCard,
+.cardError {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(155, 44, 44, 0.06);
+  border: 1px solid #9B2C2C;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--rct-text-primary, #262931);
+
+  i {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #9B2C2C;
+  }
+}
+
+.errorCard {
+  margin: 12px 0 0;
+}
+
+.cardError {
+  margin: 14px 0 0;
+}
+
+.emptyState {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 160px;
+  padding: 28px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px dashed var(--rct-border, #D0D5DD);
+  border-radius: 14px;
+}
+
+.emptyIcon {
+  font-size: 28px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+// ── Report cards ────────────────────────────────────────────────────────────
+.reportList {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 14px;
+  padding: 20px 24px 22px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+// The brick edge marks a confidential report at a glance; the Confidential
+// pill says it in words, so the color is never the only signal.
+.cardConfidential {
+  border-left: 4px solid #9B2C2C;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.cardHeading {
+  min-width: 0;
+}
+
+.cardTitle {
+  margin: 0 0 2px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--rct-text-primary, #262931);
+  overflow-wrap: anywhere;
+
+  // Receives focus after a decision that leaves the card on screen; it is a
+  // landing spot, not a control.
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+}
+
+.cardSubmitted {
+  margin: 0;
+  font-size: 13px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.pillRow {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+// Outlined pills on white: every text color below clears 4.5:1 on #FFFFFF.
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pillAwaiting {
+  color: var(--rct-gold-accessible, #8A6A0C); // 5.09:1
+}
+
+.pillReleased {
+  color: var(--rct-blue-accessible, #187389); // 5.45:1
+}
+
+.pillHrOnly,
+.pillSeverity {
+  color: var(--rct-text-secondary, #4A5568); // 7.51:1
+}
+
+.pillConfidential,
+.pillCritical {
+  color: #9B2C2C; // 5.9:1
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 20px;
+  margin: 16px 0 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--rct-border, #D0D5DD);
+  border-bottom: 1px solid var(--rct-border, #D0D5DD);
+}
+
+.metaTerm {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.metaValue {
+  margin: 2px 0 0;
+  font-size: 14.5px;
+  color: var(--rct-text-primary, #262931);
+  overflow-wrap: anywhere;
+}
+
+.metaLink {
+  color: var(--rct-blue-accessible, #187389);
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--rct-primary, #1F4C7F);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+}
+
+.bodyBlock {
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.bodyColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+}
+
+.bodyLabel {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.bodyText {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--rct-text-primary, #262931);
+  white-space: pre-wrap; // reporters write in paragraphs; keep their line breaks
+  overflow-wrap: anywhere;
+}
+
+.lastChanged {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.confidentialNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(155, 44, 44, 0.05);
+  border: 1px solid #9B2C2C;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--rct-text-primary, #262931);
+
+  i {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: #9B2C2C;
+  }
+}
+
+// ── Decisions ───────────────────────────────────────────────────────────────
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+
+  &[aria-disabled='true'] {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.primaryButton {
+  border: 0;
+  background: var(--rct-brand-gold, #D29F1C);
+  color: var(--rct-text-primary, #262931); // 6.06:1 on gold (AA)
+
+  &:hover {
+    background: var(--rct-gold-hover, #C09118);
+  }
+}
+
+.secondaryButton {
+  border: 1px solid var(--rct-border, #D0D5DD);
+  background: #ffffff;
+  color: var(--rct-text-primary, #262931);
+
+  &:hover {
+    background: var(--rct-surface, #F8F8F8);
+    border-color: var(--rct-primary, #1F4C7F);
+  }
+}
+
+.confirmRow {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(210, 159, 28, 0.10);
+  border: 1px solid var(--rct-gold-accessible, #8A6A0C);
+
+  .actions {
+    margin-top: 12px;
+  }
+}
+
+.confirmText {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--rct-text-primary, #262931);
+}
+
+// ── Responsive ──────────────────────────────────────────────────────────────
+@media (max-width: 900px) {
+  .metaGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .main {
+    padding: 20px 16px 8px;
+  }
+
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    padding: 22px 20px 24px;
+    border-radius: 14px;
+  }
+
+  .heroTitle {
+    font-size: 27px;
+  }
+
+  .statsRow {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .sectionHead {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filterButton,
+  .refreshButton {
+    min-height: 44px;
+  }
+
+  .card {
+    padding: 16px 16px 18px;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+  }
+
+  .pillRow {
+    justify-content: flex-start;
+  }
+
+  // Long status labels must wrap instead of pushing the card wider.
+  .pill {
+    white-space: normal;
+  }
+
+  .metaLink {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .metaGrid,
+  .bodyColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

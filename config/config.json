@@ -161,6 +161,14 @@
           "manifest": "./src/webparts/aboutCompany/AboutCompanyWebPart.manifest.json"
         }
       ]
+    },
+    "incident-review-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/incidentReview/IncidentReviewWebPart.js",
+          "manifest": "./src/webparts/incidentReview/IncidentReviewWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},

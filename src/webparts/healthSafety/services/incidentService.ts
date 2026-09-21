@@ -15,7 +15,10 @@ import { getSP } from './spConfig';
  * Witnesses (text), ImmediateAction (multi-line plain), Confidential
  * (Yes/No), HRReviewed (Yes/No, default No), ReleasedToHS (Yes/No,
  * default No). Then lock it down: item-level permissions = read/edit own
- * items only, plus unique list permissions granting HR full access.
+ * items only, plus unique list permissions granting HR Full Control (the
+ * level that carries Override List Behaviors, which is what lets HR see
+ * past the item-level restriction; incidentReview keys off that permission).
+ * Everyone who must be able to submit needs at least Contribute.
  */
 const LIST_TITLE = 'Incident Reports';
 
