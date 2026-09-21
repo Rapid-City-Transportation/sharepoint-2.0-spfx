@@ -1,5 +1,7 @@
 @import '../../rapidCityHomepage/theme/themeVariables.module.scss';
-@import '../../rapidCityHomepage/theme/_rct-components';
+// _rct-components is deliberately NOT imported: it emits real classes
+// (.hero, .card, .sectionTitle, ...) that CSS Modules would merge into the
+// same-named classes below, as it does not for the sibling support pages.
 
 // ── SPFx full-width override ────────────────────────────────────────────────
 // Modern pages cap web parts at the canvas section width; every page-level web
