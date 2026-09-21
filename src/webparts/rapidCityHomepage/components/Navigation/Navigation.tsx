@@ -12,6 +12,8 @@ import { useSearchVendors } from '../../../outsourceContactCards/hooks/useSearch
 import { IVendor } from '../../../outsourceContactCards/models/types';
 import { NotificationBell } from '../../../customerContactCards/components/NotificationBell/NotificationBell';
 import { WeatherWidget } from '../WeatherWidget/WeatherWidget';
+import { useManagementAccess } from '../../hooks/useManagementAccess';
+import { MANAGEMENT_SITE_URL } from '../../services/managementAccessService';
 
 export interface INavLink {
   label: string;
@@ -47,6 +49,7 @@ const TRAINING_HUB_URL = `${COMPASS}/SitePages/TrainingHub.aspx`;
 const IT_SUPPORT_URL = `${COMPASS}/SitePages/ITSupport.aspx`;
 const HR_SUPPORT_URL = `${COMPASS}/SitePages/HRSupport.aspx`;
 const HEALTH_SAFETY_URL = `${COMPASS}/SitePages/HealthSafety.aspx`;
+const MANAGEMENT_HOME_URL = `${MANAGEMENT_SITE_URL}/SitePages/Home.aspx`;
 const VIVETTA_URL = 'https://vivetta.rct.palantirfoundry.com/';
 const ABOUT_COMPANY_URL = `${COMPASS}/SitePages/AboutCompany.aspx`;
 
@@ -86,10 +89,11 @@ const ADP_WEB_CLOCK_URL =
  *  because the two passed-in URLs can be overridden per page via props. */
 function buildEmployeeSupportOptions(
   employeeDirectoryUrl: string,
-  trainingHubUrl: string
+  trainingHubUrl: string,
+  showManagement: boolean
 ): INavLink[] {
   // Alphabetical by label.
-  return [
+  const links: INavLink[] = [
     { label: 'ADP Web Clock', href: ADP_WEB_CLOCK_URL, newTab: true },
     { label: 'Employee Directory', href: employeeDirectoryUrl },
     // Remove `disabled` when the Health & Safety page is ready to launch.
@@ -101,6 +105,13 @@ function buildEmployeeSupportOptions(
     { label: 'Training Hub', href: trainingHubUrl, disabled: true },
     // Update remaining hrefs as those pages come online.
   ];
+  if (showManagement) {
+    // Managers only: shown when the viewer can open the Management site.
+    const management: INavLink = { label: 'Management Site', href: MANAGEMENT_HOME_URL };
+    const at = links.findIndex(l => l.label.localeCompare(management.label) > 0);
+    links.splice(at === -1 ? links.length : at, 0, management);
+  }
+  return links;
 }
 
 // Alphabetical by label.
@@ -343,9 +354,10 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
     [contactCardsLinks]
   );
 
+  const showManagement = useManagementAccess();
   const supportLinks = React.useMemo(
-    () => buildEmployeeSupportOptions(employeeDirectoryUrl, trainingHubUrl),
-    [employeeDirectoryUrl, trainingHubUrl]
+    () => buildEmployeeSupportOptions(employeeDirectoryUrl, trainingHubUrl, showManagement),
+    [employeeDirectoryUrl, trainingHubUrl, showManagement]
   );
 
   const supportOptions: IDropdownOption[] = React.useMemo(

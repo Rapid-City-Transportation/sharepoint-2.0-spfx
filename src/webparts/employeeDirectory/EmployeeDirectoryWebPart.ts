@@ -10,6 +10,7 @@ import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import EmployeeDirectory from './components/EmployeeDirectory';
 import { IEmployeeDirectoryProps } from './components/IEmployeeDirectoryProps';
 import { initializeSP } from './services/spConfig';
+import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
 
 export interface IEmployeeDirectoryWebPartProps {
   title: string;
@@ -20,6 +21,9 @@ export default class EmployeeDirectoryWebPart extends BaseClientSideWebPart<IEmp
   protected async onInit(): Promise<void> {
     await super.onInit();
     initializeSP(this.context);
+    // The shared Navigation (notification bell, managers-only link) and the
+    // Footer feedback form all read through the Contact Cards SPFI.
+    initializeFeedbackSP(this.context);
   }
 
   public render(): void {
