@@ -595,8 +595,12 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
                 <li>Sick calls must be made by phone. Emails for absences will not be accepted.</li>
               </ul>
               <p className={styles.policyContacts}>
-                <a href="tel:9056216844">Albert: 905-621-6844</a> (primary contact)<br />
-                <a href="tel:9056227566">Shelly: 905-622-7566</a> (if Albert is unavailable)
+                <a href="tel:9056216844">Albert: 905-621-6844</a> (primary contact)
+              </p>
+              <p className={styles.policyContacts}>
+                If Albert is unavailable:<br />
+                <a href="tel:9056227566">Shelly: 905-622-7566</a> (Mornings)<br />
+                <a href="tel:4376844430">Lindsey: 437-684-4430</a> (Afternoons &amp; Evenings)
               </p>
             </div>
           </section>
