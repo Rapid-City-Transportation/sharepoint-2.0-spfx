@@ -1,6 +1,6 @@
 import * as React from 'react';
 import styles from './OutsourceContactCards.module.scss';
-import { allCities, bestPriority, IVendor, zoneAccent } from '../models/types';
+import { allCities, allVehicleTypes, bestPriority, IVendor, zoneAccent } from '../models/types';
 import VehicleIcon from './VehicleIcon';
 
 interface IVendorCardProps {
@@ -28,6 +28,7 @@ const VendorCard: React.FC<IVendorCardProps> = ({ vendor, onClick }) => {
   const previewCities = cities.slice(0, CITY_PREVIEW_COUNT);
   const moreCities = cities.length - previewCities.length;
   const priority = bestPriority(vendor);
+  const vehicles = allVehicleTypes(vendor);
 
   const labelParts = [
     `View vendor card for ${vendor.name}`,
@@ -36,7 +37,7 @@ const VendorCard: React.FC<IVendorCardProps> = ({ vendor, onClick }) => {
     previewCities.length > 0
       ? `Cities: ${previewCities.join(', ')}${moreCities > 0 ? ` and ${moreCities} more` : ''}`
       : '',
-    vendor.vehicleTypes.length > 0 ? `Vehicles: ${vendor.vehicleTypes.join(', ')}` : '',
+    vehicles.length > 0 ? `Vehicles: ${vehicles.join(', ')}` : '',
   ].filter(Boolean);
 
   return (
@@ -95,7 +96,7 @@ const VendorCard: React.FC<IVendorCardProps> = ({ vendor, onClick }) => {
         )}
 
         <span className={styles.cardVehicles} aria-hidden="true">
-          {vendor.vehicleTypes.map(v => (
+          {vehicles.map(v => (
             <span key={v} className={styles.cardVehicleIcon} title={v}>
               <VehicleIcon type={v} />
             </span>

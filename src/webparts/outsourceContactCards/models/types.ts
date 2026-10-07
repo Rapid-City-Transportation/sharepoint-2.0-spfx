@@ -218,6 +218,16 @@ export function vehiclesForZone(vendor: IVendor, zone?: IVendorZoneProfile): str
   return (zone && zone.vehicleTypes) || vendor.vehicleTypes;
 }
 
+/** Every vehicle type the company provides somewhere, zone overrides included. */
+export function allVehicleTypes(vendor: IVendor): string[] {
+  if (vendor.zones.length === 0) return vendor.vehicleTypes;
+  const seen = new Set<string>();
+  for (const z of vendor.zones) {
+    for (const vt of vehiclesForZone(vendor, z)) seen.add(vt);
+  }
+  return Array.from(seen);
+}
+
 /** Cities across all zones, deduplicated, in zone order. */
 export function allCities(vendor: IVendor): string[] {
   const seen = new Set<string>();

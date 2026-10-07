@@ -224,10 +224,13 @@ export function mapMasterAndCoverage(
   soloGroups.forEach(rows => {
     const first = rows[0];
     const profile = mergeCoverageRows(rows);
+    // With no master to differ from, the row's vehicles are the company list.
+    const vehicleTypes = profile.vehicleTypes || [];
+    profile.vehicleTypes = undefined;
     standalone.push({
       id: `cov-${String(first[COV.Id] ?? first['Id'] ?? '')}`,
       name: readString(first, COV.Title) || '(unnamed vendor)',
-      vehicleTypes: profile.vehicleTypes || [],
+      vehicleTypes,
       portal: false,
       zones: [profile],
       templates: [],

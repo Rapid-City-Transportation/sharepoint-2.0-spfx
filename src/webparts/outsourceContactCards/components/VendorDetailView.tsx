@@ -249,8 +249,12 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
   const namedZones = vendor.zones.filter(z => !!z.zone);
 
   const vehicles = vehiclesForZone(vendor, zoneProfile);
+  // A blank zone is named after its tab ("Zone 2"); a lone blank zone has
+  // no tab bar to match, so it is simply "this zone".
   const vehicleScope =
-    zoneProfile && zoneProfile.vehicleTypes ? zoneProfile.zone || 'this zone' : undefined;
+    zoneProfile && zoneProfile.vehicleTypes
+      ? zoneProfile.zone || (singleZone ? 'this zone' : `Zone ${(activeIdx ?? 0) + 1}`)
+      : undefined;
   const vehicleLabel = vehicleScope ? `Vehicles in ${vehicleScope}` : 'Vehicles';
 
   return (
@@ -285,10 +289,10 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
           )}
 
           {vehicles.length > 0 && (
-            <div className={styles.vehicleRow} aria-label={`${vehicleLabel}: ${vehicles.join(', ')}`}>
-              {vehicleScope && (
-                <span className={styles.vehicleRowLabel}>{vehicleLabel}:</span>
-              )}
+            <div className={styles.vehicleRow}>
+              <span className={vehicleScope ? styles.vehicleRowLabel : styles.srOnly}>
+                {vehicleLabel}:
+              </span>
               {vehicles.map(v => (
                 <span key={v} className={styles.vehiclePill}>
                   <VehicleIcon type={v} />
@@ -401,6 +405,15 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                     </a>
                   </>
                 )}
+              </span>
+            </div>
+          )}
+
+          {zoneProfile.vehicleTypes && (
+            <div className={styles.zoneOverrideRow} role="note">
+              <Icon iconName="Car" aria-hidden="true" />
+              <span>
+                <strong>{vehicleLabel}:</strong> {zoneProfile.vehicleTypes.join(', ')}
               </span>
             </div>
           )}
