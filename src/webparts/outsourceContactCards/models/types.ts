@@ -129,6 +129,8 @@ export interface IVendorTemplate {
 
 /** Company-wide dispatch contact details, from the Masterlist row. */
 export interface IVendorDispatchContact {
+  /** RCT's account reference with this company, quoted when booking. */
+  accountNumber?: string;
   phone?: string;
   secondaryPhone?: string;
   afterHoursPhone?: string;
@@ -208,6 +210,12 @@ export function bestPriority(vendor: IVendor): VendorPriority | undefined {
     }
   }
   return best;
+}
+
+/** Vehicle types to show for a zone: the Masterlist's unless that zone's
+ *  coverage overrides them with a different list. */
+export function vehiclesForZone(vendor: IVendor, zone?: IVendorZoneProfile): string[] {
+  return (zone && zone.vehicleTypes) || vendor.vehicleTypes;
 }
 
 /** Cities across all zones, deduplicated, in zone order. */

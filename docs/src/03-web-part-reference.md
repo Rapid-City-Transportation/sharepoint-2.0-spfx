@@ -28,7 +28,7 @@ Things to know:
 
 - Priority drives sort order and the card badge but is deliberately not searchable. The list value "Tertiary Option" displays as "When Required", and a blank priority stays blank.
 - Manager-only sections are render-guarded on `isManagerView()`, currently a mock constant awaiting the real Graph group check. The render guard is UX; the Manager View list's own permissions are the boundary.
-- Account Password and Account Number exist on the source list and are intentionally never fetched. Keep it that way.
+- The Masterlist's `AccountNumber` (RCT's account reference with the company) is shown above the dispatch number, at Dispatch's request. The Masterlist has no password column; if one is ever added, it is never fetched.
 - A vendor covering several zones renders one tab per zone in the detail view. Zone accent colours are hashed from the zone name into a fixed AA palette, so new zones colour themselves.
 - Vehicle icons are Fluent font glyphs; the two wheelchair variants (side load and rear load) share the one wheelchair glyph and are told apart by a small S or R letter badge.
 - `USE_MOCK_DATA` in the vendor service flips the whole page to six fictional vendors for demos.

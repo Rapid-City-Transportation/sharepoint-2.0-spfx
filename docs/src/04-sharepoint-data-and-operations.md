@@ -69,10 +69,10 @@ The vendor directory joins two Dispatch lists. `Driver Directory` holds one row 
 
 Behavioural details that were agreed with the list owners:
 
-- Rows are visible unless `Active Vendor` is explicitly "Inactive". Blank means active, because most rows are blank.
+- A Masterlist row is hidden when its `ActiveYN` box is unchecked, and its coverage rows go with it.
 - Priority "Tertiary Option" displays as "When Required". Blank priority stays blank and sorts last; the UI never invents a tier.
 - Emails typed into phone columns happen; the UI detects an @ and renders mailto instead of tel.
-- Account Password and Account Number are never selected by the code. If a future requirement seems to need them, that is a conversation with the list owners first, not a code change.
+- `AccountNumber` is selected and shown since October 2026 at Dispatch's request (they own the list). Credentials are never selected: a column holding a password stays out of every select.
 
 ## Graph usage and approval
 

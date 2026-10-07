@@ -649,6 +649,13 @@ $transition:      0.18s ease;
   margin-top: 10px;
 }
 
+.vehicleRowLabel {
+  align-self: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: $primary-blue;
+}
+
 .vehiclePill {
   display: inline-flex;
   align-items: center;
@@ -1054,6 +1061,14 @@ $transition:      0.18s ease;
   color: $text-secondary;
   margin: 0;
   line-height: 1.6;
+}
+
+.contactAccount {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: $primary-blue;
 }
 
 .contactLink {

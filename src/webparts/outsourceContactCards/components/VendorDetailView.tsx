@@ -9,6 +9,7 @@ import {
   IVendorManagerInfo,
   IVendorZoneProfile,
   priorityRank,
+  vehiclesForZone,
   zoneAccent,
 } from '../models/types';
 import { isManagerView } from '../services/permissions';
@@ -247,6 +248,11 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
 
   const namedZones = vendor.zones.filter(z => !!z.zone);
 
+  const vehicles = vehiclesForZone(vendor, zoneProfile);
+  const vehicleScope =
+    zoneProfile && zoneProfile.vehicleTypes ? zoneProfile.zone || 'this zone' : undefined;
+  const vehicleLabel = vehicleScope ? `Vehicles in ${vehicleScope}` : 'Vehicles';
+
   return (
     <article className={styles.detailView} aria-label={`Vendor detail for ${vendor.name}`}>
       <button
@@ -278,9 +284,12 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
             <p className={styles.detailOperatingName}>Operating as {vendor.operatingName}</p>
           )}
 
-          {vendor.vehicleTypes.length > 0 && (
-            <div className={styles.vehicleRow} aria-label={`Vehicles: ${vendor.vehicleTypes.join(', ')}`}>
-              {vendor.vehicleTypes.map(v => (
+          {vehicles.length > 0 && (
+            <div className={styles.vehicleRow} aria-label={`${vehicleLabel}: ${vehicles.join(', ')}`}>
+              {vehicleScope && (
+                <span className={styles.vehicleRowLabel}>{vehicleLabel}:</span>
+              )}
+              {vehicles.map(v => (
                 <span key={v} className={styles.vehiclePill}>
                   <VehicleIcon type={v} />
                   {v}
@@ -395,15 +404,6 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
               </span>
             </div>
           )}
-          {zoneProfile.vehicleTypes && (
-            <div className={styles.zoneOverrideRow} role="note">
-              <Icon iconName="Car" aria-hidden="true" />
-              <span>
-                <strong>Vehicles in this zone:</strong>{' '}
-                {zoneProfile.vehicleTypes.join(', ')}
-              </span>
-            </div>
-          )}
 
           <div className={styles.infoBar}>
             <span
@@ -447,6 +447,7 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
               accentColor={SECTION_COLORS.allDispatch}
               defaultOpen
             >
+              <FieldRow label="Account Number" value={vendor.dispatch.accountNumber} />
               <FieldRow label="Primary" value={vendor.dispatch.phone} />
               <FieldRow label="Secondary" value={vendor.dispatch.secondaryPhone} />
               <FieldRow label="After Hours Phone" value={vendor.dispatch.afterHoursPhone} />
@@ -555,6 +556,11 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
           <div className={styles.contactBlock}>
             <h3 className={styles.contactBlockTitle}>During Business Hours</h3>
             <p className={styles.contactBlockText}>
+              {vendor.dispatch.accountNumber && (
+                <span className={styles.contactAccount}>
+                  Account number: <strong>{vendor.dispatch.accountNumber}</strong>
+                </span>
+              )}
               {vendor.dispatch.phone ? (
                 <a className={styles.contactLink} href={contactHref(vendor.dispatch.phone)}>
                   {vendor.dispatch.phone}

@@ -34,6 +34,12 @@ function readChoiceArray(row: SPRow, field: string): string[] {
   return [];
 }
 
+function sameSet(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const key = (xs: string[]): string => xs.map(x => x.toLowerCase()).sort().join('|');
+  return key(a) === key(b);
+}
+
 function splitCities(value?: string): string[] {
   if (!value) return [];
   return value.split(',').map(s => s.trim()).filter(s => s.length > 0);
@@ -124,6 +130,7 @@ function mapMasterRow(row: SPRow): IVendor {
     zones: [],
     templates: [],
     dispatch: {
+      accountNumber: readString(row, ML.AccountNumber),
       phone: readString(row, ML.ContactPhone),
       secondaryPhone: readString(row, ML.PhoneAlt),
       email: readString(row, ML.ContactEmail),
@@ -206,7 +213,13 @@ export function mapMasterAndCoverage(
     }
   }
   grouped.forEach(group => {
-    group.vendor.zones.push(mergeCoverageRows(group.rows));
+    const profile = mergeCoverageRows(group.rows);
+    // An override that repeats the Masterlist is noise: only a genuinely
+    // different zone list replaces the company-wide one on screen.
+    if (profile.vehicleTypes && sameSet(profile.vehicleTypes, group.vendor.vehicleTypes)) {
+      profile.vehicleTypes = undefined;
+    }
+    group.vendor.zones.push(profile);
   });
   soloGroups.forEach(rows => {
     const first = rows[0];

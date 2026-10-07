@@ -4,7 +4,17 @@ import {
   IVendor,
   IVendorFilters,
   priorityRank,
+  vehiclesForZone,
 } from '../models/types';
+
+/** Every vehicle type the company provides somewhere, zone overrides included. */
+function allVehicleTypes(vendor: IVendor): string[] {
+  const seen = new Set<string>();
+  for (const z of vendor.zones) {
+    for (const vt of vehiclesForZone(vendor, z)) seen.add(vt);
+  }
+  return Array.from(seen);
+}
 
 /**
  * Matches against name, operating name, zones, cities, and vehicle types.
@@ -18,7 +28,7 @@ export function vendorMatchesQuery(vendor: IVendor, query: string): boolean {
     vendor.operatingName || '',
     ...vendor.zones.map(z => z.zone || ''),
     ...allCities(vendor),
-    ...vendor.vehicleTypes,
+    ...allVehicleTypes(vendor),
   ]
     .join(' ')
     .toLowerCase();
@@ -26,23 +36,21 @@ export function vendorMatchesQuery(vendor: IVendor, query: string): boolean {
 }
 
 /**
- * Zone and city must hold within a single zone profile: a vendor serving
- * London with {Byron} and Halton with {Acton} is not a match for London +
- * Acton. The coverage list has one row per (vendor, zone), so cities are
- * genuinely per-zone; the separation is as good as the coverage data.
+ * Zone, city and vehicle must hold within a single zone profile: a vendor
+ * serving London with {Byron} and Halton with {Acton} is not a match for
+ * London + Acton, and a zone whose coverage row overrides the vehicle list
+ * is matched on that list. The coverage list has one row per (vendor,
+ * zone), so the separation is as good as the coverage data. Every vendor
+ * carries at least one profile, so no filter means every vendor passes.
  */
 export function filterVendors(vendors: IVendor[], filters: IVendorFilters): IVendor[] {
   return vendors.filter(v => {
-    if (filters.zone !== 'All' || filters.city !== 'All') {
-      const profileOk = v.zones.some(z =>
-        (filters.zone === 'All' || z.zone === filters.zone) &&
-        (filters.city === 'All' || z.cities.indexOf(filters.city) !== -1)
-      );
-      if (!profileOk) return false;
-    }
-    if (filters.vehicleType !== 'All' && v.vehicleTypes.indexOf(filters.vehicleType) === -1) {
-      return false;
-    }
+    const profileOk = v.zones.some(z =>
+      (filters.zone === 'All' || z.zone === filters.zone) &&
+      (filters.city === 'All' || z.cities.indexOf(filters.city) !== -1) &&
+      (filters.vehicleType === 'All' || vehiclesForZone(v, z).indexOf(filters.vehicleType) !== -1)
+    );
+    if (!profileOk) return false;
     return vendorMatchesQuery(v, filters.searchText);
   });
 }
@@ -87,7 +95,14 @@ export function facetOptions(vendors: IVendor[], filters: IVendorFilters): IFace
 
   const vehicleTypes = new Set<string>();
   for (const v of filterVendors(vendors, { ...filters, vehicleType: 'All' })) {
-    for (const vt of v.vehicleTypes) vehicleTypes.add(vt);
+    for (const z of v.zones) {
+      if (
+        (filters.zone === 'All' || z.zone === filters.zone) &&
+        (filters.city === 'All' || z.cities.indexOf(filters.city) !== -1)
+      ) {
+        for (const vt of vehiclesForZone(v, z)) vehicleTypes.add(vt);
+      }
+    }
   }
 
   return { zones: sorted(zones), cities: sorted(cities), vehicleTypes: sorted(vehicleTypes) };

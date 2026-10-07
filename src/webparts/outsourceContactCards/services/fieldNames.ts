@@ -6,9 +6,11 @@
  * company per zone) through the coverage row's VendorRef lookup. The legacy
  * Driver Directory list is no longer read by this web part.
  *
- * Account numbers, account references, and passwords are intentionally
- * absent from every select below: this web part must never fetch or render
- * them.
+ * AccountNumber is RCT's account reference with the company, which dispatch
+ * quotes when booking, so it is selected at Dispatch's request. The legacy
+ * list kept it beside an Account Password column, which is why it used to be
+ * excluded; the Masterlist has no password column, and if one is ever added
+ * it must stay out of every select below.
  */
 
 /** Masterlist columns kept their imported field_N internal names; the
@@ -30,6 +32,8 @@ export const ML = {
   ContactEmail: 'field_11',
   /** Restriction, e.g. "Sedan only" */
   Restriction: 'field_15',
+  /** AccountNumber: RCT's account reference with this company. */
+  AccountNumber: 'field_16',
   /** Hours */
   Hours: 'field_19',
   /** PhoneOnly ("Yes"/"No") */
@@ -48,6 +52,7 @@ export const ML_SELECT_FIELDS: readonly string[] = [
   ML.PhoneAlt,
   ML.ContactEmail,
   ML.Restriction,
+  ML.AccountNumber,
   ML.Hours,
   ML.PhoneOnly,
   ML.ActiveYN,
