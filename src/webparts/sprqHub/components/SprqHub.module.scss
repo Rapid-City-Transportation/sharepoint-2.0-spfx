@@ -658,6 +658,26 @@ $transition:      0.18s ease;
 }
 
 // Inline lists shown in the Tool Viewer (client accounts, master lists, forms).
+.toolContentNote {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: $text-secondary;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--rct-blue-accessible);
+    font-weight: 600;
+  }
+}
+
+.toolContentLinkMissing {
+  color: $text-secondary;
+  font-style: italic;
+}
+
 .toolContentList {
   list-style: none;
   margin: 0;

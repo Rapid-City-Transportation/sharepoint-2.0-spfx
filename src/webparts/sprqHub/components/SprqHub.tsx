@@ -10,6 +10,8 @@ import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
 import { useAnnouncements } from '../../rapidCityHomepage/hooks/useAnnouncements';
 import { useAtAGlance } from '../hooks/useAtAGlance';
+import { useSprqTools } from '../hooks/useSprqTools';
+import { ISprqToolEntry, SPRQ_TOOLS_LIST_URL, SprqToolKey } from '../services/sprqToolsService';
 import { DailyTaskBoard } from '../../customerExperienceHub/components/DailyTaskBoard/DailyTaskBoard';
 import { useEmployees } from '../../employeeDirectory/hooks/useEmployees';
 import { IEmployee } from '../../employeeDirectory/components/types';
@@ -35,65 +37,6 @@ interface ITool {
   customRender?: () => React.ReactNode;
 }
 
-// ── SPRQ client accounts (names list shown inline) ──────────────────────────
-const CLIENT_ACCOUNTS: string[] = [
-  'Trillium Health Partners (THP)',
-  'William Osler Health Systems (WOHS)',
-  'Medcan (Corporate VIP)',
-  'Guelph Community Health Centre - Guelph CHC',
-  'SickKids Customer & Referral',
-  "Children's Transportation Centre (CTC)",
-  "Catholic Children's Aid Society of Toronto (CCAS)-NorthWest Branch as a Customer",
-  "Children's Aid Society of London & Middlesex aka (CASLM)",
-  'Long Term Care (Region of Peel- Davis Centre, Region of Peel- Malton Village, Region of Peel-Peel Manor, Region of Peel-Tall Pines, Region of Peel-Sheridan Villa)',
-  'Conestoga College',
-  'Georgian College',
-  'Thames Valley District School Board - TVDSB',
-  'Blue Water District School Board - BWDSB',
-  'Grand Erie District School Board - GEDSB',
-  'Halton District School Board - HDSB',
-  'Halton Catholic District School Board - HCDSB',
-  'London District Catholic School Board - LDCSB',
-  'York Region District School Board - YRDSB',
-  'York Catholic District School Board - YCDSB',
-  'Upper Grand District School Board - UGDSB',
-  'Ramudeen Global',
-  'West Park - TEMPORARY',
-  'Trillium Lakes District School Board - TLDSB',
-  'Fanshawe College',
-  'Bruce Grey Catholic District School Board - BGCDSB',
-];
-
-// ── Master lists (live on the Protocol Book landing page) ───────────────────
-const MASTER_LISTS: { label: string; url: string }[] = [
-  { label: 'Georgian College Masterlist', url: 'https://rapidcitytransport.sharepoint.com/Lists/Georgian%20College%20Masterlist/AllItems.aspx?ct=1780947317771&or=OWA%2DNT%2DMail&cid=eead8a97%2Dbc8d%2D379c%2Dbfe1%2D49280ddca38f' },
-  { label: 'Conestoga College Masterlist', url: 'https://rapidcitytransport.sharepoint.com/:l:/g/JACuB5EpoWjsQpUxaFNjiPrgAQ_wImsGsp7eFpsWoukSqMc?e=LV0bzh' },
-  { label: 'Fanshawe Masterlist', url: 'https://rapidcitytransport.sharepoint.com/:l:/g/JAAUbfCNs1QFTbn4pyfKuM6XASR7OtqyypX_Yfmgk9CTbxM?e=Scpbro' },
-  { label: 'BWDSB Masterlist', url: 'https://rapidcitytransport.sharepoint.com/:l:/g/JABvn1_P3yqzT4OlhA5PAHdYAbvsbQDWYstCXowGtwJhSLk?e=7qTSKS' },
-];
-
-// ── Booking forms (Office Forms share a common base; new-course forms differ) ─
-const FORM_BASE =
-  'https://forms.office.com/pages/responsepage.aspx?id=l4y8NMNy7EWK6c1ZaWvyKz85tpnjwg9PsmL0mLznWPZU';
-const formUrl = (suffix: string): string => `${FORM_BASE}${suffix}&route=shorturl`;
-
-const BOOKING_FORMS: { label: string; url: string }[] = [
-  { label: 'CASLM - Rapid City Transportation Request', url: formUrl('MjQ4SjRZNUQwOVIxT0IzWEwzUFYyVzFYSC4u') },
-  { label: 'Guelph CHC - Quote Request', url: formUrl('RVFXMlJaM0U3RExZR0syVUY1UFlWTlROTi4u') },
-  { label: 'HCDSB - Transportation Request', url: formUrl('NUtMSUxGQ0FXRFFHNEVMVTNUUkpVMDRVRS4u') },
-  { label: 'HDSB - Transportation Request', url: formUrl('ODY0S0lZVFFET1g5VFNKSjAyVVA5NEU0Ty4u') },
-  { label: 'Medcan - MEDCAN Request', url: formUrl('N1Q3MjlZMjZER1pKWThaNzhQUk1CVzVLQi4u') },
-  { label: 'SickKids - Rapid City Transportation Request', url: formUrl('NjdGWkg5MkpFSTJPQkpHUFRFQzNNVkNGVi4u') },
-  { label: 'Trillium Health Partners (THP) - Wheelchair Request', url: formUrl('ODZaM1k1STZGVE1UU1FEMTJMQlRSQk9WNi4u') },
-  { label: 'William Osler Health System (WOHS) - Wheelchair Request', url: formUrl('NktCSldEUUtYU0RSQVkwUUlLV09SVUNDUi4u') },
-  { label: 'YCDSB - Transportation Request', url: formUrl('QjdUOUozREJBVjI0MTJQQzEwWTY2S0FHRC4u') },
-  { label: 'YRDSB - Transportation Request', url: formUrl('RVdZQjNKVkk1OUtaMDREOU9SWVBJTENVSS4u') },
-  { label: 'Accommodations Form - Flight, Accommodations, Train Request', url: formUrl('N1lWT0g2NkdGMU5aNDNCQjJPQTNIQU9PVi4u') },
-  { label: 'Georgian College New Course', url: 'https://rapidcitytransport.sharepoint.com/_layouts/15/listforms.aspx?cid=NTE0ZGNlYTktY2VhZC00N2UzLTliZDItYzRmZDRkMjhlNzY4&nav=YzNlYjA0ZTYtOTgyNS00MzQ0LTlmMDktNTJmYzQ3Y2EyYTJi' },
-  { label: 'Conestoga College New Course', url: 'https://rapidcitytransport.sharepoint.com/_layouts/15/listforms.aspx?cid=Mjk5MTA3YWUtNjhhMS00MmVjLTk1MzEtNjg1MzYzODhmYWUw&nav=YWMxYWE4NmQtZjQ0Ni00MjYzLTljZDYtZThiNjZhZjRhN2Nk' },
-  { label: 'Fanshawe College New Course', url: 'https://rapidcitytransport.sharepoint.com/_layouts/15/listforms.aspx?cid=OGRmMDZkMTQtNTRiMy00ZDA1LWI5ZjgtYTcyN2NhYjhjZTk3&nav=NDRhYTQ2MDYtZjlhMS00M2RjLTk3MmEtNjE1ODFmMTc1MWE0' },
-];
-
 // ── Single-resource tools (embedded inline in the Tool Viewer) ──────────────
 const FLIGHT_HOTEL_TRACKER_URL  = 'https://rapidcitytransport.sharepoint.com/:l:/g/JADoa71-RjIuTaWuovfx7LMfAb6iRf_K_HkvYLu11qE6gXU?e=eJUB2i';
 const HOTEL_FINDER_URL          = 'https://rapidcitytransport.sharepoint.com/:l:/g/JAA93C9vu0jeRJwwaoC_mwnaAUkGCPkyEgU5RIXG3yC1lO4?e=Itczty';
@@ -102,18 +45,108 @@ const YRDSB_TRIP_PLANNER_URL    = 'https://rapidcitytransport.sharepoint.com/:x:
 const QUOTE_CALCULATORS_URL     = 'https://rapidcitytransport.sharepoint.com/:f:/r/Customer%20Service/Reference/Calculators?csf=1&web=1&e=IO0jQY';
 const REGULARS_LIST_URL         = 'https://rapidcitytransport.sharepoint.com/:x:/g/IQAK7S4W235HT5QFgAoxya6fAX8P4kI6biknm0ecwdcjWVY?e=c7XB5L';
 
-const TOOLS: ITool[] = [
-  { label: 'SPRQ Client Accounts',    icon: 'ContactList',   items: CLIENT_ACCOUNTS },
-  { label: 'Master Lists',            icon: 'BulletedList2', links: MASTER_LISTS },
+// Client Accounts, Master Lists and Booking Forms are built from the SPRQ
+// Tools list inside the component; only the fixed tools live here.
+const STATIC_TOOLS: ITool[] = [
   { label: 'Flight & Hotel Tracker',  icon: 'Airplane',      embedUrl: FLIGHT_HOTEL_TRACKER_URL },
   { label: 'Hotel Finder',            icon: 'POI',           embedUrl: HOTEL_FINDER_URL },
   { label: 'School Bookings Tracker', icon: 'Bus',           embedUrl: SCHOOL_BOOKINGS_URL },
   { label: 'YRDSB Trip Planner',      icon: 'MapDirections', embedUrl: YRDSB_TRIP_PLANNER_URL },
   { label: 'Quote Calculators',       icon: 'Calculator',    embedUrl: QUOTE_CALCULATORS_URL },
-  { label: 'Booking Forms',           icon: 'TextDocument',  links: BOOKING_FORMS, linksAsPopup: true },
   { label: 'Daily Task',              icon: 'TaskGroup',     customRender: () => <DailyTaskBoard scope="sprq" /> },
   { label: 'Regulars List',           icon: 'People',        embedUrl: REGULARS_LIST_URL },
-].sort((a, b) => a.label.localeCompare(b.label));
+];
+
+function buildTools(entries: ISprqToolEntry[]): ITool[] {
+  const rows = (key: SprqToolKey): ISprqToolEntry[] => entries.filter(e => e.tool === key);
+  const links = (key: SprqToolKey): { label: string; url: string }[] =>
+    rows(key).map(e => ({ label: e.label, url: e.url || '' }));
+  return STATIC_TOOLS.concat([
+    { label: 'SPRQ Client Accounts', icon: 'ContactList',   items: rows('Client Accounts').map(e => e.label) },
+    { label: 'Master Lists',         icon: 'BulletedList2', links: links('Master Lists') },
+    { label: 'Booking Forms',        icon: 'TextDocument',  links: links('Booking Forms'), linksAsPopup: true },
+  ]).sort((a, b) => a.label.localeCompare(b.label));
+}
+
+const EditListLink: React.FC = () => (
+  <p className={styles.toolContentNote}>
+    <a href={SPRQ_TOOLS_LIST_URL} target="_blank" rel="noopener noreferrer">
+      Edit this list in SharePoint
+      <Icon iconName="OpenInNewTab" aria-hidden="true" />
+    </a>
+  </p>
+);
+
+/**
+ * Body of a tool whose rows come from the SPRQ Tools list. The pointer to
+ * the list is always on screen, because "where do I edit this?" was the
+ * first question the team asked about the hardcoded version.
+ */
+const ListToolBody: React.FC<{ tool: ITool; loading: boolean; error: boolean }> = ({
+  tool,
+  loading,
+  error,
+}) => {
+  const rowCount = tool.items ? tool.items.length : (tool.links || []).length;
+  if (rowCount === 0) {
+    return (
+      <p className={styles.toolContentNote}>
+        {loading
+          ? 'Loading...'
+          : error
+            ? 'The SPRQ Tools list could not be loaded. Check that you have access to it. '
+            : 'Nothing listed yet. Add rows to the SPRQ Tools list and they show up here. '}
+        {!loading && (
+          <a href={SPRQ_TOOLS_LIST_URL} target="_blank" rel="noopener noreferrer">
+            Open the SPRQ Tools list
+            <Icon iconName="OpenInNewTab" aria-hidden="true" />
+          </a>
+        )}
+      </p>
+    );
+  }
+  return (
+    <>
+      <ul className={styles.toolContentList}>
+        {tool.items
+          ? tool.items.map((item, i) => <li key={i}>{item}</li>)
+          : (tool.links || []).map((link, i) => (
+              <li key={i}>
+                {!link.url ? (
+                  <span className={styles.toolContentLinkMissing}>{link.label} (no link set)</span>
+                ) : tool.linksAsPopup ? (
+                  <button
+                    type="button"
+                    className={styles.toolContentLink}
+                    onClick={() =>
+                      window.open(
+                        link.url,
+                        '_blank',
+                        'popup,width=900,height=1000,scrollbars=yes,resizable=yes'
+                      )
+                    }
+                  >
+                    {link.label}
+                    <Icon iconName="OpenInNewWindow" aria-hidden="true" />
+                  </button>
+                ) : (
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.toolContentLink}
+                  >
+                    {link.label}
+                    <Icon iconName="OpenInNewTab" aria-hidden="true" />
+                  </a>
+                )}
+              </li>
+            ))}
+      </ul>
+      <EditListLink />
+    </>
+  );
+};
 
 type UpdateTone = 'pause' | 'school' | 'change' | 'info';
 
@@ -187,7 +220,13 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
   const { announcements } = useAnnouncements('SPRQ');
   const updates: IUpdate[] = announcements.length > 0 ? announcements : UPDATES;
 
-  const [activeTool, setActiveTool] = React.useState<ITool | null>(null);
+  const { entries: toolEntries, loading: toolsLoading, error: toolsError } = useSprqTools();
+  const tools = React.useMemo(() => buildTools(toolEntries), [toolEntries]);
+
+  // Keyed by label rather than holding the ITool, so a tool opened before
+  // the SPRQ Tools list finished loading fills in once the rows arrive.
+  const [activeLabel, setActiveLabel] = React.useState<string | null>(null);
+  const activeTool: ITool | null = tools.filter(t => t.label === activeLabel)[0] || null;
 
   /** Full URL for the active tool: the embedded view minus the iframe-only
    *  query params (env=Embedded, action=embedview). Used by "Open full" to
@@ -291,7 +330,7 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
               <h3 id="sprq-tools-title-m" className={styles.panelTitle}><Icon iconName="Toolbox" aria-hidden="true" />Tools</h3>
             </div>
             <ul className={styles.toolsGrid} role="list">
-              {TOOLS.map((tool) => {
+              {tools.map((tool) => {
                 const isActive = activeTool?.label === tool.label;
                 return (
                   <li key={tool.label}>
@@ -301,7 +340,7 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
                         if (tool.href) {
                           window.open(tool.href, '_blank', 'noopener,noreferrer');
                         } else {
-                          setActiveTool(tool);
+                          setActiveLabel(tool.label);
                         }
                       }}
                       className={`${styles.toolTile} ${isActive ? styles.toolTileActive : ''}`}
@@ -365,7 +404,7 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
                     </div>
                     <button
                       type="button"
-                      onClick={() => setActiveTool(null)}
+                      onClick={() => setActiveLabel(null)}
                       className={styles.toolContentClose}
                       aria-label="Close tool"
                     >
@@ -375,45 +414,8 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
 
                   {activeTool.customRender ? (
                     <div className={styles.toolContentCustom}>{activeTool.customRender()}</div>
-                  ) : activeTool.items ? (
-                    <ul className={styles.toolContentList}>
-                      {activeTool.items.map((item, i) => (
-                        <li key={i}>{item}</li>
-                      ))}
-                    </ul>
-                  ) : activeTool.links ? (
-                    <ul className={styles.toolContentList}>
-                      {activeTool.links.map((link, i) => (
-                        <li key={i}>
-                          {activeTool.linksAsPopup ? (
-                            <button
-                              type="button"
-                              className={styles.toolContentLink}
-                              onClick={() =>
-                                window.open(
-                                  link.url,
-                                  '_blank',
-                                  'popup,width=900,height=1000,scrollbars=yes,resizable=yes'
-                                )
-                              }
-                            >
-                              {link.label}
-                              <Icon iconName="OpenInNewWindow" aria-hidden="true" />
-                            </button>
-                          ) : (
-                            <a
-                              href={link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={styles.toolContentLink}
-                            >
-                              {link.label}
-                              <Icon iconName="OpenInNewTab" aria-hidden="true" />
-                            </a>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
+                  ) : activeTool.items || activeTool.links ? (
+                    <ListToolBody tool={activeTool} loading={toolsLoading} error={toolsError} />
                   ) : activeTool.embedUrl ? (
                     <iframe
                       title={`${activeTool.label}: embedded view`}
@@ -529,7 +531,7 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
               <h3 id="sprq-tools-title" className={styles.panelTitle}><Icon iconName="Toolbox" aria-hidden="true" />Tools</h3>
             </div>
             <ul className={styles.toolsGrid} role="list">
-              {TOOLS.map((tool) => {
+              {tools.map((tool) => {
                 const isActive = activeTool?.label === tool.label;
                 return (
                   <li key={tool.label}>
@@ -539,7 +541,7 @@ const SprqHub: React.FC<ISprqHubProps> = ({ bannerEyebrow, bannerTitle }) => {
                         if (tool.href) {
                           window.open(tool.href, '_blank', 'noopener,noreferrer');
                         } else {
-                          setActiveTool(tool);
+                          setActiveLabel(tool.label);
                         }
                       }}
                       className={`${styles.toolTile} ${isActive ? styles.toolTileActive : ''}`}

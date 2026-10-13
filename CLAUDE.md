@@ -84,7 +84,7 @@ Within a web part: `services/` (PnP + business logic), `hooks/` (React data hook
 | Home | `rapidCityHomepage/` | `/sites/HomeTest` | owns shared Navigation/Footer/theme |
 | Contact Cards | `customerContactCards/` | `/SitePages/ContactCards.aspx` | Navigation search + NotificationBell live here |
 | CX Hub (private) | `customerExperienceHub/` | dept hub | reads `employeeDirectory` (`useEmployees`); links to SPRQ + Team Lead hubs |
-| SPRQ Hub (private) | `sprqHub/` | `/SitePages/SPRQHub.aspx` | reached from the CX Hub "SPRQ Hub" tile |
+| SPRQ Hub (private) | `sprqHub/` | `/sites/CustomerService576/SitePages/SPRQ-Hub.aspx` | reached from the CX Hub "SPRQ Hub" tile; the Client Accounts / Master Lists / Booking Forms tools read the `SPRQ Tools` list on the same site through the CX hub SPFI (no hardcoded fallback: an empty list shows an empty tool with a link to the list) |
 | Team Lead Hub (private) | `teamLeadHub/` | `/SitePages/TeamLeadHub.aspx` | reached from CX Hub |
 | Trainers Hub (private) | `trainersHub/` | `/SitePages/TrainersHub.aspx` | has `QuizzesPanel` |
 | Training Hub (public) | `trainingHub/` | `/SitePages/TrainingHub.aspx` | linked from nav Employee Support |
@@ -117,6 +117,7 @@ Cross-page coupling to remember:
 | `/sites/IntranetRedesignSharepoint20` | Contact Cards data + SiteFeedback (the "Protocol Book" site) |
 | `/sites/CSQCLeads` | Trainee Progress + TL Assignments (embedded via iframe in hubs, not PnP) |
 | `/sites/RCT-ITTeam` | Private IT group site: `Documents` library (IT Team Hub categories/recent, IT Support guide docs) + team notebook |
+| `/sites/CustomerService576` | CX Hub + SPRQ Hub pages; `SPRQ Tools` list (the CX hub SPFI) |
 
 **Lists** (titles are exact; defined as `LIST_TITLE` in each web part's `services/fieldNames.ts`):
 
@@ -131,6 +132,7 @@ Cross-page coupling to remember:
 | `SiteFeedback` | IntranetRedesign | write | Footer feedback modal (every page) |
 | `Employee Highlight` | root | read | Employee Directory + CX Hub team section |
 | `Employee Tracker` | /sites/Management | read | Department page leaders |
+| `SPRQ Tools` | /sites/CustomerService576 | read | SPRQ Hub Tool Viewer: Client Accounts, Master Lists, Booking Forms (`Title`, `TOOL` choice, `URL`, `Active`) |
 
 `SiteFeedback` columns (created manually, see `FeedbackService.ts`): `Title` (page identifier), `Description` (multi-line), `Urgency` (Choice: Critical/High/Medium/Low), `SourcePage` (full URL, used to route to the page owner). For any other list's columns, read that web part's `services/fieldNames.ts` (internal names) and `fieldLabels.ts` (display names).
 
