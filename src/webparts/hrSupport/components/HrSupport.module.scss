@@ -423,6 +423,67 @@
   }
 }
 
+.perkPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 20px 0;
+}
+
+.perkPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--rct-border, #E2E8F0);
+  background: #ffffff;
+  color: var(--rct-primary, #1F4C7F);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(31, 76, 127, 0.06);
+    border-color: var(--rct-primary, #1F4C7F);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+.perkPillActive,
+.perkPillActive:hover {
+  background: var(--rct-primary, #1F4C7F);
+  border-color: var(--rct-primary, #1F4C7F);
+  color: #ffffff;
+}
+
+.perkNote {
+  margin: 0;
+  padding: 24px 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--rct-text-secondary, #4A5568);
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--rct-blue-accessible, #187389);
+    font-weight: 600;
+  }
+}
+
+// Deep links scroll here; keep the heading clear of the sticky nav.
+.toolboxSection {
+  scroll-margin-top: 72px;
+}
+
 .toolDocFrame {
   display: block;
   width: 100%;
@@ -832,6 +893,14 @@
 
 // ── Responsive ──────────────────────────────────────────────────────────────
 @media (max-width: 640px) {
+  .perkPills {
+    padding: 12px 12px 0;
+  }
+
+  .perkPill {
+    min-height: 44px;
+  }
+
   .main {
     padding: 18px 16px 8px;
   }

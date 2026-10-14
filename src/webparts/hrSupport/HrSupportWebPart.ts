@@ -7,14 +7,16 @@ import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 import HrSupport from './components/HrSupport';
 import { IHrSupportProps } from './components/IHrSupportProps';
 import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
+import { initializeSP as initializeCompassSP } from '../healthSafety/services/spConfig';
 
 /** Entry point for the public HR Support page (HRSupport.aspx). */
 export default class HrSupportWebPart extends BaseClientSideWebPart<Record<string, never>> {
 
   protected async onInit(): Promise<void> {
     await super.onInit();
-    // SiteFeedback (Footer's Send Feedback) is the page's only data access.
     initializeFeedbackSP(this.context);
+    // The Benefits & Perks posters are read from the compass Documents library.
+    initializeCompassSP(this.context);
   }
 
   public render(): void {

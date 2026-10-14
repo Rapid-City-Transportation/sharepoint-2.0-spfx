@@ -5,12 +5,18 @@ import { IHrSupportProps } from './IHrSupportProps';
 import { defaultTheme, getThemeCssVariables } from '../../rapidCityHomepage/theme/ThemeTokens';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
+import { usePerkPosters } from '../hooks/usePerkPosters';
+import { IPerkPoster, PERKS_FOLDER_URL } from '../services/perksService';
 
 const HR_EMAIL = 'hr@rapidcitytransport.com';
 
 interface IGuide {
+  /** Stable key, and the URL hash that opens the guide (HRSupport.aspx#benefits). */
+  id: string;
   label: string;
   icon: string;
+  /** Posters read from the Benefits and Perks folder: one viewer for all of them. */
+  perks?: boolean;
   /** SharePoint embed URL: renders inline in the viewer. */
   docUrl?: string;
   /** The document's own URL, for "Open full". Given explicitly rather than
@@ -32,18 +38,27 @@ const LIBRARY = 'https://rapidcitytransport.sharepoint.com/sites/compass/Shared%
 // Alphabetical.
 const GUIDES: IGuide[] = [
   {
+    id: 'benefits',
+    label: 'Benefits & Perks',
+    icon: 'Giftbox',
+    perks: true,
+  },
+  {
+    id: 'handbook',
     label: 'Employee Handbook',
     icon: 'ReadingMode',
     docUrl: `${DOC_BASE}35be75e7-110e-485a-aeea-b53fd61fc5e3`,
     fullUrl: `${LIBRARY}/RCT-HR-2021-0004-Office%20Employee%20Handbook-V4.pdf`,
   },
   {
+    id: 'ergonomics',
     label: 'Ergonomics (WorkSMART)',
     icon: 'Health',
     docUrl: `${DOC_BASE}5dd55dd3-4442-44eb-95e9-06c51a33f7b2`,
     fullUrl: `${LIBRARY}/Workstation-Posture-Checklist-Self-Assessment.pdf`,
   },
   {
+    id: 'job-postings',
     label: 'Internal Job Postings',
     icon: 'RecruitmentManagement',
     // ADP Career Center. A hash route with no category parameter, so driver
@@ -52,6 +67,7 @@ const GUIDES: IGuide[] = [
     externalUrl: 'https://workforcenow.adp.com/theme/index.html#/Myself/MyselfTabTalentCategoryCareerCenter',
   },
   {
+    id: 'holidays',
     label: 'Statutory Holidays',
     icon: 'Calendar',
     // Year-agnostic on purpose: the site tracks the current year, so the tile
@@ -71,10 +87,65 @@ const CONTACTS: { purpose: string; email: string; note?: string }[] = [
   },
 ];
 
+interface IPerksViewerProps {
+  posters: IPerkPoster[];
+  loading: boolean;
+  error: boolean;
+  active?: IPerkPoster;
+  onSelect: (label: string) => void;
+}
+
+/** One viewer for every poster in the Benefits and Perks folder: a row of
+ *  poster names to switch between, then the chosen poster inline. */
+const PerksViewer: React.FC<IPerksViewerProps> = ({ posters, loading, error, active, onSelect }) => {
+  if (loading) {
+    return <p className={styles.perkNote}>Loading posters...</p>;
+  }
+  if (error || !active) {
+    return (
+      <p className={styles.perkNote}>
+        {error
+          ? 'The posters could not be loaded. Check that you have access to the HR Support folder. '
+          : 'No posters yet. HR adds a PDF to the Benefits and Perks folder and it appears here. '}
+        <a href={PERKS_FOLDER_URL} target="_blank" rel="noopener noreferrer">
+          Open the folder <Icon iconName="OpenInNewTab" aria-hidden="true" />
+        </a>
+      </p>
+    );
+  }
+  return (
+    <>
+      {posters.length > 1 && (
+        <div className={styles.perkPills} role="group" aria-label="Choose a poster">
+          {posters.map(poster => (
+            <button
+              key={poster.label}
+              type="button"
+              className={`${styles.perkPill} ${poster.label === active.label ? styles.perkPillActive : ''}`}
+              aria-pressed={poster.label === active.label}
+              onClick={() => onSelect(poster.label)}
+            >
+              {poster.label}
+            </button>
+          ))}
+        </div>
+      )}
+      <iframe
+        key={active.docUrl}
+        title={`${active.label} poster`}
+        src={active.docUrl}
+        className={styles.toolDocFrame}
+        loading="lazy"
+        referrerPolicy="strict-origin-when-cross-origin"
+      />
+    </>
+  );
+};
+
 /** Public HR Support page: email-HR hero, self-help guide toolbox (SharePoint
  *  docs embed inline, external sites open in a new tab), and purpose-routed
- *  contact addresses. All content is hardcoded above; no list backs this page,
- *  so the only SPFI it needs is the Footer's feedback one. */
+ *  contact addresses. The guides are hardcoded above; only the Benefits &
+ *  Perks posters come from SharePoint, read from a folder HR maintains. */
 const HrSupport: React.FC<IHrSupportProps> = () => {
   const themeVars = React.useMemo(
     () => getThemeCssVariables(defaultTheme) as React.CSSProperties,
@@ -83,7 +154,28 @@ const HrSupport: React.FC<IHrSupportProps> = () => {
 
   const [activeGuide, setActiveGuide] = React.useState<IGuide | null>(null);
 
-  const activeDocFullUrl = activeGuide?.fullUrl;
+  const { posters, loading: postersLoading, error: postersError } = usePerkPosters();
+  const [activePosterLabel, setActivePosterLabel] = React.useState<string | null>(null);
+  // The first poster shows as soon as the folder loads; a pick sticks after that.
+  const activePoster: IPerkPoster | undefined =
+    posters.filter(poster => poster.label === activePosterLabel)[0] || posters[0];
+
+  const activeDocFullUrl = activeGuide?.perks ? activePoster?.fullUrl : activeGuide?.fullUrl;
+  const openFullLabel = activeGuide?.perks
+    ? `Open the full ${activePoster ? activePoster.label : ''} poster in a new tab`
+    : `Open full ${activeGuide ? activeGuide.label : ''} guide in a new tab`;
+
+  // A "Learn more" link anywhere on Compass can land straight on a guide
+  // (HRSupport.aspx#benefits) instead of asking people to find the tile.
+  React.useEffect(() => {
+    const id = window.location.hash.replace(/^#/, '');
+    const guide = id ? GUIDES.filter(g => g.id === id && !g.externalUrl)[0] : undefined;
+    if (!guide) return;
+    setActiveGuide(guide);
+    window.setTimeout(() => {
+      document.getElementById('hr-tools')?.scrollIntoView({ block: 'start' });
+    }, 0);
+  }, []);
 
   // Closing unmounts the focused button, so put focus back on the heading.
   const handleCloseGuide = React.useCallback((): void => {
@@ -136,7 +228,7 @@ const HrSupport: React.FC<IHrSupportProps> = () => {
           </div>
         </section>
 
-        <section className={styles.toolboxSection} aria-labelledby="hr-guides-heading">
+        <section id="hr-tools" className={styles.toolboxSection} aria-labelledby="hr-guides-heading">
           <h2 id="hr-guides-heading" className={styles.sectionTitle} tabIndex={-1}>
             <Icon iconName="ReadingMode" className={styles.sectionIcon} aria-hidden="true" />
             Self-help guides
@@ -208,7 +300,7 @@ const HrSupport: React.FC<IHrSupportProps> = () => {
                           type="button"
                           className={styles.toolViewerOpen}
                           onClick={() => window.open(activeDocFullUrl, '_blank', 'noopener,noreferrer')}
-                          aria-label={`Open full ${activeGuide.label} guide in a new tab`}
+                          aria-label={openFullLabel}
                         >
                           Open full <Icon iconName="OpenInNewTab" aria-hidden="true" />
                         </button>
@@ -224,7 +316,15 @@ const HrSupport: React.FC<IHrSupportProps> = () => {
                     </div>
                   </header>
 
-                  {activeGuide.docUrl ? (
+                  {activeGuide.perks ? (
+                    <PerksViewer
+                      posters={posters}
+                      loading={postersLoading}
+                      error={postersError}
+                      active={activePoster}
+                      onSelect={setActivePosterLabel}
+                    />
+                  ) : activeGuide.docUrl ? (
                     <iframe
                       title={`${activeGuide.label} guide`}
                       src={activeGuide.docUrl}
