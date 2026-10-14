@@ -1,16 +1,16 @@
 import * as React from 'react';
-import { fetchPerkPosters, IPerkPoster } from '../services/perksService';
+import { fetchProgramPosters, IProgramPoster } from '../services/programsService';
 
-/** Posters in the Benefits and Perks folder. No built-in fallback: an empty
+/** Posters in the Government Programs folder. No built-in fallback: an empty
  *  or unreadable folder shows as such, with a pointer to the folder. */
-export function usePerkPosters(): { posters: IPerkPoster[]; loading: boolean; error: boolean } {
-  const [posters, setPosters] = React.useState<IPerkPoster[]>([]);
+export function useProgramPosters(): { posters: IProgramPoster[]; loading: boolean; error: boolean } {
+  const [posters, setPosters] = React.useState<IProgramPoster[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(false);
 
   React.useEffect(() => {
     let active = true;
-    fetchPerkPosters()
+    fetchProgramPosters()
       .then(rows => {
         if (!active) return;
         setPosters(rows);

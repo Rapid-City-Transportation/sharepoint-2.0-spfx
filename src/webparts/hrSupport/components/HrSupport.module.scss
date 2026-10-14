@@ -423,14 +423,14 @@
   }
 }
 
-.perkPills {
+.programPills {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 20px 0;
 }
 
-.perkPill {
+.programPill {
   display: inline-flex;
   align-items: center;
   min-height: 36px;
@@ -456,14 +456,14 @@
   }
 }
 
-.perkPillActive,
-.perkPillActive:hover {
+.programPillActive,
+.programPillActive:hover {
   background: var(--rct-primary, #1F4C7F);
   border-color: var(--rct-primary, #1F4C7F);
   color: #ffffff;
 }
 
-.perkNote {
+.programNote {
   margin: 0;
   padding: 24px 16px;
   font-size: 14px;
@@ -893,11 +893,11 @@
 
 // ── Responsive ──────────────────────────────────────────────────────────────
 @media (max-width: 640px) {
-  .perkPills {
+  .programPills {
     padding: 12px 12px 0;
   }
 
-  .perkPill {
+  .programPill {
     min-height: 44px;
   }
 

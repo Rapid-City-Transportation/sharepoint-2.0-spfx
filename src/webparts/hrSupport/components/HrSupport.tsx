@@ -5,18 +5,18 @@ import { IHrSupportProps } from './IHrSupportProps';
 import { defaultTheme, getThemeCssVariables } from '../../rapidCityHomepage/theme/ThemeTokens';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
-import { usePerkPosters } from '../hooks/usePerkPosters';
-import { IPerkPoster, PERKS_FOLDER_URL } from '../services/perksService';
+import { useProgramPosters } from '../hooks/useProgramPosters';
+import { IProgramPoster, PROGRAMS_FOLDER_URL } from '../services/programsService';
 
 const HR_EMAIL = 'hr@rapidcitytransport.com';
 
 interface IGuide {
-  /** Stable key, and the URL hash that opens the guide (HRSupport.aspx#benefits). */
+  /** Stable key, and the URL hash that opens the guide (HRSupport.aspx#programs). */
   id: string;
   label: string;
   icon: string;
-  /** Posters read from the Benefits and Perks folder: one viewer for all of them. */
-  perks?: boolean;
+  /** Posters read from the Government Programs folder: one viewer for all of them. */
+  programs?: boolean;
   /** SharePoint embed URL: renders inline in the viewer. */
   docUrl?: string;
   /** The document's own URL, for "Open full". Given explicitly rather than
@@ -38,10 +38,10 @@ const LIBRARY = 'https://rapidcitytransport.sharepoint.com/sites/compass/Shared%
 // Alphabetical.
 const GUIDES: IGuide[] = [
   {
-    id: 'benefits',
-    label: 'Benefits & Perks',
-    icon: 'Giftbox',
-    perks: true,
+    id: 'programs',
+    label: 'Government Programs',
+    icon: 'Bank',
+    programs: true,
   },
   {
     id: 'handbook',
@@ -87,27 +87,27 @@ const CONTACTS: { purpose: string; email: string; note?: string }[] = [
   },
 ];
 
-interface IPerksViewerProps {
-  posters: IPerkPoster[];
+interface IProgramsViewerProps {
+  posters: IProgramPoster[];
   loading: boolean;
   error: boolean;
-  active?: IPerkPoster;
+  active?: IProgramPoster;
   onSelect: (label: string) => void;
 }
 
-/** One viewer for every poster in the Benefits and Perks folder: a row of
+/** One viewer for every poster in the Government Programs folder: a row of
  *  poster names to switch between, then the chosen poster inline. */
-const PerksViewer: React.FC<IPerksViewerProps> = ({ posters, loading, error, active, onSelect }) => {
+const ProgramsViewer: React.FC<IProgramsViewerProps> = ({ posters, loading, error, active, onSelect }) => {
   if (loading) {
-    return <p className={styles.perkNote}>Loading posters...</p>;
+    return <p className={styles.programNote}>Loading posters...</p>;
   }
   if (error || !active) {
     return (
-      <p className={styles.perkNote}>
+      <p className={styles.programNote}>
         {error
           ? 'The posters could not be loaded. Check that you have access to the HR Support folder. '
-          : 'No posters yet. HR adds a PDF to the Benefits and Perks folder and it appears here. '}
-        <a href={PERKS_FOLDER_URL} target="_blank" rel="noopener noreferrer">
+          : 'No posters yet. HR adds a PDF to the Government Programs folder and it appears here. '}
+        <a href={PROGRAMS_FOLDER_URL} target="_blank" rel="noopener noreferrer">
           Open the folder <Icon iconName="OpenInNewTab" aria-hidden="true" />
         </a>
       </p>
@@ -116,12 +116,12 @@ const PerksViewer: React.FC<IPerksViewerProps> = ({ posters, loading, error, act
   return (
     <>
       {posters.length > 1 && (
-        <div className={styles.perkPills} role="group" aria-label="Choose a poster">
+        <div className={styles.programPills} role="group" aria-label="Choose a poster">
           {posters.map(poster => (
             <button
               key={poster.label}
               type="button"
-              className={`${styles.perkPill} ${poster.label === active.label ? styles.perkPillActive : ''}`}
+              className={`${styles.programPill} ${poster.label === active.label ? styles.programPillActive : ''}`}
               aria-pressed={poster.label === active.label}
               onClick={() => onSelect(poster.label)}
             >
@@ -144,8 +144,8 @@ const PerksViewer: React.FC<IPerksViewerProps> = ({ posters, loading, error, act
 
 /** Public HR Support page: email-HR hero, self-help guide toolbox (SharePoint
  *  docs embed inline, external sites open in a new tab), and purpose-routed
- *  contact addresses. The guides are hardcoded above; only the Benefits &
- *  Perks posters come from SharePoint, read from a folder HR maintains. */
+ *  contact addresses. The guides are hardcoded above; only the Government
+ *  Programs posters come from SharePoint, read from a folder HR maintains. */
 const HrSupport: React.FC<IHrSupportProps> = () => {
   const themeVars = React.useMemo(
     () => getThemeCssVariables(defaultTheme) as React.CSSProperties,
@@ -154,19 +154,19 @@ const HrSupport: React.FC<IHrSupportProps> = () => {
 
   const [activeGuide, setActiveGuide] = React.useState<IGuide | null>(null);
 
-  const { posters, loading: postersLoading, error: postersError } = usePerkPosters();
+  const { posters, loading: postersLoading, error: postersError } = useProgramPosters();
   const [activePosterLabel, setActivePosterLabel] = React.useState<string | null>(null);
   // The first poster shows as soon as the folder loads; a pick sticks after that.
-  const activePoster: IPerkPoster | undefined =
+  const activePoster: IProgramPoster | undefined =
     posters.filter(poster => poster.label === activePosterLabel)[0] || posters[0];
 
-  const activeDocFullUrl = activeGuide?.perks ? activePoster?.fullUrl : activeGuide?.fullUrl;
-  const openFullLabel = activeGuide?.perks
+  const activeDocFullUrl = activeGuide?.programs ? activePoster?.fullUrl : activeGuide?.fullUrl;
+  const openFullLabel = activeGuide?.programs
     ? `Open the full ${activePoster ? activePoster.label : ''} poster in a new tab`
     : `Open full ${activeGuide ? activeGuide.label : ''} guide in a new tab`;
 
   // A "Learn more" link anywhere on Compass can land straight on a guide
-  // (HRSupport.aspx#benefits) instead of asking people to find the tile.
+  // (HRSupport.aspx#programs) instead of asking people to find the tile.
   React.useEffect(() => {
     const id = window.location.hash.replace(/^#/, '');
     const guide = id ? GUIDES.filter(g => g.id === id && !g.externalUrl)[0] : undefined;
@@ -316,8 +316,8 @@ const HrSupport: React.FC<IHrSupportProps> = () => {
                     </div>
                   </header>
 
-                  {activeGuide.perks ? (
-                    <PerksViewer
+                  {activeGuide.programs ? (
+                    <ProgramsViewer
                       posters={posters}
                       loading={postersLoading}
                       error={postersError}

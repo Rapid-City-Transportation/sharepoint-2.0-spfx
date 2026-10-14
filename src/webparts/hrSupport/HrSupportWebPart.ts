@@ -15,7 +15,7 @@ export default class HrSupportWebPart extends BaseClientSideWebPart<Record<strin
   protected async onInit(): Promise<void> {
     await super.onInit();
     initializeFeedbackSP(this.context);
-    // The Benefits & Perks posters are read from the compass Documents library.
+    // The Government Programs posters are read from the compass Documents library.
     initializeCompassSP(this.context);
   }
 
