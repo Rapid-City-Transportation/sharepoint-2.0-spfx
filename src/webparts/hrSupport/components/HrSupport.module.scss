@@ -427,7 +427,19 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 12px 20px 0;
+  padding: 14px 20px 10px;
+}
+
+.programPosterWrap {
+  padding: 6px 20px 20px;
+}
+
+.programPoster {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--rct-border, #E2E8F0);
+  border-radius: 8px;
 }
 
 .programPill {
@@ -894,7 +906,11 @@
 // ── Responsive ──────────────────────────────────────────────────────────────
 @media (max-width: 640px) {
   .programPills {
-    padding: 12px 12px 0;
+    padding: 12px 12px 8px;
+  }
+
+  .programPosterWrap {
+    padding: 4px 12px 16px;
   }
 
   .programPill {

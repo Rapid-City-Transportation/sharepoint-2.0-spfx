@@ -130,14 +130,26 @@ const ProgramsViewer: React.FC<IProgramsViewerProps> = ({ posters, loading, erro
           ))}
         </div>
       )}
-      <iframe
-        key={active.docUrl}
-        title={`${active.label} poster`}
-        src={active.docUrl}
-        className={styles.toolDocFrame}
-        loading="lazy"
-        referrerPolicy="strict-origin-when-cross-origin"
-      />
+      {active.imageUrl ? (
+        <div className={styles.programPosterWrap}>
+          <img
+            key={active.imageUrl}
+            className={styles.programPoster}
+            src={active.imageUrl}
+            alt={`${active.label}. Poster image; Open full has the readable PDF.`}
+            decoding="async"
+          />
+        </div>
+      ) : (
+        <iframe
+          key={active.docUrl}
+          title={`${active.label} poster`}
+          src={active.docUrl}
+          className={styles.toolDocFrame}
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+      )}
     </>
   );
 };
