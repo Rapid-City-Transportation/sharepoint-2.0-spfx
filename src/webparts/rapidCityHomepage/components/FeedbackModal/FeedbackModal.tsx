@@ -1,6 +1,10 @@
 import * as React from 'react';
 import { Icon } from '@fluentui/react/lib/Icon';
-import { submitFeedback } from '../../services/FeedbackService';
+import {
+  feedbackSourcePage,
+  isPermissionError,
+  submitFeedback,
+} from '../../services/FeedbackService';
 import styles from './FeedbackModal.module.scss';
 
 const URGENCY_OPTIONS = [
@@ -98,12 +102,17 @@ export const FeedbackModal: React.FC<IFeedbackModalProps> = ({
           pageIdentifier,
           description: description.trim(),
           urgency,
-          sourcePage: window.location.href,
+          sourcePage: feedbackSourcePage(),
         });
         setView('success');
       } catch (err) {
+        // The reason only ever shows up here; without it a failure on one
+        // site cannot be told apart from a failure everywhere.
+        console.error('[SiteFeedback] submit failed', err);
         setSubmitError(
-          'Something went wrong submitting your feedback. Please try again.'
+          isPermissionError(err)
+            ? 'Your account does not have access to the feedback list, so this could not be sent. Please let IT know.'
+            : 'Something went wrong submitting your feedback. Please try again.'
         );
       } finally {
         setSubmitting(false);
