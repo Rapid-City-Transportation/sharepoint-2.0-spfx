@@ -222,7 +222,7 @@ const STATE_NAMES: Record<string, string> = {
 
 // Codes the Masterlist uses that are countries, not provinces or states.
 const OTHER_NAMES: Record<string, string> = {
-  US: 'United States (state unknown)',
+  US: 'United States (other)',
   UK: 'United Kingdom',
 };
 

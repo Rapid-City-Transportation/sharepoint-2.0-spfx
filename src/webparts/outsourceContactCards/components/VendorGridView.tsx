@@ -115,11 +115,12 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
     <div className={styles.gridView}>
       <div className={styles.srOnly} role="status">{resetNotice}</div>
       <div className={styles.filterBar} role="search" aria-label="Vendor filter controls">
+        <div className={styles.filterRow}>
         <div className={styles.filterGroup}>
           <label className={styles.filterLabel} htmlFor="occ-province-filter">
             Province
           </label>
-          <div className={styles.filterChip}>
+          <div className={`${styles.filterChip}`}>
             <select
               id="occ-province-filter"
               className={styles.filterSelect}
@@ -209,19 +210,22 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
               ))}
             </select>
           </div>
-
-          {isFiltered && (
-            <button
-              className={styles.clearButton}
-              onClick={clearFilters}
-              type="button"
-              aria-label="Clear all filters and search"
-            >
-              Clear
-            </button>
-          )}
         </div>
 
+        {isFiltered && (
+          <button
+            className={styles.clearButton}
+            onClick={clearFilters}
+            type="button"
+            aria-label="Clear all filters and search"
+          >
+            Clear
+          </button>
+        )}
+
+        </div>
+
+        <div className={styles.filterRow}>
         <div className={styles.searchWrapper}>
           <span className={styles.searchIcon} aria-hidden="true">🔍</span>
           <input
@@ -250,6 +254,7 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
               </button>
             </>
           )}
+        </div>
         </div>
       </div>
 
