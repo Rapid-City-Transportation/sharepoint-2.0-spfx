@@ -6,6 +6,7 @@ import {
   IVendorFilters,
   IVendorZoneProfile,
   priorityRank,
+  provinceName,
   vehiclesForZone,
 } from '../models/types';
 
@@ -64,10 +65,21 @@ function profileMatches(
   );
 }
 
+/** Province is a vendor-level fact from the Masterlist. A standalone coverage
+ *  row has no master and so no province; it always passes, since hiding a
+ *  mid-migration vendor behind a filter it cannot satisfy helps nobody. */
+function provinceMatches(vendor: IVendor, filters: IVendorFilters): boolean {
+  if (filters.province === 'All' || !vendor.province) return true;
+  return vendor.province.toUpperCase() === filters.province.toUpperCase();
+}
+
 /** Every vendor carries at least one profile, so no filter means every vendor passes. */
 export function filterVendors(vendors: IVendor[], filters: IVendorFilters): IVendor[] {
   return vendors.filter(
-    v => v.zones.some(z => profileMatches(v, z, filters)) && vendorMatchesQuery(v, filters.searchText)
+    v =>
+      provinceMatches(v, filters) &&
+      v.zones.some(z => profileMatches(v, z, filters)) &&
+      vendorMatchesQuery(v, filters.searchText)
   );
 }
 
@@ -80,6 +92,8 @@ export function sortVendors(vendors: IVendor[]): IVendor[] {
 }
 
 export interface IFacetOptions {
+  /** Two-letter codes; render with provinceName. */
+  provinces: string[];
   zones: string[];
   cities: string[];
   vehicleTypes: string[];
@@ -94,11 +108,18 @@ export interface IFacetOptions {
  * dropdowns or invalidate a selection.
  */
 export function facetOptions(vendors: IVendor[], filters: IVendorFilters): IFacetOptions {
+  const provinces = new Set<string>();
   const zones = new Set<string>();
   const cities = new Set<string>();
   const vehicleTypes = new Set<string>();
   for (const v of vendors) {
     if (!vendorMatchesQuery(v, filters.searchText)) continue;
+    // The province list ignores the province selection, as every facet
+    // ignores its own, so another province can always be picked directly.
+    if (v.province && v.zones.some(z => profileMatches(v, z, filters))) {
+      provinces.add(v.province.toUpperCase());
+    }
+    if (!provinceMatches(v, filters)) continue;
     for (const z of v.zones) {
       if (z.zone && profileMatches(v, z, filters, 'zone')) zones.add(z.zone);
       if (profileMatches(v, z, filters, 'city')) {
@@ -110,7 +131,12 @@ export function facetOptions(vendors: IVendor[], filters: IVendorFilters): IFace
     }
   }
   if (Array.from(vehicleTypes).some(isWheelchair)) vehicleTypes.add(ANY_WHEELCHAIR);
-  return { zones: sorted(zones), cities: sorted(cities), vehicleTypes: sorted(vehicleTypes) };
+  return {
+    provinces: Array.from(provinces).sort((a, b) => provinceName(a).localeCompare(provinceName(b))),
+    zones: sorted(zones),
+    cities: sorted(cities),
+    vehicleTypes: sorted(vehicleTypes),
+  };
 }
 
 function sorted(values: Set<string>): string[] {

@@ -125,6 +125,7 @@ function mapMasterRow(row: SPRow): IVendor {
     id: String(row[ML.Id] ?? row['Id'] ?? ''),
     name: readString(row, ML.ProperName) || readString(row, ML.Title) || '(unnamed vendor)',
     operatingName: readString(row, ML.ERPSystemName),
+    province: readString(row, ML.ProvinceState),
     vehicleTypes: readChoiceArray(row, ML.VehicleTypesC),
     portal: readBool(row, ML.PortalAccessYN),
     zones: [],

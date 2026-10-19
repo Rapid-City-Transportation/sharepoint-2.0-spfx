@@ -24,6 +24,8 @@ export const ML = {
   ProperName: 'field_2',
   /** ERPSystemName */
   ERPSystemName: 'field_3',
+  /** ProvinceState: a two-letter code, "ON" for most vendors. */
+  ProvinceState: 'field_6',
   /** ContactPhone */
   ContactPhone: 'field_8',
   /** PhoneAlt */
@@ -48,6 +50,7 @@ export const ML_SELECT_FIELDS: readonly string[] = [
   ML.Title,
   ML.ProperName,
   ML.ERPSystemName,
+  ML.ProvinceState,
   ML.ContactPhone,
   ML.PhoneAlt,
   ML.ContactEmail,

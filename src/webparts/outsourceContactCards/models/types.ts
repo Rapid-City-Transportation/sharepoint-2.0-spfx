@@ -175,6 +175,8 @@ export interface IVendor {
   id: string;
   name: string;
   operatingName?: string;
+  /** Two-letter code from the Masterlist ("ON"); standalone coverage rows have none. */
+  province?: string;
   vehicleTypes: string[];
   portal: boolean;
   zones: IVendorZoneProfile[];
@@ -186,8 +188,32 @@ export interface IVendor {
   legacyDirectoryId?: string;
 }
 
+/** Display names for the Masterlist's two-letter codes; anything else (US
+ *  states, "UK") shows as the code itself. */
+const PROVINCE_NAMES: Record<string, string> = {
+  AB: 'Alberta',
+  BC: 'British Columbia',
+  MB: 'Manitoba',
+  NB: 'New Brunswick',
+  NL: 'Newfoundland and Labrador',
+  NS: 'Nova Scotia',
+  NT: 'Northwest Territories',
+  NU: 'Nunavut',
+  ON: 'Ontario',
+  PE: 'Prince Edward Island',
+  QC: 'Quebec',
+  SK: 'Saskatchewan',
+  YT: 'Yukon',
+};
+
+export function provinceName(code: string): string {
+  return PROVINCE_NAMES[code.toUpperCase()] || code;
+}
+
 /** Grid filter state. 'All' means that facet is not filtering. */
 export interface IVendorFilters {
+  /** Two-letter code, or 'All'. */
+  province: string | 'All';
   zone: string | 'All';
   city: string | 'All';
   vehicleType: string | 'All';
@@ -195,6 +221,8 @@ export interface IVendorFilters {
 }
 
 export const EMPTY_FILTERS: IVendorFilters = {
+  // Ontario first: it holds most vendors and nearly every trip.
+  province: 'ON',
   zone: 'All',
   city: 'All',
   vehicleType: 'All',

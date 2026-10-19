@@ -1,6 +1,6 @@
 import * as React from 'react';
 import styles from './OutsourceContactCards.module.scss';
-import { IVendor, IVendorFilters } from '../models/types';
+import { EMPTY_FILTERS, IVendor, IVendorFilters, provinceName } from '../models/types';
 import { facetOptions, filterVendors, sortVendors } from '../services/vendorSearch';
 import VendorCard from './VendorCard';
 
@@ -35,10 +35,10 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
   // Dropdown options facet each other but deliberately ignore the search
   // text: if typing narrowed them, a half-typed word could invalidate and
   // silently wipe a selected zone. Search stays an overlay on the results.
-  const { zone, city, vehicleType } = filters;
+  const { province, zone, city, vehicleType } = filters;
   const options = React.useMemo(
-    () => facetOptions(allVendors, { zone, city, vehicleType, searchText: '' }),
-    [allVendors, zone, city, vehicleType]
+    () => facetOptions(allVendors, { province, zone, city, vehicleType, searchText: '' }),
+    [allVendors, province, zone, city, vehicleType]
   );
 
   const [resetNotice, setResetNotice] = React.useState('');
@@ -48,8 +48,15 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
   // it resets to All. Announced for screen readers: the value changes while
   // focus is on a different control.
   React.useEffect(() => {
+    // Before the vendors arrive every option list is empty, which would
+    // wipe the Ontario default; only a loaded directory can judge a value.
+    if (allVendors.length === 0) return;
     const next = { ...filters };
     const cleared: string[] = [];
+    if (filters.province !== 'All' && options.provinces.indexOf(filters.province) === -1) {
+      next.province = 'All';
+      cleared.push('Province');
+    }
     if (filters.zone !== 'All' && options.zones.indexOf(filters.zone) === -1) {
       next.zone = 'All';
       cleared.push('Zone');
@@ -68,7 +75,7 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
       );
       onFiltersChange(next);
     }
-  }, [options, filters, onFiltersChange]);
+  }, [allVendors.length, options, filters, onFiltersChange]);
 
   const results = React.useMemo(
     () => sortVendors(filterVendors(allVendors, filters)),
@@ -81,6 +88,7 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
   const visible = showAll ? results : results.slice(pageStart, pageStart + PAGE_SIZE);
   const needsPagination = results.length > PAGE_SIZE;
   const isFiltered =
+    filters.province !== EMPTY_FILTERS.province ||
     filters.zone !== 'All' ||
     filters.city !== 'All' ||
     filters.vehicleType !== 'All' ||
@@ -89,7 +97,7 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
   const countLabel = `${results.length} ${results.length === 1 ? 'Vendor' : 'Vendors'}`;
 
   const clearFilters = (): void => {
-    onFiltersChange({ zone: 'All', city: 'All', vehicleType: 'All', searchText: '' });
+    onFiltersChange({ ...EMPTY_FILTERS });
   };
 
   const goToPage = (page: number): void => {
@@ -100,6 +108,28 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
     <div className={styles.gridView}>
       <div className={styles.srOnly} role="status">{resetNotice}</div>
       <div className={styles.filterBar} role="search" aria-label="Vendor filter controls">
+        <div className={styles.filterGroup}>
+          <label className={styles.filterLabel} htmlFor="occ-province-filter">
+            Province
+          </label>
+          <div className={styles.filterChip}>
+            <select
+              id="occ-province-filter"
+              className={styles.filterSelect}
+              value={filters.province}
+              onChange={e => onFiltersChange({ ...filters, province: e.target.value })}
+            >
+              <option value="All">All Provinces</option>
+              {filters.province !== 'All' && options.provinces.indexOf(filters.province) === -1 && (
+                <option value={filters.province}>{provinceName(filters.province)}</option>
+              )}
+              {options.provinces.map(p => (
+                <option key={p} value={p}>{provinceName(p)}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         <div className={styles.filterGroup}>
           <label className={styles.filterLabel} htmlFor="occ-zone-filter">
             Zone
