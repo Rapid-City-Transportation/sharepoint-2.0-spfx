@@ -8,7 +8,7 @@ const TENANT_ORIGIN = 'https://rapidcitytransport.sharepoint.com';
 
 /** One announcement, shaped for the cards that render it. */
 export interface IAnnouncement {
-  /** Badge text e.g. "PAUSE"; empty for News items (which render with no badge). */
+  /** Badge text: the category in capitals, e.g. "PAUSE". */
   tag: string;
   tone: 'pause' | 'school' | 'change' | 'info';
   /** Raw category value (e.g. "News"), used to decide card behavior. */
@@ -123,14 +123,20 @@ function pageMatches(value: unknown, page: string): boolean {
 }
 
 function mapItem(it: Record<string, unknown>, f: IResolvedFields): IAnnouncement {
-  const category = f.category ? String(it[f.category] || '') : '';
+  // Category is a multi-choice column; the first choice drives the badge and
+  // tone, so picking a second one never yields a "NEWS,INFO" badge.
+  const rawCategory = f.category ? it[f.category] : undefined;
+  const category = Array.isArray(rawCategory)
+    ? String(rawCategory[0] || '')
+    : String(rawCategory || '');
   const lower = category.toLowerCase();
   const rawBody = f.body ? String(it[f.body] || '') : '';
   const link = f.linkUrl ? (it[f.linkUrl] as { Url?: string } | null) : null;
   const author = it.Author as { Title?: string } | null | undefined;
   return {
-    // News items have no badge - they read as a plain line.
-    tag: lower && lower !== 'news' ? category.toUpperCase() : '',
+    // Every category gets its badge: a badgeless row on the hubs was read as
+    // a save that had failed, which is how News used to render.
+    tag: category.toUpperCase(),
     tone: TONE_BY_CATEGORY[lower] || 'info',
     category,
     title: String(it.Title || ''),
