@@ -5,8 +5,8 @@ import {
   IVendor,
   IVendorFilters,
   IVendorZoneProfile,
+  compareProvinces,
   priorityRank,
-  provinceName,
   vehiclesForZone,
 } from '../models/types';
 
@@ -132,7 +132,7 @@ export function facetOptions(vendors: IVendor[], filters: IVendorFilters): IFace
   }
   if (Array.from(vehicleTypes).some(isWheelchair)) vehicleTypes.add(ANY_WHEELCHAIR);
   return {
-    provinces: Array.from(provinces).sort((a, b) => provinceName(a).localeCompare(provinceName(b))),
+    provinces: Array.from(provinces).sort(compareProvinces),
     zones: sorted(zones),
     cities: sorted(cities),
     vehicleTypes: sorted(vehicleTypes),

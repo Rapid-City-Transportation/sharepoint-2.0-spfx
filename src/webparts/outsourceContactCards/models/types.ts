@@ -206,8 +206,47 @@ const PROVINCE_NAMES: Record<string, string> = {
   YT: 'Yukon',
 };
 
+const STATE_NAMES: Record<string, string> = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'District of Columbia',
+  FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois',
+  IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana',
+  ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota',
+  MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada',
+  NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York',
+  NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon',
+  PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota',
+  TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia',
+  WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming',
+};
+
+// Codes the Masterlist uses that are countries, not provinces or states.
+const OTHER_NAMES: Record<string, string> = {
+  US: 'United States (state unknown)',
+  UK: 'United Kingdom',
+};
+
 export function provinceName(code: string): string {
-  return PROVINCE_NAMES[code.toUpperCase()] || code;
+  const c = code.toUpperCase();
+  return PROVINCE_NAMES[c] || STATE_NAMES[c] || OTHER_NAMES[c] || code;
+}
+
+export type RegionGroup = 'Canada' | 'United States' | 'Other';
+
+/** Dropdown group order: home country first, then the US, then the rest. */
+export const REGION_GROUPS: RegionGroup[] = ['Canada', 'United States', 'Other'];
+
+export function provinceGroup(code: string): RegionGroup {
+  const c = code.toUpperCase();
+  if (PROVINCE_NAMES[c]) return 'Canada';
+  if (STATE_NAMES[c]) return 'United States';
+  return 'Other';
+}
+
+/** Group order first, then by display name within a group. */
+export function compareProvinces(a: string, b: string): number {
+  const byGroup = REGION_GROUPS.indexOf(provinceGroup(a)) - REGION_GROUPS.indexOf(provinceGroup(b));
+  return byGroup !== 0 ? byGroup : provinceName(a).localeCompare(provinceName(b));
 }
 
 /** Grid filter state. 'All' means that facet is not filtering. */

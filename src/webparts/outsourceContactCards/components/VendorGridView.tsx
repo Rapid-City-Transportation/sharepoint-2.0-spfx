@@ -1,6 +1,13 @@
 import * as React from 'react';
 import styles from './OutsourceContactCards.module.scss';
-import { EMPTY_FILTERS, IVendor, IVendorFilters, provinceName } from '../models/types';
+import {
+  EMPTY_FILTERS,
+  IVendor,
+  IVendorFilters,
+  provinceGroup,
+  provinceName,
+  REGION_GROUPS,
+} from '../models/types';
 import { facetOptions, filterVendors, sortVendors } from '../services/vendorSearch';
 import VendorCard from './VendorCard';
 
@@ -123,9 +130,17 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
               {filters.province !== 'All' && options.provinces.indexOf(filters.province) === -1 && (
                 <option value={filters.province}>{provinceName(filters.province)}</option>
               )}
-              {options.provinces.map(p => (
-                <option key={p} value={p}>{provinceName(p)}</option>
-              ))}
+              {REGION_GROUPS.map(group => {
+                const codes = options.provinces.filter(p => provinceGroup(p) === group);
+                if (codes.length === 0) return null;
+                return (
+                  <optgroup key={group} label={group}>
+                    {codes.map(p => (
+                      <option key={p} value={p}>{provinceName(p)}</option>
+                    ))}
+                  </optgroup>
+                );
+              })}
             </select>
           </div>
         </div>
