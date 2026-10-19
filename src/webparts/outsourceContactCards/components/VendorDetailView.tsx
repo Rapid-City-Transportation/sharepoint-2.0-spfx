@@ -141,6 +141,8 @@ interface IAlternative {
   sharedCities: string[];
   /** Matched by covering the same zone, with no listed city overlap. */
   sameZone?: boolean;
+  /** What the matching coverage can send, so dispatch can pick by vehicle. */
+  vehicles: string[];
 }
 
 /**
@@ -182,11 +184,21 @@ function findAlternatives(
       }
     }
     if (shared.length > 0) {
-      cityTier.push({ vendor: v, sharedCities: shared });
-    } else if (zone && v.zones.some(z => z.zone === zone)) {
-      // Second tier: covers the same zone with no listed city overlap.
-      // Catches vendors whose Cities column is still sparse mid-migration.
-      zoneTier.push({ vendor: v, sharedCities: [], sameZone: true });
+      // The vehicles of the coverage that actually reaches the shared cities.
+      const reaching = v.zones.filter(z => z.cities.some(c => wanted.has(c.toLowerCase())))[0];
+      cityTier.push({ vendor: v, sharedCities: shared, vehicles: vehiclesForZone(v, reaching) });
+    } else {
+      const sameZoneProfile = zone ? v.zones.filter(z => z.zone === zone)[0] : undefined;
+      if (sameZoneProfile) {
+        // Second tier: covers the same zone with no listed city overlap.
+        // Catches vendors whose Cities column is still sparse mid-migration.
+        zoneTier.push({
+          vendor: v,
+          sharedCities: [],
+          sameZone: true,
+          vehicles: vehiclesForZone(v, sameZoneProfile),
+        });
+      }
     }
   }
 
@@ -515,6 +527,16 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                                     : ''
                                 }`}
                           </span>
+                          {alt.vehicles.length > 0 && (
+                            <span className={styles.recVehicles}>
+                              {alt.vehicles.map(v => (
+                                <span key={v} className={styles.cardVehicleIcon} title={v}>
+                                  <VehicleIcon type={v} />
+                                </span>
+                              ))}
+                              <span className={styles.srOnly}>Vehicles: {alt.vehicles.join(', ')}</span>
+                            </span>
+                          )}
                           {alt.vendor.dispatch.phone && (
                             <span className={styles.recPhone}>
                               {alt.vendor.dispatch.phone}

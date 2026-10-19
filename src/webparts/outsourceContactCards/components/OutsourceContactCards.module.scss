@@ -1188,6 +1188,13 @@ $transition:      0.18s ease;
   color: var(--rct-text-secondary, #4A5568);
 }
 
+.recVehicles {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0;
+}
+
 .recPhone {
   font-size: 13px;
   font-weight: 600;

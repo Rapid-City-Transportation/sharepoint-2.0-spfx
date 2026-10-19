@@ -9,6 +9,18 @@ import {
   vehiclesForZone,
 } from '../models/types';
 
+/** A filter choice of its own: any wheelchair-capable vehicle, whichever
+ *  loading side. When a client needs a wheelchair, dispatch rarely cares which. */
+export const ANY_WHEELCHAIR = 'Wheelchair (any)';
+
+function isWheelchair(vehicle: string): boolean {
+  return /^wheelchair/i.test(vehicle);
+}
+
+function hasVehicle(vehicles: string[], wanted: string): boolean {
+  return wanted === ANY_WHEELCHAIR ? vehicles.some(isWheelchair) : vehicles.indexOf(wanted) !== -1;
+}
+
 /**
  * Matches against name, operating name, zones, cities, and vehicle types.
  * Priority is excluded by design: dispatch must not search on it.
@@ -48,7 +60,7 @@ function profileMatches(
     (ignore === 'city' || filters.city === 'All' || profile.cities.indexOf(filters.city) !== -1) &&
     (ignore === 'vehicleType' ||
       filters.vehicleType === 'All' ||
-      vehiclesForZone(vendor, profile).indexOf(filters.vehicleType) !== -1)
+      hasVehicle(vehiclesForZone(vendor, profile), filters.vehicleType))
   );
 }
 
@@ -97,6 +109,7 @@ export function facetOptions(vendors: IVendor[], filters: IVendorFilters): IFace
       }
     }
   }
+  if (Array.from(vehicleTypes).some(isWheelchair)) vehicleTypes.add(ANY_WHEELCHAIR);
   return { zones: sorted(zones), cities: sorted(cities), vehicleTypes: sorted(vehicleTypes) };
 }
 
