@@ -34,6 +34,17 @@ export const RESOURCE_TABS: IResourceTab[] = [
 
 const COLLAPSIBLE_GROUP_TABS = new Set(['schools']);
 
+/** What a reader can see of an item, for search. Content is rich-text HTML
+ *  whose wrapper carries a random id (ExternalClass76E4...DDA0CB0C), so
+ *  searching the raw markup matched letters nobody could see on screen. */
+function searchableText(item: ISiteResource): string {
+  const text = item.content
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&');
+  return `${item.title} ${item.group} ${text}`.toLowerCase();
+}
+
 // Single-item reference tabs (e.g. the travel-time table) show one item, so the
 // search box and result count are just noise; hide them.
 const REFERENCE_TABS = new Set(['travelTimes']);
@@ -149,14 +160,9 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({
   const visibleItems = React.useMemo(() => {
     if (!currentTab || currentTab.category === null) return [];
     let list = resources.filter(r => r.category === currentTab.category);
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(
-        r =>
-          r.title.toLowerCase().includes(q) ||
-          r.content.toLowerCase().includes(q) ||
-          r.group.toLowerCase().includes(q)
-      );
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter(r => searchableText(r).indexOf(q) !== -1);
     }
     return list;
   }, [resources, currentTab, search]);
