@@ -338,8 +338,7 @@ export const Navigation: React.FC<INavigationProps> = (props) => {
   const contactCardsLinks: INavLink[] = React.useMemo(
     () => [
       { label: 'Customer', href: contactCardsUrl },
-      // Remove `disabled` once OutsourceContactCards.aspx is created on compass.
-      { label: 'Outsource', href: OUTSOURCE_CARDS_URL, disabled: true },
+      { label: 'Outsource', href: OUTSOURCE_CARDS_URL },
     ],
     [contactCardsUrl]
   );

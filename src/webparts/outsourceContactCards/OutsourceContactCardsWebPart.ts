@@ -4,6 +4,7 @@ import { Version } from '@microsoft/sp-core-library';
 import {
   type IPropertyPaneConfiguration,
   PropertyPaneTextField,
+  PropertyPaneToggle,
 } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
@@ -14,6 +15,7 @@ import { initializeSP as initializeFeedbackSP } from '../customerContactCards/se
 
 export interface IOutsourceContactCardsWebPartProps {
   title: string;
+  showDevelopmentNotice?: boolean;
 }
 
 /**
@@ -33,6 +35,9 @@ export default class OutsourceContactCardsWebPart extends BaseClientSideWebPart<
       OutsourceContactCards,
       {
         title: this.properties.title || 'Outsource Contact Cards',
+        // Shown unless someone has switched it off: a page instance added
+        // before this setting existed carries no value at all.
+        showDevelopmentNotice: this.properties.showDevelopmentNotice !== false,
       }
     );
     ReactDom.render(element, this.domElement);
@@ -57,6 +62,11 @@ export default class OutsourceContactCardsWebPart extends BaseClientSideWebPart<
               groupFields: [
                 PropertyPaneTextField('title', {
                   label: 'Page Title',
+                }),
+                PropertyPaneToggle('showDevelopmentNotice', {
+                  label: 'Show the "in development, do not use" notice',
+                  onText: 'Shown',
+                  offText: 'Hidden',
                 }),
               ],
             },

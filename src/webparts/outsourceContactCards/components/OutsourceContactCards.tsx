@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Icon } from '@fluentui/react/lib/Icon';
 import styles from './OutsourceContactCards.module.scss';
 import { IOutsourceContactCardsProps } from './IOutsourceContactCardsProps';
 import { EMPTY_FILTERS, IVendor, IVendorFilters } from '../models/types';
@@ -26,7 +27,10 @@ type ViewState = 'grid' | 'detail';
  * same Address Directories drawer (addresses only). Filter state lives here
  * so selections survive opening and closing a vendor.
  */
-const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({ title }) => {
+const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
+  title,
+  showDevelopmentNotice,
+}) => {
   const [view, setView] = React.useState<ViewState>('grid');
   const [selectedVendor, setSelectedVendor] = React.useState<IVendor | null>(null);
   const [filters, setFilters] = React.useState<IVendorFilters>(EMPTY_FILTERS);
@@ -94,6 +98,16 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({ title })
         onSearch={handleNavSearch}
         onVendorSelect={handleVendorSelect}
       />
+
+      {showDevelopmentNotice && (
+        <div className={styles.devNotice} role="note">
+          <Icon iconName="Warning" className={styles.devNoticeIcon} aria-hidden="true" />
+          <p className={styles.devNoticeText}>
+            <strong>In development - do not use.</strong> This page is still being built, and
+            the information on it may be incomplete or out of date.
+          </p>
+        </div>
+      )}
 
       {view === 'grid' && (
         <div className={styles.pageHeadingRow}>

@@ -22,7 +22,8 @@
       },
       "officeFabricIconFontName": "Car",
       "properties": {
-        "title": "Outsource Contact Cards"
+        "title": "Outsource Contact Cards",
+        "showDevelopmentNotice": true
       }
     }
   ]
