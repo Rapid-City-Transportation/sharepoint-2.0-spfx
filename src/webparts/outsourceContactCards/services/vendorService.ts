@@ -2,7 +2,7 @@ import { buildZoneAccents, IVendor } from '../models/types';
 import { getSP } from './spConfig';
 import { COV, COV_SELECT_FIELDS, MGR, MGR_SELECT_FIELDS, ML, ML_SELECT_FIELDS } from './fieldNames';
 import { mapManagerRows, mapMasterAndCoverage } from '../mappers/vendorMapper';
-import { isManagerView } from './permissions';
+import { resolveManagerView } from './permissions';
 import { MOCK_VENDORS } from '../mock/mockVendors';
 
 /** Set true to run the page off mock data instead of the Dispatch lists. */
@@ -46,7 +46,7 @@ export async function fetchVendors(): Promise<IVendor[]> {
 
   const vendors = mapMasterAndCoverage(masterRows, coverageRows);
 
-  if (isManagerView()) {
+  if (await resolveManagerView()) {
     await attachManagerInfo(vendors);
   }
 
