@@ -7,19 +7,22 @@ import {
 } from '../../services/resourcesService';
 import { sanitizeHtml } from '../../utils/sanitize';
 
-interface IResourcesDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  triggerRef: React.RefObject<HTMLButtonElement>;
-}
-
-interface ITabConfig {
+export interface IResourceTab {
   id: string;
   label: string;
   category: ResourceCategory | null;
 }
 
-const TABS: ITabConfig[] = [
+interface IResourcesDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  triggerRef: React.RefObject<HTMLButtonElement>;
+  /** Which directories to offer; every tab by default. A page that only
+   *  needs addresses (the outsource directory) passes a subset. */
+  tabs?: IResourceTab[];
+}
+
+export const RESOURCE_TABS: IResourceTab[] = [
   { id: 'airports', label: 'Airports', category: 'Airport' },
   { id: 'trainStations', label: 'Train Stations', category: 'Train Station' },
   { id: 'hospitals', label: 'Hospitals', category: 'Hospital' },
@@ -29,24 +32,19 @@ const TABS: ITabConfig[] = [
   { id: 'travelTimes', label: 'Travel Times', category: 'Travel Time Guidelines' },
 ];
 
-const ACTIVE_CATEGORIES: ResourceCategory[] = [
-  'Airport',
-  'Train Station',
-  'Hospital',
-  'School',
-  'Insurance Company',
-  'Auto Alert',
-  'Travel Time Guidelines',
-];
-
 const COLLAPSIBLE_GROUP_TABS = new Set(['schools']);
 
 // Single-item reference tabs (e.g. the travel-time table) show one item, so the
 // search box and result count are just noise; hide them.
 const REFERENCE_TABS = new Set(['travelTimes']);
 
-const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({ isOpen, onClose, triggerRef }) => {
-  const [activeTab, setActiveTab] = React.useState<string>('airports');
+const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({
+  isOpen,
+  onClose,
+  triggerRef,
+  tabs = RESOURCE_TABS,
+}) => {
+  const [activeTab, setActiveTab] = React.useState<string>(tabs[0].id);
   const [resources, setResources] = React.useState<ISiteResource[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string>('');
@@ -56,12 +54,17 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({ isOpen, onClose, tri
 
   const drawerRef = React.useRef<HTMLDivElement>(null);
   const closeBtnRef = React.useRef<HTMLButtonElement>(null);
+  const categories = React.useMemo(
+    () => tabs.map(t => t.category).filter((c): c is ResourceCategory => c !== null),
+    [tabs]
+  );
+
   React.useEffect(() => {
     if (!isOpen || resources.length > 0 || loading) return;
 
     setLoading(true);
     setError('');
-    fetchResourcesByCategory(ACTIVE_CATEGORIES)
+    fetchResourcesByCategory(categories)
       .then(items => {
         setResources(items);
         setLoading(false);
@@ -70,7 +73,7 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({ isOpen, onClose, tri
         setError('Unable to load resources. Please try again later.');
         setLoading(false);
       });
-  }, [isOpen, resources.length, loading]);
+  }, [isOpen, resources.length, loading, categories]);
 
   // Only return focus to the trigger after a real close, not on initial mount.
   const wasOpenRef = React.useRef(false);
@@ -113,7 +116,7 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({ isOpen, onClose, tri
     }
   }, []);
 
-  const handleTabChange = React.useCallback((tab: ITabConfig) => {
+  const handleTabChange = React.useCallback((tab: IResourceTab) => {
     setActiveTab(tab.id);
     setSearch('');
     setExpandedIds(new Set());
@@ -138,7 +141,7 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({ isOpen, onClose, tri
     });
   }, []);
 
-  const currentTab = TABS.find(t => t.id === activeTab);
+  const currentTab = tabs.find(t => t.id === activeTab);
   const isActiveCategory = currentTab?.category !== null && currentTab?.category !== undefined;
   const isCollapsibleTab = COLLAPSIBLE_GROUP_TABS.has(activeTab);
   const isSearching = search.trim().length > 0;
@@ -205,7 +208,7 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({ isOpen, onClose, tri
         </div>
 
         <div role="tablist" aria-label="Resource categories" className={styles.tabBar}>
-          {TABS.map(tab => {
+          {tabs.map(tab => {
             const isActive = tab.id === activeTab;
             const isPlaceholder = tab.category === null;
             return (

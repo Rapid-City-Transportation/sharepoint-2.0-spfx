@@ -46,6 +46,14 @@ $transition:      0.18s ease;
   background: $surface;
   min-height: 500px;
   padding: 0;
+  // Room for the Address Directories tab on the right edge, as on the
+  // customer cards page; the open drawer pushes content further over.
+  padding-right: 60px;
+  transition: padding-right 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.webPartContainerShifted {
+  padding-right: 480px;
 }
 
 .pageHeadingRow {
@@ -1135,29 +1143,45 @@ $transition:      0.18s ease;
   gap: 8px;
 }
 
+// The card is the list item: the company button and the phone link sit side
+// by side inside it, since a link cannot live inside a button.
+.recItem {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--rct-blue-accessible, #187389);
+  }
+}
+
 .recButton {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 3px;
   padding: 10px 12px;
-  border: 1px solid var(--rct-border, #D0D5DD);
-  border-radius: 10px;
-  background: #ffffff;
+  border: 0;
+  background: transparent;
   font-family: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: background 0.15s ease;
 
   &:hover {
     background: rgba(24, 115, 137, 0.06);
-    border-color: var(--rct-blue-accessible, #187389);
   }
 
   &:focus-visible {
     outline: 3px solid var(--rct-primary, #1F4C7F);
-    outline-offset: 2px;
+    outline-offset: -3px;
   }
 }
 
@@ -1196,13 +1220,37 @@ $transition:      0.18s ease;
 }
 
 .recPhone {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-left: 1px solid var(--rct-border, #D0D5DD);
   font-size: 13px;
   font-weight: 600;
   color: var(--rct-blue-accessible, #187389);
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(24, 115, 137, 0.06);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: -3px;
+  }
 }
 
 @media (max-width: 640px) {
-  .recButton {
+  // Drawers go full-width on phones, so don't shove page content off-screen.
+  .webPartContainer,
+  .webPartContainerShifted {
+    padding-right: 0;
+  }
+
+  .recButton,
+  .recPhone {
     min-height: 44px;
   }
 

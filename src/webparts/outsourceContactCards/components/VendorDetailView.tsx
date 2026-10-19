@@ -504,7 +504,7 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                   </p>
                   <ul className={styles.recList} role="list">
                     {alternatives.map(alt => (
-                      <li key={alt.vendor.id}>
+                      <li key={alt.vendor.id} className={styles.recItem}>
                         <button
                           type="button"
                           className={styles.recButton}
@@ -537,12 +537,16 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                               <span className={styles.srOnly}>Vehicles: {alt.vehicles.join(', ')}</span>
                             </span>
                           )}
-                          {alt.vendor.dispatch.phone && (
-                            <span className={styles.recPhone}>
-                              {alt.vendor.dispatch.phone}
-                            </span>
-                          )}
                         </button>
+                        {alt.vendor.dispatch.phone && (
+                          <a
+                            className={styles.recPhone}
+                            href={contactHref(alt.vendor.dispatch.phone)}
+                            aria-label={`${alt.vendor.name}: ${alt.vendor.dispatch.phone}`}
+                          >
+                            {alt.vendor.dispatch.phone}
+                          </a>
+                        )}
                       </li>
                     ))}
                   </ul>

@@ -8,17 +8,32 @@ import VendorDetailView from './VendorDetailView';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
 import { defaultTheme, getThemeCssVariables } from '../../rapidCityHomepage/theme/ThemeTokens';
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
+import ResourcesDrawer, {
+  IResourceTab,
+  RESOURCE_TABS,
+} from '../../customerContactCards/components/ResourcesDrawer/ResourcesDrawer';
+import ResourcesTrigger from '../../customerContactCards/components/ResourcesDrawer/ResourcesTrigger';
+
+// Dispatch asked for the address directories only; travel times, insurance
+// and auto alerts are Customer Experience material.
+const ADDRESS_TAB_IDS = ['airports', 'trainStations', 'hospitals', 'schools'];
+const ADDRESS_TABS: IResourceTab[] = RESOURCE_TABS.filter(t => ADDRESS_TAB_IDS.indexOf(t.id) !== -1);
 
 type ViewState = 'grid' | 'detail';
 
 /**
- * Grid/detail router, same shape as the Customer Contact Cards page. Filter
- * state lives here so selections survive opening and closing a vendor.
+ * Grid/detail router, same shape as the Customer Contact Cards page, with the
+ * same Address Directories drawer (addresses only). Filter state lives here
+ * so selections survive opening and closing a vendor.
  */
 const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({ title }) => {
   const [view, setView] = React.useState<ViewState>('grid');
   const [selectedVendor, setSelectedVendor] = React.useState<IVendor | null>(null);
   const [filters, setFilters] = React.useState<IVendorFilters>(EMPTY_FILTERS);
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const resourcesTriggerRef = React.useRef<HTMLButtonElement>(null);
+  const openDrawer = React.useCallback(() => setDrawerOpen(true), []);
+  const closeDrawer = React.useCallback(() => setDrawerOpen(false), []);
 
   const themeVars = React.useMemo(() => getThemeCssVariables(defaultTheme), []);
   const { vendors, loading, error } = useVendors();
@@ -70,7 +85,10 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({ title })
     : 'Outsource Contact Cards Page';
 
   return (
-    <div className={styles.webPartContainer} style={themeVars as React.CSSProperties}>
+    <div
+      className={`${styles.webPartContainer} ${drawerOpen ? styles.webPartContainerShifted : ''}`}
+      style={themeVars as React.CSSProperties}
+    >
       <Navigation
         activePage="outsourceCards"
         onSearch={handleNavSearch}
@@ -115,6 +133,19 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({ title })
       )}
 
       <Footer pageIdentifier={feedbackPageId} />
+
+      <ResourcesDrawer
+        isOpen={drawerOpen}
+        onClose={closeDrawer}
+        triggerRef={resourcesTriggerRef}
+        tabs={ADDRESS_TABS}
+      />
+
+      <ResourcesTrigger
+        ref={resourcesTriggerRef}
+        onClick={drawerOpen ? closeDrawer : openDrawer}
+        isOpen={drawerOpen}
+      />
     </div>
   );
 };
