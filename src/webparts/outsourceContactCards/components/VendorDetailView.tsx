@@ -4,12 +4,12 @@ import styles from './OutsourceContactCards.module.scss';
 import AccordionSection from '../../customerContactCards/components/AccordionSection';
 import {
   allCities,
-  bestPriority,
   IVendor,
   IVendorManagerInfo,
   IVendorZoneProfile,
   priorityRank,
   vehiclesForZone,
+  VendorPriority,
   zoneAccent,
 } from '../models/types';
 import { isManagerView } from '../services/permissions';
@@ -143,13 +143,36 @@ interface IAlternative {
   sameZone?: boolean;
   /** What the matching coverage can send, so dispatch can pick by vehicle. */
   vehicles: string[];
+  /** The company's priority here: for the shared towns, or for the zone.
+   *  Its best priority anywhere would mislabel a Brantford Primary that is
+   *  only Secondary in Niagara. */
+  priority?: VendorPriority;
+}
+
+/** Priority a coverage profile gives to the shared towns: the best tier that
+ *  names one of them when the zone is split by rank, else the zone's own. */
+function priorityForShared(profile: IVendorZoneProfile, shared: string[]): VendorPriority | undefined {
+  if (!profile.cityTiers || profile.cityTiers.length === 0) return profile.priority;
+  const wanted = new Set(shared.map(c => c.toLowerCase()));
+  let best: VendorPriority | undefined;
+  for (const tier of profile.cityTiers) {
+    if (!tier.cities.some(c => wanted.has(c.toLowerCase()))) continue;
+    if (priorityRank(tier.priority) < priorityRank(best)) best = tier.priority;
+  }
+  return best || profile.priority;
+}
+
+function bestOf(a: VendorPriority | undefined, b: VendorPriority | undefined): VendorPriority | undefined {
+  return priorityRank(b) < priorityRank(a) ? b : a;
 }
 
 /**
  * Other companies serving the same cities as the active zone (or the whole
  * vendor when it has no zone breakdown), for when this one cannot take the
- * trip. Best coverage first: shared-city count, then strongest priority,
- * then name.
+ * trip. Companies that list the same towns come before those that only
+ * cover the zone (the towns column is still being filled in, so a listed
+ * town is the firmer fact); within each, Dispatch's own calling order:
+ * Primary, Secondary, When Required, then shared-town count, then name.
  */
 function findAlternatives(
   current: IVendor,
@@ -163,12 +186,10 @@ function findAlternatives(
   const wanted = new Set(base.map(c => c.toLowerCase()));
   const zone = zoneProfile && zoneProfile.zone;
 
-  const byPriorityThenName = (a: IAlternative, b: IAlternative): number => {
-    const pa = priorityRank(bestPriority(a.vendor));
-    const pb = priorityRank(bestPriority(b.vendor));
-    if (pa !== pb) return pa - pb;
-    return a.vendor.name.localeCompare(b.vendor.name);
-  };
+  const byPriority = (a: IAlternative, b: IAlternative): number =>
+    priorityRank(a.priority) - priorityRank(b.priority);
+  const byName = (a: IAlternative, b: IAlternative): number =>
+    a.vendor.name.localeCompare(b.vendor.name);
 
   const cityTier: IAlternative[] = [];
   const zoneTier: IAlternative[] = [];
@@ -184,9 +205,14 @@ function findAlternatives(
       }
     }
     if (shared.length > 0) {
-      // The vehicles of the coverage that actually reaches the shared cities.
-      const reaching = v.zones.filter(z => z.cities.some(c => wanted.has(c.toLowerCase())))[0];
-      cityTier.push({ vendor: v, sharedCities: shared, vehicles: vehiclesForZone(v, reaching) });
+      // The coverage rows that actually reach the shared towns decide the
+      // vehicles and the priority, not the company's best zone elsewhere.
+      const reaching = v.zones.filter(z => z.cities.some(c => wanted.has(c.toLowerCase())));
+      const priority = reaching.reduce<VendorPriority | undefined>(
+        (best, z) => bestOf(best, priorityForShared(z, shared)),
+        undefined
+      );
+      cityTier.push({ vendor: v, sharedCities: shared, vehicles: vehiclesForZone(v, reaching[0]), priority });
     } else {
       const sameZoneProfile = zone ? v.zones.filter(z => z.zone === zone)[0] : undefined;
       if (sameZoneProfile) {
@@ -197,18 +223,16 @@ function findAlternatives(
           sharedCities: [],
           sameZone: true,
           vehicles: vehiclesForZone(v, sameZoneProfile),
+          priority: sameZoneProfile.priority,
         });
       }
     }
   }
 
-  cityTier.sort((a, b) => {
-    if (b.sharedCities.length !== a.sharedCities.length) {
-      return b.sharedCities.length - a.sharedCities.length;
-    }
-    return byPriorityThenName(a, b);
-  });
-  zoneTier.sort(byPriorityThenName);
+  cityTier.sort(
+    (a, b) => byPriority(a, b) || b.sharedCities.length - a.sharedCities.length || byName(a, b)
+  );
+  zoneTier.sort((a, b) => byPriority(a, b) || byName(a, b));
 
   return cityTier.concat(zoneTier).slice(0, 5);
 }
@@ -512,10 +536,8 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                         >
                           <span className={styles.recTopRow}>
                             <span className={styles.recName}>{alt.vendor.name}</span>
-                            {bestPriority(alt.vendor) && (
-                              <span className={styles.recPriority}>
-                                {bestPriority(alt.vendor)}
-                              </span>
+                            {alt.priority && (
+                              <span className={styles.recPriority}>{alt.priority}</span>
                             )}
                           </span>
                           <span className={styles.recCities}>
