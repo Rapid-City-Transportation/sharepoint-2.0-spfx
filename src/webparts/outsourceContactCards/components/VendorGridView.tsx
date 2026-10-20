@@ -116,6 +116,22 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
       <div className={styles.srOnly} role="status">{resetNotice}</div>
       <div className={styles.filterBar} role="search" aria-label="Vendor filter controls">
         <div className={styles.filterRow}>
+        <div className={styles.searchWrapper}>
+          <span className={styles.searchIcon} aria-hidden="true">🔍</span>
+          <input
+            id="occ-search"
+            type="search"
+            className={styles.searchInput}
+            placeholder="Search Vendors"
+            value={filters.searchText}
+            onChange={e => onFiltersChange({ ...filters, searchText: e.target.value })}
+            aria-label="Search vendors by name, zone, or city"
+          />
+        </div>
+
+        </div>
+
+        <div className={styles.filterRow}>
         <div className={styles.filterGroup}>
           <label className={styles.filterLabel} htmlFor="occ-province-filter">
             Province
@@ -222,22 +238,6 @@ const VendorGridView: React.FC<IVendorGridViewProps> = ({
             Clear
           </button>
         )}
-
-        </div>
-
-        <div className={styles.filterRow}>
-        <div className={styles.searchWrapper}>
-          <span className={styles.searchIcon} aria-hidden="true">🔍</span>
-          <input
-            id="occ-search"
-            type="search"
-            className={styles.searchInput}
-            placeholder="Search Vendors"
-            value={filters.searchText}
-            onChange={e => onFiltersChange({ ...filters, searchText: e.target.value })}
-            aria-label="Search vendors by name, zone, or city"
-          />
-        </div>
 
         <div className={styles.countGroup} aria-live="polite" aria-atomic="true">
           <span className={styles.countText}>{countLabel}</span>

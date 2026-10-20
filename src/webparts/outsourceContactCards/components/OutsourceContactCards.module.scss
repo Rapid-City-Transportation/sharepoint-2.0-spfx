@@ -147,9 +147,9 @@ $transition:      0.18s ease;
   }
 }
 
-// Two deliberate rows, filters then search and results, so the toolbar never
-// crams one line or wraps by accident, and every dropdown shows its whole
-// selected value.
+// Two deliberate rows: search first (find), then the filters (narrow) with the
+// result count at their right end, nearest the grid. Nothing crams one line
+// or wraps by accident, and every dropdown shows its whole selected value.
 .filterBar {
   display: flex;
   flex-direction: column;
@@ -268,7 +268,7 @@ $transition:      0.18s ease;
   align-items: center;
   gap: 8px;
   flex: 1 1 280px;
-  max-width: 640px;
+  max-width: 720px;
   min-width: 200px;
   background: $surface-card;
   border: 1px solid $border;
@@ -321,6 +321,7 @@ $transition:      0.18s ease;
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 36px;
   white-space: nowrap;
 
   @media (max-width: 600px) {
