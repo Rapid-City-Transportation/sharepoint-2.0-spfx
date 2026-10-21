@@ -22,6 +22,21 @@ const ADDRESS_TABS: IResourceTab[] = RESOURCE_TABS.filter(t => ADDRESS_TAB_IDS.i
 
 type ViewState = 'grid' | 'detail';
 
+// The open card lives in the URL (?vendor=<id>), so a refresh, a bookmark or
+// a pasted link lands on the same company instead of back at the grid.
+const VENDOR_PARAM = 'vendor';
+
+function readVendorParam(): string | null {
+  return new URLSearchParams(window.location.search).get(VENDOR_PARAM);
+}
+
+function writeVendorParam(id: string | null): void {
+  const url = new URL(window.location.href);
+  if (id) url.searchParams.set(VENDOR_PARAM, id);
+  else url.searchParams.delete(VENDOR_PARAM);
+  window.history.replaceState(window.history.state, '', url.toString());
+}
+
 /**
  * Grid/detail router, same shape as the Customer Contact Cards page, with the
  * same Address Directories drawer (addresses only). Filter state lives here
@@ -48,12 +63,14 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
     lastVendorIdRef.current = vendor.id;
     setSelectedVendor(vendor);
     setView('detail');
+    writeVendorParam(vendor.id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   const handleBack = React.useCallback((): void => {
     setView('grid');
     setSelectedVendor(null);
+    writeVendorParam(null);
   }, []);
 
   const handleNavSearch = React.useCallback((query: string): void => {
@@ -62,7 +79,18 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
     setFilters(prev => (prev.searchText === query ? prev : { ...prev, searchText: query }));
     setView('grid');
     setSelectedVendor(null);
+    writeVendorParam(null);
   }, []);
+
+  // Once the directory has loaded, open the card the URL names (if any).
+  const openedFromUrl = React.useRef(false);
+  React.useEffect(() => {
+    if (openedFromUrl.current || vendors.length === 0) return;
+    openedFromUrl.current = true;
+    const wanted = readVendorParam();
+    const match = wanted ? vendors.find(v => v.id === wanted) : undefined;
+    if (match) handleCardClick(match);
+  }, [vendors, handleCardClick]);
 
   const handleVendorSelect = React.useCallback((vendorId: string): void => {
     const match = vendors.find(v => v.id === vendorId);
