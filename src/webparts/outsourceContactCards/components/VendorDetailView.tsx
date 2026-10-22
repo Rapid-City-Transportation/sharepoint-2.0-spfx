@@ -13,6 +13,7 @@ import {
   zoneAccent,
 } from '../models/types';
 import { isManagerView } from '../services/permissions';
+import { ANY_WHEELCHAIR, hasVehicle } from '../services/vendorSearch';
 import VehicleIcon from './VehicleIcon';
 
 // Accent hexes match the customer detail view's sections so the two card
@@ -31,6 +32,44 @@ interface IVendorDetailViewProps {
   /** Full directory, for the "If Unavailable" alternatives panel. */
   allVendors: IVendor[];
   onVendorSelect: (vendor: IVendor) => void;
+  /** The vehicle the alternatives are narrowed to ('All' for none). Held by
+   *  the page so the choice follows the dispatcher from one alternative's
+   *  card to the next while they look for, say, a minivan. */
+  altVehicle: string;
+  onAltVehicleChange: (vehicle: string) => void;
+}
+
+const MAX_ALTERNATIVES = 5;
+
+function vehiclePhrase(vehicle: string): string {
+  return vehicle === ANY_WHEELCHAIR ? 'a wheelchair vehicle' : vehicle;
+}
+
+// Chip order: the cars first, the wheelchair kinds together, stretcher last.
+const VEHICLE_CHIP_ORDER = [
+  'Sedan',
+  'SUV',
+  'Minivan',
+  ANY_WHEELCHAIR,
+  'Wheelchair (SL)',
+  'Wheelchair (RL)',
+  'Wheelchair (OS)',
+  'Wheelchair (Unspecified)',
+  'Stretcher',
+];
+
+/**
+ * The chips for an alternatives list: the vehicles this company sends in the
+ * zone, since the trip it cannot take needed one of them. Finding a vehicle
+ * it does not send is the grid's job, which searches every company. Adds
+ * "Wheelchair (any)" when it sends a wheelchair: another loading side often
+ * does the job.
+ */
+function vehicleChoices(ownVehicles: string[]): string[] {
+  const present = new Set<string>(ownVehicles);
+  if (ownVehicles.some(v => /^wheelchair/i.test(v))) present.add(ANY_WHEELCHAIR);
+  const unlisted = Array.from(present).filter(v => VEHICLE_CHIP_ORDER.indexOf(v) === -1).sort();
+  return VEHICLE_CHIP_ORDER.filter(v => present.has(v)).concat(unlisted);
 }
 
 /** Renders nothing when the value is empty. */
@@ -234,7 +273,7 @@ function findAlternatives(
   );
   zoneTier.sort((a, b) => byPriority(a, b) || byName(a, b));
 
-  return cityTier.concat(zoneTier).slice(0, 5);
+  return cityTier.concat(zoneTier);
 }
 
 /**
@@ -247,6 +286,8 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
   onBack,
   allVendors,
   onVendorSelect,
+  altVehicle,
+  onAltVehicleChange,
 }) => {
   const manager = isManagerView();
   const singleZone = vendor.zones.length === 1;
@@ -255,10 +296,25 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
   const zoneProfile: IVendorZoneProfile | undefined =
     activeIdx !== null ? vendor.zones[activeIdx] : undefined;
 
-  const alternatives = React.useMemo(
+  const candidates = React.useMemo(
     () => findAlternatives(vendor, zoneProfile, allVendors),
     [vendor, zoneProfile, allVendors]
   );
+  const vehicleChips = React.useMemo(
+    () => vehicleChoices(vehiclesForZone(vendor, zoneProfile)),
+    [vendor, zoneProfile]
+  );
+  // A vehicle this company does not send (carried over from the grid or the
+  // previous card) has no chip here, so the list shows every company rather
+  // than a filter the dispatcher cannot see.
+  const activeVehicle =
+    altVehicle !== 'All' && vehicleChips.indexOf(altVehicle) !== -1 ? altVehicle : 'All';
+  const alternatives = React.useMemo(() => {
+    const kept = activeVehicle === 'All'
+      ? candidates
+      : candidates.filter(a => hasVehicle(a.vehicles, activeVehicle));
+    return kept.slice(0, MAX_ALTERNATIVES);
+  }, [candidates, activeVehicle]);
 
   const backRef = React.useRef<HTMLButtonElement>(null);
   React.useEffect(() => {
@@ -512,7 +568,7 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
               accentColor={SECTION_COLORS.alternatives}
               defaultOpen
             >
-              {alternatives.length === 0 ? (
+              {candidates.length === 0 ? (
                 <p className={styles.recEmpty}>
                   {zoneProfile.cities.length === 0
                     ? 'No cities are on file for this coverage yet, and no other company covers this zone.'
@@ -526,6 +582,38 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                     If {vendor.name} cannot take the trip, these companies serve
                     the same cities or zone:
                   </p>
+                  {vehicleChips.length > 0 && (
+                    <div
+                      className={styles.altVehicleChips}
+                      role="group"
+                      aria-label="Only show companies that can send"
+                    >
+                      {['All'].concat(vehicleChips).map(v => (
+                        <button
+                          key={v}
+                          type="button"
+                          className={`${styles.altVehicleChip} ${activeVehicle === v ? styles.altVehicleChipActive : ''}`}
+                          aria-pressed={activeVehicle === v}
+                          onClick={() => onAltVehicleChange(v)}
+                        >
+                          {v !== 'All' && (
+                            <VehicleIcon type={v === ANY_WHEELCHAIR ? 'Wheelchair (Unspecified)' : v} />
+                          )}
+                          {v === 'All' ? 'Any vehicle' : v}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {/* Always mounted: a live region added mid-flight is not
+                      reliably announced. */}
+                  <p className={styles.altVehicleNote} role="status">
+                    {activeVehicle === 'All'
+                      ? ''
+                      : alternatives.length === 0
+                        ? `No other company serving these towns or this zone lists ${vehiclePhrase(activeVehicle)}.`
+                        : `Showing ${alternatives.length} ${alternatives.length === 1 ? 'company' : 'companies'} that list ${vehiclePhrase(activeVehicle)}.`}
+                  </p>
+                  {alternatives.length > 0 && (
                   <ul className={styles.recList} role="list">
                     {alternatives.map(alt => (
                       <li key={alt.vendor.id} className={styles.recItem}>
@@ -572,6 +660,7 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                       </li>
                     ))}
                   </ul>
+                  )}
                 </>
               )}
             </AccordionSection>

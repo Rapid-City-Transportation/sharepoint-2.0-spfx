@@ -1181,6 +1181,59 @@ $transition:      0.18s ease;
   color: var(--rct-text-secondary, #4A5568);
 }
 
+.altVehicleChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.altVehicleChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 11px;
+  border-radius: 16px;
+  border: 1px solid var(--rct-border, #D0D5DD);
+  background: #ffffff;
+  color: var(--rct-primary, #1F4C7F);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: rgba(31, 76, 127, 0.06);
+    border-color: var(--rct-primary, #1F4C7F);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+.altVehicleChipActive,
+.altVehicleChipActive:hover {
+  background: var(--rct-primary, #1F4C7F);
+  border-color: var(--rct-primary, #1F4C7F);
+  color: #ffffff;
+}
+
+.altVehicleNote {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--rct-text-secondary, #4A5568);
+
+  // Kept in the DOM for the live region; takes no space while empty.
+  &:empty {
+    margin: 0;
+  }
+}
+
 .recList {
   list-style: none;
   margin: 0;
@@ -1297,7 +1350,8 @@ $transition:      0.18s ease;
   }
 
   .recButton,
-  .recPhone {
+  .recPhone,
+  .altVehicleChip {
     min-height: 44px;
   }
 

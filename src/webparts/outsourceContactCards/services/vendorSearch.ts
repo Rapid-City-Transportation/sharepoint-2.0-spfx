@@ -18,7 +18,7 @@ function isWheelchair(vehicle: string): boolean {
   return /^wheelchair/i.test(vehicle);
 }
 
-function hasVehicle(vehicles: string[], wanted: string): boolean {
+export function hasVehicle(vehicles: string[], wanted: string): boolean {
   return wanted === ANY_WHEELCHAIR ? vehicles.some(isWheelchair) : vehicles.indexOf(wanted) !== -1;
 }
 

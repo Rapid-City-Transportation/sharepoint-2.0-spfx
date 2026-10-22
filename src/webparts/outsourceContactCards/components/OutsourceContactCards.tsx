@@ -67,6 +67,15 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  // The alternatives' vehicle filter. Seeded from the grid's vehicle filter
+  // when a card is opened from the grid or the nav search, then left alone
+  // as the dispatcher hops from one alternative's card to the next.
+  const [altVehicle, setAltVehicle] = React.useState<string>(EMPTY_FILTERS.vehicleType);
+  const handleGridCardClick = React.useCallback((vendor: IVendor): void => {
+    setAltVehicle(filters.vehicleType);
+    handleCardClick(vendor);
+  }, [filters.vehicleType, handleCardClick]);
+
   const handleBack = React.useCallback((): void => {
     setView('grid');
     setSelectedVendor(null);
@@ -94,8 +103,8 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
 
   const handleVendorSelect = React.useCallback((vendorId: string): void => {
     const match = vendors.find(v => v.id === vendorId);
-    if (match) handleCardClick(match);
-  }, [vendors, handleCardClick]);
+    if (match) handleGridCardClick(match);
+  }, [vendors, handleGridCardClick]);
 
   // Returning to the grid moves focus back to the card that opened the
   // detail view; falls back to the page heading when the card is gone.
@@ -160,7 +169,7 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
           allVendors={vendors}
           filters={filters}
           onFiltersChange={setFilters}
-          onCardClick={handleCardClick}
+          onCardClick={handleGridCardClick}
         />
       )}
 
@@ -171,6 +180,8 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
           onBack={handleBack}
           allVendors={vendors}
           onVendorSelect={handleCardClick}
+          altVehicle={altVehicle}
+          onAltVehicleChange={setAltVehicle}
         />
       )}
 
