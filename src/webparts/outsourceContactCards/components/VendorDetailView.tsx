@@ -59,15 +59,18 @@ const VEHICLE_CHIP_ORDER = [
 ];
 
 /**
- * The chips for an alternatives list: the vehicles this company sends in the
- * zone, since the trip it cannot take needed one of them. Finding a vehicle
- * it does not send is the grid's job, which searches every company. Adds
- * "Wheelchair (any)" when it sends a wheelchair: another loading side often
- * does the job.
+ * The chips for an alternatives list: every vehicle at least one of them can
+ * send, so each chip leads to a company (the rule the grid's dropdowns
+ * follow), not only the open company's own: the trip may need a vehicle that
+ * is the very reason this company cannot take it. Adds "Wheelchair (any)"
+ * once two wheelchair kinds are on offer.
  */
-function vehicleChoices(ownVehicles: string[]): string[] {
-  const present = new Set<string>(ownVehicles);
-  if (ownVehicles.some(v => /^wheelchair/i.test(v))) present.add(ANY_WHEELCHAIR);
+function vehicleChoices(candidates: IAlternative[]): string[] {
+  const present = new Set<string>();
+  candidates.forEach(a => a.vehicles.forEach(v => present.add(v)));
+  if (Array.from(present).filter(v => /^wheelchair/i.test(v)).length >= 2) {
+    present.add(ANY_WHEELCHAIR);
+  }
   const unlisted = Array.from(present).filter(v => VEHICLE_CHIP_ORDER.indexOf(v) === -1).sort();
   return VEHICLE_CHIP_ORDER.filter(v => present.has(v)).concat(unlisted);
 }
@@ -300,13 +303,9 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
     () => findAlternatives(vendor, zoneProfile, allVendors),
     [vendor, zoneProfile, allVendors]
   );
-  const vehicleChips = React.useMemo(
-    () => vehicleChoices(vehiclesForZone(vendor, zoneProfile)),
-    [vendor, zoneProfile]
-  );
-  // A vehicle this company does not send (carried over from the grid or the
-  // previous card) has no chip here, so the list shows every company rather
-  // than a filter the dispatcher cannot see.
+  const vehicleChips = React.useMemo(() => vehicleChoices(candidates), [candidates]);
+  // A vehicle none of these companies can send (carried over from the grid
+  // or the previous card) shows every company rather than an empty list.
   const activeVehicle =
     altVehicle !== 'All' && vehicleChips.indexOf(altVehicle) !== -1 ? altVehicle : 'All';
   const alternatives = React.useMemo(() => {
@@ -582,7 +581,7 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                     If {vendor.name} cannot take the trip, these companies serve
                     the same cities or zone:
                   </p>
-                  {vehicleChips.length > 0 && (
+                  {vehicleChips.length > 1 && (
                     <div
                       className={styles.altVehicleChips}
                       role="group"
@@ -609,11 +608,8 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                   <p className={styles.altVehicleNote} role="status">
                     {activeVehicle === 'All'
                       ? ''
-                      : alternatives.length === 0
-                        ? `No other company serving these towns or this zone lists ${vehiclePhrase(activeVehicle)}.`
-                        : `Showing ${alternatives.length} ${alternatives.length === 1 ? 'company' : 'companies'} that list ${vehiclePhrase(activeVehicle)}.`}
+                      : `Showing ${alternatives.length} ${alternatives.length === 1 ? 'company' : 'companies'} that list ${vehiclePhrase(activeVehicle)}.`}
                   </p>
-                  {alternatives.length > 0 && (
                   <ul className={styles.recList} role="list">
                     {alternatives.map(alt => (
                       <li key={alt.vendor.id} className={styles.recItem}>
@@ -660,7 +656,6 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                       </li>
                     ))}
                   </ul>
-                  )}
                 </>
               )}
             </AccordionSection>
