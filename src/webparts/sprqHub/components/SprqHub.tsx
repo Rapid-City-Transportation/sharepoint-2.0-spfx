@@ -43,7 +43,10 @@ const HOTEL_FINDER_URL          = 'https://rapidcitytransport.sharepoint.com/:l:
 const SCHOOL_BOOKINGS_URL       = 'https://rapidcitytransport.sharepoint.com/:l:/g/JADYJPEv6T67RbdTCSOh9GfIAcRaMwDd_Faz5fL_vy_e-sw?e=TJtXN1';
 const YRDSB_TRIP_PLANNER_URL    = 'https://rapidcitytransport.sharepoint.com/:x:/s/SpecialtyRequestGroup/IQBBm-2BMtaaTaJhx_pea6ipAV_0YZ2FFGSUslJWv6BCLhE?e=3zvn4I';
 const QUOTE_CALCULATORS_URL     = 'https://rapidcitytransport.sharepoint.com/:f:/r/Customer%20Service/Reference/Calculators?csf=1&web=1&e=IO0jQY';
-const REGULARS_LIST_URL         = 'https://rapidcitytransport.sharepoint.com/:x:/g/IQAK7S4W235HT5QFgAoxya6fAX8P4kI6biknm0ecwdcjWVY?e=c7XB5L';
+// Customer Service > Reference > "Regular List - Kristyn.xlsx", by its UniqueId.
+// A link follows the FILE, not the name: the previous link kept showing the
+// old workbook after it was moved to Archive and a new one uploaded.
+const REGULARS_LIST_URL         = 'https://rapidcitytransport.sharepoint.com/_layouts/15/Doc.aspx?sourcedoc=%7Bc04a703f-fd35-473a-9f8b-05609bc39576%7D&action=embedview';
 
 // Client Accounts, Master Lists and Booking Forms are built from the SPRQ
 // Tools list inside the component; only the fixed tools live here.
