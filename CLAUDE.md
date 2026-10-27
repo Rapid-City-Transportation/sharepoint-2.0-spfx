@@ -227,7 +227,7 @@ Identifiers explain what; comments explain only non-obvious why (a hidden constr
 - PnP service + singleton pattern: any `services/spConfig.ts` plus a `*Service.ts`
 - List + field names: `services/fieldNames.ts` in the relevant web part
 - Graph group gating: `departmentPublicPage/components/DepartmentPublicPage.tsx` (`useDepartmentMembership`)
-- Per-department config (accents, contact, group IDs, resource URLs): `departmentPublicPage/services/DepartmentConfig.ts`
+- Per-department config (contact, group IDs, resource URLs): `departmentPublicPage/services/DepartmentConfig.ts`. Public pages deliberately share one primary-blue accent (hero scrim, CTA, links); only the text and the backdrop image differ per department
 - Bundle registration: `config/config.json`
 - Responsive examples: the `@media (max-width: ...)` blocks at the bottom of each hub `*.module.scss`
 

@@ -47,12 +47,6 @@ export interface IDepartmentConfig {
   resourcePageUrl: string;
   /** Azure AD / M365 group GUID: members of this group see the CTA button. */
   groupId: string;
-  /** Primary accent color for hero, CTA button, icons (AA-accessible on white). */
-  accentColor: string;
-  /** Darker variant of accent for hover / active states. */
-  accentColorHover: string;
-  /** Very light tint used for hero background tint (falls back to surface). */
-  accentTint: string;
 }
 
 export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
@@ -89,9 +83,6 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     ],
     resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/CustomerService576/SitePages/Home.aspx',
     groupId: '00000000-0000-0000-0000-000000000001', // Replace with real GUID
-    accentColor:      '#1F4C7F', // Primary Blue: 8.71:1 on white (AAA)
-    accentColorHover: '#173B62',
-    accentTint:       '#EAF0F7',
   },
   dispatch: {
     key: 'dispatch',
@@ -114,9 +105,6 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     // later if Dispatch gets one, like the IT hub did).
     resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/DispatchHub.aspx',
     groupId: '00000000-0000-0000-0000-000000000002', // Replace with real GUID
-    accentColor:      '#187389', // Teal / Blue-accessible: 5.45:1 (AA)
-    accentColorHover: '#126070',
-    accentTint:       '#E6F3F6',
   },
   accounting: {
     key: 'accounting',
@@ -138,9 +126,6 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     // Private hub page (create with exactly this name).
     resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/AccountingHub.aspx',
     groupId: '00000000-0000-0000-0000-000000000003', // Replace with real GUID
-    accentColor:      '#8A6A0C', // Gold-accessible: 5.09:1 (AA)
-    accentColorHover: '#6F550A',
-    accentTint:       '#FAF4E1',
   },
   humanResources: {
     key: 'humanResources',
@@ -172,11 +157,6 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     // "View Department Hub" button rather than link to a mock.
     resourcePageUrl: '',
     groupId: '00000000-0000-0000-0000-000000000004', // Replace with real GUID
-    // Primary Blue, matching Customer Experience: the accent tints the hero
-    // banner, and Dark Navy turned it near-black.
-    accentColor:      '#1F4C7F', // Primary Blue: 8.71:1 on white (AAA)
-    accentColorHover: '#173B62',
-    accentTint:       '#EAF0F7',
   },
   informationTechnology: {
     key: 'informationTechnology',
@@ -200,9 +180,6 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     // gate it (page must be named exactly ITHub).
     resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/RCT-ITTeam/SitePages/ITHub.aspx',
     groupId: '00000000-0000-0000-0000-000000000005', // Replace with real GUID
-    accentColor:      '#4A5568', // Slate: 7.51:1 on white (AAA)
-    accentColorHover: '#2D3748',
-    accentTint:       '#EDEFF3',
   },
   businessDevelopment: {
     key: 'businessDevelopment',
@@ -224,9 +201,6 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     // Private hub page (create with exactly this name).
     resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/BusinessDevelopmentHub.aspx',
     groupId: '00000000-0000-0000-0000-000000000006', // Replace with real GUID
-    accentColor:      '#1A6B1A', // Forest Green: 6.8:1 on white (AA+)
-    accentColorHover: '#145514',
-    accentTint:       '#E8F2E8',
   },
   fleet: {
     key: 'fleet',
@@ -252,9 +226,6 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     // putting real documents on it.
     resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/FleetHub.aspx',
     groupId: '00000000-0000-0000-0000-000000000007', // Replace with real GUID
-    accentColor:      '#9B2C2C', // Brick: 5.9:1 on white (AA)
-    accentColorHover: '#7F2424',
-    accentTint:       '#F7E9E9',
   },
 };
 

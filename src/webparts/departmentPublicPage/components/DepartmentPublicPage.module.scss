@@ -63,16 +63,16 @@
 .heroSection {
   position: relative;
   padding: var(--rct-spacing-2xl) var(--rct-spacing-lg);
-  border-top: 4px solid var(--dept-accent, var(--rct-primary));
+  border-top: 4px solid var(--rct-primary);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   color: #ffffff;
   overflow: hidden;
 
-  // Department-accent scrim over the backdrop image: heaviest on the left
-  // (behind the text) so white text stays >= 4.5:1, lighter on the right so
-  // the image reads through. Falls back to RCT blue if no accent is set.
+  // Primary-blue scrim over the backdrop image, identical on every department
+  // page: heaviest on the left (behind the text) so white text stays
+  // >= 4.5:1, lighter on the right so the image reads through.
   &::before {
     content: '';
     position: absolute;
@@ -82,10 +82,10 @@
     // >= 4.5:1 (AODA); fades on the far right so the backdrop reads through.
     background: linear-gradient(
       100deg,
-      rgba(var(--dept-accent-rgb, 31, 76, 127), 0.95) 0%,
-      rgba(var(--dept-accent-rgb, 31, 76, 127), 0.92) 65%,
-      rgba(var(--dept-accent-rgb, 31, 76, 127), 0.68) 88%,
-      rgba(var(--dept-accent-rgb, 31, 76, 127), 0.52) 100%
+      rgba(31, 76, 127, 0.95) 0%,
+      rgba(31, 76, 127, 0.92) 65%,
+      rgba(31, 76, 127, 0.68) 88%,
+      rgba(31, 76, 127, 0.52) 100%
     );
   }
 }
@@ -151,15 +151,14 @@
   color: rgba(255, 255, 255, 0.7);
 }
 
-// "View Department Resources" CTA: department accent bg + white text.
-// Overrides btnSecondary's fixed primary blue with the per-department accent.
+// "View Department Resources" CTA, inverted for the dark hero scrim: a bold
+// white pill with a primary-blue label.
 .resourceBtn {
   @extend .btnSecondary;
   align-self: flex-end;   // bubble CTA on the right-hand side of the hero
-  // Inverted for the dark hero scrim: a bold white pill with an accent label.
   background:     #ffffff;
   border-color:   #ffffff;
-  color:          var(--dept-accent, var(--rct-primary));
+  color:          var(--rct-primary);
   font-size:      16px;
   font-weight:    700;
   min-height:     50px;
@@ -174,7 +173,7 @@
   &:hover:not(:disabled):not([aria-disabled='true']) {
     background:    #ffffff;
     border-color:  #ffffff;
-    color:         var(--dept-accent-hover, var(--rct-primary));
+    color:         var(--rct-primary-hover);
     transform:     translateY(-2px);                 // lift on hover
     box-shadow:    0 14px 34px rgba(0, 0, 0, 0.34);
   }
@@ -182,7 +181,7 @@
   &:active:not(:disabled):not([aria-disabled='true']) {
     background:    rgba(255, 255, 255, 0.94);
     border-color:  rgba(255, 255, 255, 0.94);
-    color:         var(--dept-accent-hover, var(--rct-primary));
+    color:         var(--rct-primary-hover);
     transform:     translateY(0);                    // no jump on click
     box-shadow:    0 6px 18px rgba(0, 0, 0, 0.26);
   }
@@ -271,12 +270,12 @@
   font-family: inherit;
   font-size: 15px;
   font-weight: 600;
-  color: var(--dept-accent, var(--rct-secondary));
+  color: var(--rct-primary);
   text-decoration: none;
 
   &:hover {
     text-decoration: underline;
-    color: var(--dept-accent-hover, var(--rct-secondary-hover));
+    color: var(--rct-primary-hover);
   }
 
   &:focus-visible {
@@ -338,7 +337,7 @@
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: var(--dept-accent, var(--rct-secondary));
+  color: var(--rct-primary);
   text-decoration: none;
   margin-bottom: var(--rct-spacing-xs);
 
@@ -384,7 +383,7 @@
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
-  color: var(--dept-accent, var(--rct-blue-accessible, #187389));
+  color: var(--rct-primary);
   cursor: pointer;
 
   &:hover {
@@ -392,7 +391,7 @@
   }
 
   &:focus-visible {
-    outline: 3px solid var(--dept-accent, #1F4C7F);
+    outline: 3px solid var(--rct-primary);
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -420,7 +419,7 @@
   }
 
   a {
-    color: var(--dept-accent, var(--rct-blue-accessible, #187389));
+    color: var(--rct-primary);
   }
 
   ul,
@@ -440,7 +439,7 @@
   gap: 6px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--dept-accent, var(--rct-blue-accessible, #187389));
+  color: var(--rct-primary);
   text-decoration: none;
 
   &:hover {

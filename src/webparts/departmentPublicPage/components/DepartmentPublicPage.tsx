@@ -11,7 +11,7 @@ import { DefaultButton } from '@fluentui/react/lib/Button';
 import { sanitizeHtml } from '../../customerContactCards/utils/sanitize';
 import styles from './DepartmentPublicPage.module.scss';
 
-/** Neutral dark hero backdrop; tinted per-department by the accent scrim. */
+/** Neutral dark hero backdrop, under the same primary-blue scrim on every page. */
 const HEADER_BACKDROP = require('../assets/dept-header-backdrop.png');
 
 /** Dialable form of a displayed number. Anything from "ext" onward is dropped
@@ -28,14 +28,6 @@ const HEADER_BACKDROPS: Partial<Record<DepartmentKey, string>> = {
   humanResources: require('../assets/hr-external-banner.png'),
 };
 
-
-/** "#1F4C7F" -> "31, 76, 127", for use in rgba(var(--dept-accent-rgb), alpha). */
-function hexToRgb(hex: string): string {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!m) return '31, 76, 127';
-  const n = parseInt(m[1], 16);
-  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
-}
 
 // ── Group membership hook ───────────────────────────────────────────────────
 /**
@@ -93,18 +85,12 @@ function useDepartmentMembership(
 export default function DepartmentPublicPage(props: IDepartmentPublicPageProps): React.ReactElement {
   const config = getDepartmentConfig(props.departmentKey);
 
-  // Merge the global RCT theme with per-department accent overrides.
-  // Department accents drive the hero tint, CTA button, and icon/link colors.
-  const themeVars = React.useMemo(() => {
-    const base = getThemeCssVariables(defaultTheme) as Record<string, string>;
-    if (config) {
-      base['--dept-accent']       = config.accentColor;
-      base['--dept-accent-hover'] = config.accentColorHover;
-      base['--dept-accent-tint']  = config.accentTint;
-      base['--dept-accent-rgb']   = hexToRgb(config.accentColor);
-    }
-    return base;
-  }, [config]);
+  // Every department page shares the brand palette: the hero scrim, CTA and
+  // links are primary blue regardless of department.
+  const themeVars = React.useMemo(
+    () => getThemeCssVariables(defaultTheme) as Record<string, string>,
+    []
+  );
 
   // Resolve values: property-pane overrides > config defaults > fallback
   const deptName  = config?.displayName || 'Department Name';
