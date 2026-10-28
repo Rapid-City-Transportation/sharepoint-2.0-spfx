@@ -8,29 +8,36 @@ import {
 import { fetchResourcesByCategory, ISiteResource } from '../../services/resourcesService';
 import { sanitizeHtml } from '../../utils/sanitize';
 
-interface IEmailTemplatesDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  triggerRef: React.RefObject<HTMLButtonElement>;
-}
-
-interface ITabConfig {
+export interface IEmailTemplateTab {
   id: string;
   label: string;
   category: EmailTemplateCategory;
 }
 
-const TABS: ITabConfig[] = [
+/** The Customer Experience tab set; other pages pass their own `tabs`. */
+export const EMAIL_TEMPLATE_TABS: IEmailTemplateTab[] = [
   { id: 'booking', label: 'Booking', category: 'Booking' },
   { id: 'dispatch', label: 'Dispatch Alerts', category: 'Dispatch Alerts' },
   { id: 'reminder', label: 'Reminder Call', category: 'Reminder Call' },
 ];
 
+interface IEmailTemplatesDrawerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  triggerRef: React.RefObject<HTMLButtonElement>;
+  tabs?: IEmailTemplateTab[];
+}
+
 type ToastTone = 'success' | 'error';
 interface IToast { message: string; tone: ToastTone; }
 
-const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, onClose, triggerRef }) => {
-  const [activeTab, setActiveTab] = React.useState<string>('booking');
+const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({
+  isOpen,
+  onClose,
+  triggerRef,
+  tabs = EMAIL_TEMPLATE_TABS,
+}) => {
+  const [activeTab, setActiveTab] = React.useState<string>(tabs[0].id);
   const [templates, setTemplates] = React.useState<IEmailTemplate[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string>('');
@@ -69,13 +76,15 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
   }, [isOpen, templates.length, loading]);
 
   // The SPRQ / Accommodations booking templates are downloadable .docx files
-  // kept in the SiteResources list; surfaced as a section inside the Booking tab.
+  // kept in the SiteResources list; surfaced as a section inside the Booking
+  // tab, so a tab set without one (the vendor drawer) never fetches them.
+  const hasBookingTab = tabs.some(t => t.id === 'booking');
   React.useEffect(() => {
-    if (!isOpen || accommodations.length > 0) return;
+    if (!isOpen || !hasBookingTab || accommodations.length > 0) return;
     fetchResourcesByCategory(['Accommodations'])
       .then(setAccommodations)
       .catch(() => { /* non-fatal: the section just won't render */ });
-  }, [isOpen, accommodations.length]);
+  }, [isOpen, hasBookingTab, accommodations.length]);
 
   // Only return focus to the trigger after a real close, not on initial mount.
   const wasOpenRef = React.useRef(false);
@@ -118,7 +127,7 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
     }
   }, []);
 
-  const handleTabChange = React.useCallback((tab: ITabConfig) => {
+  const handleTabChange = React.useCallback((tab: IEmailTemplateTab) => {
     setActiveTab(tab.id);
     setSearch('');
     setExpandedIds(new Set());
@@ -147,8 +156,11 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
     const html = template.bodyHtml || template.body;
     const plain = template.body;
 
-    const ccParam = template.cc ? `cc=${encodeURIComponent(template.cc)}` : '';
-    const mailtoUrl = ccParam ? `mailto:?${ccParam}` : 'mailto:';
+    const headerParams = [
+      template.subject ? `subject=${encodeURIComponent(template.subject)}` : '',
+      template.cc ? `cc=${encodeURIComponent(template.cc)}` : '',
+    ].filter(Boolean);
+    const mailtoUrl = headerParams.length > 0 ? `mailto:?${headerParams.join('&')}` : 'mailto:';
 
     try {
       const ClipboardItemCtor = (window as unknown as { ClipboardItem?: typeof ClipboardItem }).ClipboardItem;
@@ -169,15 +181,12 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
     }
 
     // Fallback for browsers without ClipboardItem support.
-    const fallbackParams = [
-      template.cc ? `cc=${encodeURIComponent(template.cc)}` : '',
-      `body=${encodeURIComponent(plain)}`,
-    ].filter(Boolean).join('&');
+    const fallbackParams = headerParams.concat(`body=${encodeURIComponent(plain)}`).join('&');
     window.location.href = `mailto:?${fallbackParams}`;
     showToast('Opened in Outlook with plain text (formatting unavailable)', 'error');
   }, [showToast]);
 
-  const currentTab = TABS.find(t => t.id === activeTab);
+  const currentTab = tabs.find(t => t.id === activeTab);
 
   const visibleItems = React.useMemo(() => {
     if (!currentTab) return [];
@@ -224,7 +233,7 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
       </div>
 
       <div role="tablist" aria-label="Email template categories" className={styles.tabBar}>
-        {TABS.map(tab => {
+        {tabs.map(tab => {
           const isActive = tab.id === activeTab;
           return (
             <button
@@ -392,11 +401,12 @@ const EmailTemplatesDrawer: React.FC<IEmailTemplatesDrawerProps> = ({ isOpen, on
                       </button>
                     </div>
                     {isExpanded && (
-                      <div
-                        id={panelId}
-                        className={styles.templatePreview}
-                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(t.bodyHtml || t.body) }}
-                      />
+                      <div id={panelId} className={styles.templatePreview}>
+                        {t.subject && (
+                          <p><strong>Subject:</strong> {t.subject}</p>
+                        )}
+                        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(t.bodyHtml || t.body) }} />
+                      </div>
                     )}
                   </li>
                 );

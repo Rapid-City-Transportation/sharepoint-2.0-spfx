@@ -3,7 +3,15 @@ import '@pnp/sp/webs';
 import '@pnp/sp/lists';
 import '@pnp/sp/items';
 
-export type EmailTemplateCategory = 'Booking' | 'Dispatch Alerts' | 'Reminder Call';
+// The Vendor categories feed the Outsource Contact Cards drawer; the list's
+// Category choice column must carry exactly this text or the row is dropped.
+export type EmailTemplateCategory =
+  | 'Booking'
+  | 'Dispatch Alerts'
+  | 'Reminder Call'
+  | 'Vendor Booking'
+  | 'Vendor Changes'
+  | 'Vendor Cancellation';
 
 export interface IEmailTemplate {
   /** SharePoint list item ID, used as a stable React key. */
@@ -20,10 +28,19 @@ export interface IEmailTemplate {
    * is configured on this template.
    */
   cc: string;
+  /** Prefilled `mailto:` subject; empty when the row (or the list) has none. */
+  subject: string;
 }
 
 const LIST_TITLE = 'EmailTemplates';
-const VALID_CATEGORIES: EmailTemplateCategory[] = ['Booking', 'Dispatch Alerts', 'Reminder Call'];
+const VALID_CATEGORIES: EmailTemplateCategory[] = [
+  'Booking',
+  'Dispatch Alerts',
+  'Reminder Call',
+  'Vendor Booking',
+  'Vendor Changes',
+  'Vendor Cancellation',
+];
 
 interface IRawItem {
   Id: number;
@@ -32,19 +49,31 @@ interface IRawItem {
   Category: string;
   IsActive: boolean;
   CcRecipients: string | null;
+  Subject?: string | null;
 }
+
+const SUBJECT_FIELD = 'Subject';
 
 /**
  * Fetches every active email template from the SharePoint list.
  * Filters out inactive rows server-side to keep the payload lean.
  */
 export async function fetchEmailTemplates(): Promise<IEmailTemplate[]> {
-  const sp = getSP();
+  const list = getSP().web.lists.getByTitle(LIST_TITLE);
 
-  const items: IRawItem[] = await sp.web.lists
-    .getByTitle(LIST_TITLE)
-    .items
-    .select('Id', 'Title', 'Body', 'Category', 'IsActive', 'CcRecipients')
+  // Subject was added for the vendor templates after the list went live, and
+  // selecting a column the list lacks fails the whole query.
+  const hasSubject = await list.fields
+    .filter(`InternalName eq '${SUBJECT_FIELD}'`)
+    .select('InternalName')()
+    .then(fields => fields.length > 0)
+    .catch(() => false);
+
+  const selects = ['Id', 'Title', 'Body', 'Category', 'IsActive', 'CcRecipients'];
+  if (hasSubject) selects.push(SUBJECT_FIELD);
+
+  const items: IRawItem[] = await list.items
+    .select(...selects)
     .filter('IsActive eq 1')
     .top(500)();
 
@@ -62,6 +91,7 @@ function mapRawToTemplate(raw: IRawItem): IEmailTemplate | null {
     body: htmlToPlainText(raw.Body || ''),
     bodyHtml: raw.Body || '',
     cc: normalizeCcList(raw.CcRecipients),
+    subject: (raw.Subject || '').trim(),
   };
 }
 

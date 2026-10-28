@@ -14,11 +14,24 @@ import ResourcesDrawer, {
   RESOURCE_TABS,
 } from '../../customerContactCards/components/ResourcesDrawer/ResourcesDrawer';
 import ResourcesTrigger from '../../customerContactCards/components/ResourcesDrawer/ResourcesTrigger';
+import EmailTemplatesDrawer, {
+  IEmailTemplateTab,
+} from '../../customerContactCards/components/EmailTemplatesDrawer/EmailTemplatesDrawer';
+import EmailTemplatesTrigger from '../../customerContactCards/components/EmailTemplatesDrawer/EmailTemplatesTrigger';
 
 // Dispatch asked for the address directories only; travel times, insurance
 // and auto alerts are Customer Experience material.
 const ADDRESS_TAB_IDS = ['airports', 'trainStations', 'hospitals', 'schools'];
 const ADDRESS_TABS: IResourceTab[] = RESOURCE_TABS.filter(t => ADDRESS_TAB_IDS.indexOf(t.id) !== -1);
+
+// Emails dispatchers send to vendors. The Customer Experience categories
+// (Booking, Dispatch Alerts, Reminder Call) are passenger-facing and stay off
+// this page.
+const VENDOR_EMAIL_TABS: IEmailTemplateTab[] = [
+  { id: 'vendorBooking', label: 'Booking', category: 'Vendor Booking' },
+  { id: 'vendorChanges', label: 'Trip Changes', category: 'Vendor Changes' },
+  { id: 'vendorCancellation', label: 'Cancellations', category: 'Vendor Cancellation' },
+];
 
 type ViewState = 'grid' | 'detail';
 
@@ -39,8 +52,9 @@ function writeVendorParam(id: string | null): void {
 
 /**
  * Grid/detail router, same shape as the Customer Contact Cards page, with the
- * same Address Directories drawer (addresses only). Filter state lives here
- * so selections survive opening and closing a vendor.
+ * same Address Directories drawer (addresses only) and the Email Templates
+ * drawer limited to vendor emails. Filter state lives here so selections
+ * survive opening and closing a vendor.
  */
 const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
   title,
@@ -50,9 +64,21 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
   const [selectedVendor, setSelectedVendor] = React.useState<IVendor | null>(null);
   const [filters, setFilters] = React.useState<IVendorFilters>(EMPTY_FILTERS);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const [emailDrawerOpen, setEmailDrawerOpen] = React.useState(false);
   const resourcesTriggerRef = React.useRef<HTMLButtonElement>(null);
-  const openDrawer = React.useCallback(() => setDrawerOpen(true), []);
+  const emailTriggerRef = React.useRef<HTMLButtonElement>(null);
+  // One side panel at a time, as on the Customer Contact Cards page.
+  const openDrawer = React.useCallback(() => {
+    setEmailDrawerOpen(false);
+    setDrawerOpen(true);
+  }, []);
   const closeDrawer = React.useCallback(() => setDrawerOpen(false), []);
+  const openEmailDrawer = React.useCallback(() => {
+    setDrawerOpen(false);
+    setEmailDrawerOpen(true);
+  }, []);
+  const closeEmailDrawer = React.useCallback(() => setEmailDrawerOpen(false), []);
+  const anyDrawerOpen = drawerOpen || emailDrawerOpen;
 
   const themeVars = React.useMemo(() => getThemeCssVariables(defaultTheme), []);
   const { vendors, loading, error } = useVendors();
@@ -127,7 +153,7 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
 
   return (
     <div
-      className={`${styles.webPartContainer} ${drawerOpen ? styles.webPartContainerShifted : ''}`}
+      className={`${styles.webPartContainer} ${anyDrawerOpen ? styles.webPartContainerShifted : ''}`}
       style={themeVars as React.CSSProperties}
     >
       <Navigation
@@ -198,6 +224,21 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
         ref={resourcesTriggerRef}
         onClick={drawerOpen ? closeDrawer : openDrawer}
         isOpen={drawerOpen}
+        shifted={anyDrawerOpen}
+      />
+
+      <EmailTemplatesDrawer
+        isOpen={emailDrawerOpen}
+        onClose={closeEmailDrawer}
+        triggerRef={emailTriggerRef}
+        tabs={VENDOR_EMAIL_TABS}
+      />
+
+      <EmailTemplatesTrigger
+        ref={emailTriggerRef}
+        onClick={emailDrawerOpen ? closeEmailDrawer : openEmailDrawer}
+        isOpen={emailDrawerOpen}
+        shifted={anyDrawerOpen}
       />
     </div>
   );
