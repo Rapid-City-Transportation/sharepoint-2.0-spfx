@@ -18,7 +18,7 @@
       "group": { "default": "Advanced" },
       "title": { "default": "Dispatch Hub" },
       "description": {
-        "default": "Private Dispatch team hub: updates, tools, and the team roster."
+        "default": "Private Dispatch team hub: tools, the team roster, and the breaks and sick calls policy."
       },
       "officeFabricIconFontName": "Bus",
       "properties": {}

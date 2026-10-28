@@ -101,9 +101,10 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
         ],
       },
     ],
-    // Private hub page (create with exactly this name; move to a team site
-    // later if Dispatch gets one, like the IT hub did).
-    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/DispatchHub.aspx',
+    // Private hub page on the Dispatch team site, so the site's own
+    // permissions gate it the way the CX hub's site does. Create it with
+    // exactly this name.
+    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/Dispatch/SitePages/DispatchHub.aspx',
     groupId: '00000000-0000-0000-0000-000000000002', // Replace with real GUID
   },
   accounting: {

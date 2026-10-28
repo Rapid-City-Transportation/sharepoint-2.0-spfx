@@ -8,7 +8,6 @@ import {
 } from '../../rapidCityHomepage/theme/ThemeTokens';
 import { Footer } from '../../rapidCityHomepage/components/Footer/Footer';
 import { Navigation } from '../../rapidCityHomepage/components/Navigation/Navigation';
-import { useAnnouncements } from '../../rapidCityHomepage/hooks/useAnnouncements';
 import { getDepartmentMatchNames } from '../../departmentPublicPage/services/DepartmentConfig';
 import { useEmployees } from '../../employeeDirectory/hooks/useEmployees';
 import { IEmployee } from '../../employeeDirectory/components/types';
@@ -17,30 +16,78 @@ import {
   pickAccentFromString,
 } from '../../employeeDirectory/utils/employeeFormatting';
 
+// Same backdrop as the public Dispatch page, the way the CX hub reuses its own.
+const HEADER_BACKDROP = require('../../departmentPublicPage/assets/dept-header-backdrop.png');
+
 const DEPARTMENT_NAME = 'Dispatch';
 
-// Public Dispatch page on compass; must be created with exactly this name.
-const PUBLIC_PAGE_URL = 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/Dispatch.aspx';
+const ROOT = 'https://rapidcitytransport.sharepoint.com';
+const COMPASS = `${ROOT}/sites/compass`;
+const DISPATCH_SITE_URL = `${ROOT}/sites/Dispatch`;
 
-/** A Tools panel tile. href bypasses the viewer (new tab); otherwise the
- *  viewer renders links, then embedUrl, then the coming-soon state. */
+/** Back-link target. The compass page must be named Dispatch. */
+const PUBLIC_PAGE_URL = `${COMPASS}/SitePages/Dispatch.aspx`;
+
+// Dispatch's procedure pages still live on the root site, where the legacy
+// Dispatch department page linked them; compass hosts only the hub.
+const ROOT_PAGES = `${ROOT}/SitePages`;
+
+const OUTSOURCE_CARDS_URL = `${COMPASS}/SitePages/OutsourceContactCards.aspx`;
+// The live vendor data. The legacy "Driver Directory" list on the same site
+// has not been edited since this list replaced it (2026-08-25) and holds
+// vendor account passwords, so it is not embedded anywhere.
+const COVERAGE_LIST_URL = `${DISPATCH_SITE_URL}/Lists/Outsource%20Vendor%20Coverage/AllItems.aspx?sortField=Zone&isAscending=true`;
+
+// Root-site files, addressed by UniqueId so renames and moves cannot break
+// them. The PDF embeds through embed.aspx, which carries no embed-only
+// params, so its full view is the same URL; the workbook follows the CX
+// hub's Doc.aspx pattern (action=embedview for the iframe only).
+const EXTENSION_LIST_URL = `${ROOT}/_layouts/15/embed.aspx?UniqueId=dc8d7342-14ca-420a-b9b4-52a61e8a6ba8`;
+const WEEKEND_SIGN_UP_URL = `${ROOT}/_layouts/15/Doc.aspx?sourcedoc=%7B43C35DE2-5987-4F62-90E6-F6D8EC0B63B6%7D`;
+
+/** embedUrl renders inline in the Tool Viewer, links render there as a
+ *  list, and externalUrl opens a new tab. A tile with none of them shows
+ *  the coming-soon state. */
 interface ITool {
   label: string;
   icon: string;
-  /** Optional iframe URL: loads inline in the Tool Viewer. */
   embedUrl?: string;
-  /** Optional external URL: opens in a new tab (docs, lists, folders, forms). */
-  href?: string;
-  /** Optional list of links rendered inline in the Tool Viewer. */
+  /** "Open full" target, kept apart from embedUrl so the iframe-only params
+   *  (env=Embedded, action=embedview) never reach the full view. */
+  fullUrl?: string;
+  externalUrl?: string;
   links?: { label: string; url: string }[];
 }
 
-// Placeholder tiles: none are wired yet, so each opens the viewer's
-// coming-soon state. Swap in real embeds/links as the team decides them.
+// Named as Albert asked. SharePoint pages open in a new tab, as the CX hub
+// does for its Procedure Guides; lists and documents embed in the viewer.
 const TOOLS: ITool[] = [
-  { label: 'Team Documents', icon: 'DocLibrary' },
-  { label: 'Team Notebook',  icon: 'OneNoteLogo' },
-  { label: 'Useful Links',   icon: 'Link' },
+  { label: 'Accidents & Emergencies', icon: 'Warning',      externalUrl: `${ROOT_PAGES}/Motor-Vehicle-Accidents.aspx` },
+  { label: 'Daily Checklists',        icon: 'CheckList' },
+  { label: 'Dispatch Alerts',         icon: 'Ringer',       externalUrl: `${ROOT_PAGES}/Dispatch-Alerts.aspx` },
+  { label: 'Driver Directory',        icon: 'ContactCard',  externalUrl: OUTSOURCE_CARDS_URL },
+  { label: 'Hotels & Meals',          icon: 'Hotel',        externalUrl: `${ROOT_PAGES}/Hotel-Meal-Business-Expenses-for-Drivers.aspx` },
+  {
+    label: 'Procedure Guides',
+    icon: 'ReadingMode',
+    // Dispatch has no Procedure Guides index page the way CS does, so the
+    // hub lists the procedure pages itself until one exists.
+    links: [
+      { label: 'Delays and Interruptions', url: `${ROOT_PAGES}/Delays-and-Interruptions.aspx` },
+      { label: 'Driver Transfers', url: `${ROOT_PAGES}/Driver-Transfers.aspx` },
+      { label: 'Driver Phone Fixes', url: `${ROOT_PAGES}/Driver-Phone-Fixes.aspx` },
+      { label: 'Wheelchair & Oversized Wheelchair Vehicles', url: `${ROOT_PAGES}/Oversize-Wheelchair-Dimensions.aspx` },
+      { label: 'Pearson Airport: pre-arranged pickups', url: 'https://www.torontopearson.com/en/operators-at-pearson/drivers-prearranged' },
+    ],
+  },
+  { label: 'Rebills',                 icon: 'Money',        externalUrl: `${ROOT_PAGES}/Rebills.aspx` },
+  { label: 'Roster & Extensions',     icon: 'Phone',        embedUrl: EXTENSION_LIST_URL, fullUrl: EXTENSION_LIST_URL },
+  // Albert wants Dispatch's own processes for SPRQ accounts here; as of
+  // 2026-10-28 that content has not been written, so the tile stays unwired.
+  { label: 'SPRQ Dispatch',           icon: 'Headset' },
+  { label: 'Vehicle Service',         icon: 'Repair',       externalUrl: `${ROOT_PAGES}/Garage-Directory.aspx` },
+  { label: 'Weekend Sign-Up',         icon: 'CalendarWeek', embedUrl: `${WEEKEND_SIGN_UP_URL}&action=embedview`, fullUrl: WEEKEND_SIGN_UP_URL },
+  { label: 'Zones & Coverage',        icon: 'MapPin',       embedUrl: `${COVERAGE_LIST_URL}&env=Embedded`, fullUrl: COVERAGE_LIST_URL },
 ].sort((a, b) => a.label.localeCompare(b.label));
 
 /** Management = a department tag literally "Management", set in the source
@@ -82,51 +129,35 @@ function isDeptMember(emp: IEmployee): boolean {
     emp.departments.some(d => names.indexOf(d.toLowerCase()) !== -1);
 }
 
-/** Private Dispatch hub page: updates from the 'Dispatch Private' announcements
- *  list, a Tool Viewer with placeholder tiles, and the curated team grid.
- *  One of five dept hub clones of the sprqHub skeleton; the five differ only
- *  in department strings, so edit them in lockstep. */
-const DispatchHub: React.FC<IDispatchHubProps> = ({ bannerEyebrow, bannerTitle }) => {
+/** Private Dispatch hub: the CX hub's layout (banner, Tool Viewer, team
+ *  card, Tools + Breaks & Sick Calls sidebar) with Dispatch's tools and
+ *  without the CX-only hub tiles and Rise Hub feed. */
+const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle }) => {
   const themeVars = React.useMemo(
     () => getThemeCssVariables(defaultTheme) as React.CSSProperties,
     []
   );
 
-  const { announcements: updates } = useAnnouncements('Dispatch Private');
-
   const [activeTool, setActiveTool] = React.useState<ITool | null>(null);
 
-  /** Full URL for the active tool: the embedded view minus the iframe-only
-   *  query params. Used by "Open full" to launch the natural experience. */
-  const activeToolFullUrl = React.useMemo<string | undefined>(() => {
-    if (!activeTool) return undefined;
-    const raw = activeTool.embedUrl || activeTool.href;
-    if (!raw) return undefined;
-    try {
-      const u = new URL(raw);
-      u.searchParams.delete('env');
-      u.searchParams.delete('action');
-      return u.toString();
-    } catch {
-      return raw;
-    }
-  }, [activeTool]);
+  const activeToolFullUrl = activeTool?.fullUrl;
 
   const handleOpenFull = React.useCallback((): void => {
     if (!activeToolFullUrl) return;
     window.open(activeToolFullUrl, '_blank', 'noopener,noreferrer');
   }, [activeToolFullUrl]);
 
-  const handleNavSearch = React.useCallback((query: string): void => {
-    const q = (query || '').trim();
-    const url = q
-      ? `/SitePages/ContactCards.aspx?q=${encodeURIComponent(q)}`
-      : '/SitePages/ContactCards.aspx';
-    window.location.assign(url);
+  const handleToolClick = React.useCallback((tool: ITool): void => {
+    if (tool.externalUrl) {
+      window.open(tool.externalUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      setActiveTool(tool);
+    }
   }, []);
 
   const { employees, gridLoading: teamLoading } = useEmployees();
-  const members = React.useMemo<IEmployee[]>(() => {
+
+  const teamMembers = React.useMemo<IEmployee[]>(() => {
     return employees
       .filter(isDeptMember)
       .sort((a, b) => {
@@ -140,21 +171,22 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ bannerEyebrow, bannerTitle }
       });
   }, [employees]);
 
-  const pageId = activeTool
-    ? `${DEPARTMENT_NAME} Hub: ${activeTool.label}`
-    : `${DEPARTMENT_NAME} Hub Page`;
+  const handleSearch = React.useCallback((query: string): void => {
+    const q = (query || '').trim();
+    const url = q
+      ? `/SitePages/ContactCards.aspx?q=${encodeURIComponent(q)}`
+      : '/SitePages/ContactCards.aspx';
+    window.location.assign(url);
+  }, []);
 
-  /** Rendered twice (desktop sidebar + mobile stack); suffix keeps the
+  /** Rendered twice (desktop sidebar + mobile stack); the suffix keeps the
    *  heading ids unique so aria-labelledby stays valid. */
-  const renderToolsPanel = (suffix: string, panelClass: string): React.ReactNode => (
-    <section
-      className={`${styles.toolsPanel} ${panelClass}`}
-      aria-labelledby={`dispatch-tools-title${suffix}`}
-    >
+  const renderToolsPanel = (idSuffix: string, panelClass: string): React.ReactNode => (
+    <section className={`${styles.toolsPanel} ${panelClass}`} aria-labelledby={`dispatch-tools-${idSuffix}`}>
       <div className={styles.panelHeader}>
-        <h3 id={`dispatch-tools-title${suffix}`} className={styles.panelTitle}>
+        <h2 id={`dispatch-tools-${idSuffix}`} className={styles.panelTitle}>
           <Icon iconName="Toolbox" aria-hidden="true" />Tools
-        </h3>
+        </h2>
       </div>
       <ul className={styles.toolsGrid} role="list">
         {TOOLS.map((tool) => {
@@ -163,13 +195,7 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ bannerEyebrow, bannerTitle }
             <li key={tool.label}>
               <button
                 type="button"
-                onClick={() => {
-                  if (tool.href) {
-                    window.open(tool.href, '_blank', 'noopener,noreferrer');
-                  } else {
-                    setActiveTool(tool);
-                  }
-                }}
+                onClick={() => handleToolClick(tool)}
                 className={`${styles.toolTile} ${isActive ? styles.toolTileActive : ''}`}
                 aria-pressed={isActive}
               >
@@ -187,93 +213,41 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ bannerEyebrow, bannerTitle }
 
   return (
     <div className={styles.hub} style={themeVars}>
-      <Navigation onSearch={handleNavSearch} activePage="departmentHub" />
-
+      <Navigation onSearch={handleSearch} activePage="departmentHub" />
       <div className={styles.layout}>
         <a href={PUBLIC_PAGE_URL} className={styles.backLink}>
           ← Back to the public Dispatch page
         </a>
 
         <main className={styles.mainColumn}>
-
-          <section className={styles.updatesCard} aria-labelledby="dispatch-updates-title">
-            <div className={styles.updatesHeader}>
-              <div className={styles.updatesHeaderText}>
-                <span className={styles.updatesKicker}>
-                  <span className={styles.updatesKickerDot} aria-hidden="true" />
-                  {bannerEyebrow}
-                </span>
-                <h2 id="dispatch-updates-title" className={styles.updatesTitle}>
-                  {bannerTitle}
-                </h2>
-              </div>
+          <header className={styles.newsCard} style={{ backgroundImage: `url(${HEADER_BACKDROP})` }}>
+            <div className={styles.newsBody}>
+              <h1 className={styles.newsTitle}>Dispatch Department Hub</h1>
             </div>
-
-            {updates.length === 0 ? (
-              <p className={styles.updatesEmpty}>
-                No updates yet. Announcements for Dispatch will appear here.
-              </p>
-            ) : (
-              <ul className={styles.updatesList} role="list">
-                {updates.map((u, i) => (
-                  <li key={i} className={styles.updateRow}>
-                    {u.tag && (
-                      <span className={`${styles.updateBadge} ${styles[`updateBadge_${u.tone}`]}`}>
-                        {u.tag}
-                      </span>
-                    )}
-                    <div className={styles.updateBody}>
-                      <div className={styles.updateRowTop}>
-                        <span className={styles.updateTitle}>{u.title}</span>
-                        <span className={styles.updateTime}>{u.time}</span>
-                      </div>
-                      <p className={styles.updateDesc}>{u.body}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          </header>
 
           {/* Mobile copy: sits above the viewer once the sidebar stacks. */}
-          {renderToolsPanel('-m', styles.toolsPanelMobile)}
+          {renderToolsPanel('m', styles.toolsPanelMobile)}
 
-          <section className={styles.toolViewerCard} aria-labelledby="dispatch-viewer-title">
-            <header className={styles.toolViewerHeader}>
-              <div className={styles.toolViewerHeaderLeft}>
-                <Icon iconName="ViewListGroup" className={styles.toolViewerHeaderIcon} aria-hidden="true" />
+          <section className={styles.welcomeCard} aria-labelledby="dispatch-welcome">
+            <div className={styles.welcomeHeader}>
+              <div className={styles.welcomeHeaderLeft}>
+                <Icon iconName="Clock" className={styles.welcomeHeaderIcon} aria-hidden="true" />
                 <div>
-                  <p className={styles.toolViewerEyebrow}>Tool Viewer</p>
-                  <h3 id="dispatch-viewer-title" className={styles.toolViewerTitle}>
-                    Select a tool
-                  </h3>
+                  <p className={styles.welcomeEyebrow}>Welcome back</p>
+                  <h2 id="dispatch-welcome" className={styles.welcomeTitle}>{title}</h2>
+                  <p className={styles.welcomeSubtitle}>{subtitle}</p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={handleOpenFull}
-                className={styles.toolViewerOpenFull}
-                disabled={!activeToolFullUrl}
-                aria-label={
-                  activeTool
-                    ? `Open ${activeTool.label} in a new tab`
-                    : 'Open full: select a tool first'
-                }
-              >
-                Open full <Icon iconName="OpenInNewTab" aria-hidden="true" />
-              </button>
-            </header>
-
+            </div>
             <div
-              className={`${styles.toolViewerBody} ${activeTool ? styles.toolViewerBodyActive : ''}`}
+              className={`${styles.welcomePlaceholder} ${activeTool ? styles.welcomePlaceholderActive : ''}`}
               aria-live="polite"
             >
               {!activeTool && (
-                <div className={styles.placeholder}>
-                  <span className={styles.placeholderHint}>
-                    Pick a tool to view it here.
-                  </span>
-                </div>
+                <span className={styles.placeholderHint}>
+                  Pick a tool to view it here.
+                </span>
               )}
 
               {activeTool && (
@@ -281,22 +255,34 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ bannerEyebrow, bannerTitle }
                   <header className={styles.toolContentHeader}>
                     <div className={styles.toolContentTitleGroup}>
                       <span className={styles.toolContentEyebrow}>Now viewing</span>
-                      <h4 className={styles.toolContentTitle}>{activeTool.label}</h4>
+                      <h3 className={styles.toolContentTitle}>{activeTool.label}</h3>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTool(null)}
-                      className={styles.toolContentClose}
-                      aria-label="Close tool"
-                    >
-                      <Icon iconName="Cancel" />
-                    </button>
+                    <div className={styles.toolContentActions}>
+                      {activeToolFullUrl && (
+                        <button
+                          type="button"
+                          onClick={handleOpenFull}
+                          className={styles.toolContentOpenFull}
+                          aria-label={`Open ${activeTool.label} in a new tab`}
+                        >
+                          Open full <Icon iconName="OpenInNewTab" aria-hidden="true" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setActiveTool(null)}
+                        className={styles.toolContentClose}
+                        aria-label="Close tool"
+                      >
+                        <Icon iconName="Cancel" />
+                      </button>
+                    </div>
                   </header>
 
                   {activeTool.links ? (
                     <ul className={styles.toolContentList}>
-                      {activeTool.links.map((link, i) => (
-                        <li key={i}>
+                      {activeTool.links.map((link) => (
+                        <li key={link.url}>
                           <a
                             href={link.url}
                             target="_blank"
@@ -335,23 +321,25 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ bannerEyebrow, bannerTitle }
           <section className={styles.teamCard} aria-labelledby="dispatch-team">
             <div className={styles.teamHeader}>
               <div>
+                <span className={styles.teamEyebrow}>{DEPARTMENT_NAME}</span>
                 <h2 id="dispatch-team" className={styles.teamTitle}>Senior &amp; Support Team</h2>
               </div>
             </div>
-            {teamLoading && members.length === 0 && (
+            {teamLoading && teamMembers.length === 0 && (
               <p className={styles.teamMemberRole} role="status" aria-live="polite">
                 Loading team…
               </p>
             )}
-            {!teamLoading && members.length === 0 && (
+
+            {!teamLoading && teamMembers.length === 0 && (
               <p className={styles.teamMemberRole}>
-                No members listed yet. In the Employee Highlight list, turn on
-                Show In Dept Team for the Dispatch people you want here.
+                No team members found yet. In the Employee Highlight list, set Show In Dept Team to Yes for the Dispatch people you want here.
               </p>
             )}
-            {members.length > 0 && (
+
+            {teamMembers.length > 0 && (
               <ul className={styles.teamGrid} role="list">
-                {members.map((member) => {
+                {teamMembers.map((member) => {
                   const accent = pickAccentFromString(member.name);
                   const initials = getEmployeeInitials(member.name);
                   const role = getTeamRoleLabel(member);
@@ -418,12 +406,34 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ bannerEyebrow, bannerTitle }
           </section>
         </main>
 
-        <aside className={styles.sidebar} aria-label="Tools">
-          {renderToolsPanel('', styles.toolsPanelDesktop)}
+        <aside className={styles.sidebar} aria-label="Tools and policies">
+          {renderToolsPanel('d', styles.toolsPanelDesktop)}
+
+          <section className={styles.policyCard} aria-labelledby="dispatch-policy-title">
+            <h2 id="dispatch-policy-title" className={styles.policyTitle}>Breaks &amp; Sick Calls</h2>
+
+            <div className={`${styles.policyBlock} ${styles.policyBlockBreaks}`}>
+              <h3 className={styles.policyBlockTitle}>Breaks</h3>
+              <ul className={styles.policyList}>
+                <li>Employees working 5 hours or more are entitled to one unpaid lunch break (30 minutes).</li>
+                <li>Lunches must be taken at the scheduled time to maintain operational coverage.</li>
+              </ul>
+            </div>
+
+            <div className={`${styles.policyBlock} ${styles.policyBlockSick}`}>
+              <h3 className={styles.policyBlockTitle}>Sick Calls</h3>
+              <ul className={styles.policyList}>
+                <li>Sick calls must be made by phone. Emails for absences will not be accepted.</li>
+              </ul>
+              <p className={styles.policyContacts}>
+                <a href="tel:9056216844">Albert: 905-621-6844</a> (primary contact)
+              </p>
+            </div>
+          </section>
         </aside>
       </div>
 
-      <Footer pageIdentifier={pageId} />
+      <Footer pageIdentifier="Dispatch Hub" />
     </div>
   );
 };

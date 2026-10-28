@@ -9,32 +9,32 @@ import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
 import DispatchHub from './components/DispatchHub';
 import { IDispatchHubProps } from './components/IDispatchHubProps';
-import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
-import { initializeSP as initializeAnnouncementsSP } from '../rapidCityHomepage/services/announcementsSpConfig';
 import { initializeSP as initializeEmployeesSP } from '../employeeDirectory/services/spConfig';
+import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
 
 export interface IDispatchHubWebPartProps {
-  bannerEyebrow: string;
-  bannerTitle: string;
+  title: string;
+  subtitle: string;
 }
 
 export default class DispatchHubWebPart extends BaseClientSideWebPart<IDispatchHubWebPartProps> {
 
   protected async onInit(): Promise<void> {
     await super.onInit();
-    // Footer feedback (SiteFeedback), announcements (updates card), and the
-    // Employee Highlight roster (team card). Tools carry no data source yet.
-    initializeFeedbackSP(this.context);
-    initializeAnnouncementsSP(this.context);
+    // Employee Highlight roster (team card) and SiteFeedback (Footer). The
+    // tools are plain links and embeds, so they carry no data source.
     initializeEmployeesSP(this.context);
+    initializeFeedbackSP(this.context);
   }
 
   public render(): void {
     const element: React.ReactElement<IDispatchHubProps> = React.createElement(
       DispatchHub,
       {
-        bannerEyebrow: this.properties.bannerEyebrow || 'Latest updates',
-        bannerTitle: this.properties.bannerTitle || 'Team updates and notices',
+        title: this.properties.title || 'Dispatch',
+        subtitle:
+          this.properties.subtitle ||
+          'Everything you need for daily operations, in one place.',
       }
     );
     ReactDom.render(element, this.domElement);
@@ -55,13 +55,13 @@ export default class DispatchHubWebPart extends BaseClientSideWebPart<IDispatchH
           header: { description: 'Dispatch Hub Settings' },
           groups: [
             {
-              groupName: 'Latest Updates Banner',
+              groupName: 'Welcome card',
               groupFields: [
-                PropertyPaneTextField('bannerEyebrow', {
-                  label: 'Banner Eyebrow',
+                PropertyPaneTextField('title', {
+                  label: 'Title',
                 }),
-                PropertyPaneTextField('bannerTitle', {
-                  label: 'Banner Title',
+                PropertyPaneTextField('subtitle', {
+                  label: 'Subtitle',
                   multiline: true,
                 }),
               ],
