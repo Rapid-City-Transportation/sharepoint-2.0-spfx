@@ -1,7 +1,8 @@
 import { getSP } from './spConfig';
 import '@pnp/sp/webs';
-import '@pnp/sp/lists';
+import { IList } from '@pnp/sp/lists';
 import '@pnp/sp/items';
+import '@pnp/sp/fields';
 
 // The Vendor categories feed the Outsource Contact Cards drawer; the list's
 // Category choice column must carry exactly this text or the row is dropped.
@@ -61,16 +62,8 @@ const SUBJECT_FIELD = 'Subject';
 export async function fetchEmailTemplates(): Promise<IEmailTemplate[]> {
   const list = getSP().web.lists.getByTitle(LIST_TITLE);
 
-  // Subject was added for the vendor templates after the list went live, and
-  // selecting a column the list lacks fails the whole query.
-  const hasSubject = await list.fields
-    .filter(`InternalName eq '${SUBJECT_FIELD}'`)
-    .select('InternalName')()
-    .then(fields => fields.length > 0)
-    .catch(() => false);
-
   const selects = ['Id', 'Title', 'Body', 'Category', 'IsActive', 'CcRecipients'];
-  if (hasSubject) selects.push(SUBJECT_FIELD);
+  if (await listHasSubject(list)) selects.push(SUBJECT_FIELD);
 
   const items: IRawItem[] = await list.items
     .select(...selects)
@@ -80,6 +73,20 @@ export async function fetchEmailTemplates(): Promise<IEmailTemplate[]> {
   return items
     .map(mapRawToTemplate)
     .filter((t): t is IEmailTemplate => t !== null);
+}
+
+// Subject was added for the vendor templates after the list went live, and
+// selecting a column the list lacks fails the whole query. Any failure here
+// means "no Subject" rather than losing every template.
+async function listHasSubject(list: IList): Promise<boolean> {
+  try {
+    const fields = await list.fields
+      .filter(`InternalName eq '${SUBJECT_FIELD}'`)
+      .select('InternalName')();
+    return fields.length > 0;
+  } catch {
+    return false;
+  }
 }
 
 function mapRawToTemplate(raw: IRawItem): IEmailTemplate | null {
