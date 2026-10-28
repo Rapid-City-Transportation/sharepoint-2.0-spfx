@@ -88,7 +88,7 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
     key: 'dispatch',
     displayName: 'Dispatch',
     subtitle: 'About the Team',
-    about: 'Our Dispatch team assigns trips to drivers and partner companies and keeps the schedule moving through the day. They handle the delays, cancellations and last-minute changes that come up, and they are the first call when a driver needs help on the road.',
+    about: 'Our Dispatch team assigns trips to drivers and partner companies and keeps the schedule moving day and night. They handle the delays, cancellations and last-minute changes that come up, and they are the first call when a driver needs help on the road.',
     contactEmail: 'dispatch@rapidcitytransport.com',
     // Email-only until dispatch provides the number to publish.
     contactPhone: '',
