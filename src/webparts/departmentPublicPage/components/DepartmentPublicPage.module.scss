@@ -312,7 +312,7 @@
   align-items: center;
   justify-content: center;
   background: #DCDCDC;
-  min-height: 180px;
+  min-height: 150px;
   border-bottom: 1px solid var(--rct-border);
 }
 
@@ -325,7 +325,7 @@
 .newsImage {
   display: block;
   width: 100%;
-  height: 180px;
+  height: 150px;
   object-fit: cover;
 }
 
@@ -619,7 +619,7 @@
   justify-content: center;
   position: relative;
   background: #DCDCDC;   // fallback behind the no-photo placeholder
-  height: 180px;
+  height: 140px;
   overflow: hidden;
 }
 
@@ -729,7 +729,7 @@
 
   // Shorter portrait tiles for single-column leaders
   .leaderImageWrap {
-    height: 160px;
+    height: 130px;
   }
 }
 
@@ -788,6 +788,6 @@
   }
 
   .leaderImageWrap {
-    height: 150px;
+    height: 120px;
   }
 }
