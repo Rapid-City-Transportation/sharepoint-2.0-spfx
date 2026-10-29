@@ -80,10 +80,6 @@ const CONFIRMATIONS_URL =
   '?id=%2Fsites%2FCustomerService576%2FShared%20Documents%2FCONFIRMATIONS' +
   '&viewid=4a56a26f%2Dbcd6%2D4dc8%2Da06d%2Dd68e83a15d57';
 
-// New Lost Item list form (compass); opens in a new tab.
-const NEW_LOST_ITEM_URL =
-  'https://rapidcitytransport.sharepoint.com/sites/compass/_layouts/15/listforms.aspx?cid=Nzk4OWYxZjUtYTgzZS00YjJlLTliNzctMzEwMmFkZjFiMDJm&ct=1782741736795&or=OWA-NTB-Mail&cid=f557994b-acfa-c95b-66a9-853f032fc868&nav=NzY1Zjg5MzAtZDQ1Ny00ZDBjLTg1YzQtMmM1ZWI3OTQ1MzVl';
-
 // QC Hourly Counts list form; opens in a new tab.
 const QC_HOURLY_COUNTS_URL =
   'https://rapidcitytransport.sharepoint.com/_layouts/15/listforms.aspx?cid=OTdhOWRiZmMtNTI3YS00NjdkLTk3NWQtZmYwMDFhNzYwZTM0&nav=ZWY1MjAyYjctMGYyZi00NWRkLTg4ODEtOTkxODUyNDEyMTA3';
@@ -100,7 +96,6 @@ const TOOLS: ITool[] = [
   { label: 'Left in Monitor',  icon: 'ViewList',    embedUrl: LEFT_IN_MONITOR_LOG_URL },
   { label: 'Procedure Guides', icon: 'ReadingMode', externalUrl: PROCEDURE_GUIDES_URL },
   { label: 'Confirmations',    icon: 'DocumentApproval', externalUrl: CONFIRMATIONS_URL },
-  { label: 'Log Lost Item',    icon: 'ReportDocument', externalUrl: NEW_LOST_ITEM_URL },
   { label: 'QC Hourly Counts', icon: 'Clock',          externalUrl: QC_HOURLY_COUNTS_URL },
   { label: 'Lunch Schedule',   icon: 'Calendar',   embedUrl: LUNCH_SCHEDULE_URL },
   { label: 'Weekend Calendar', icon: 'CalendarWeek', customRender: () => <WeekendCalendar /> },

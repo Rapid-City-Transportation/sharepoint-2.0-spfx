@@ -33,6 +33,10 @@ const PUBLIC_PAGE_URL = `${COMPASS}/SitePages/Dispatch.aspx`;
 const ROOT_PAGES = `${ROOT}/SitePages`;
 
 const OUTSOURCE_CARDS_URL = `${COMPASS}/SitePages/OutsourceContactCards.aspx`;
+// New Lost Item list form on compass. Lost items are Dispatch's to log, so
+// the tile moved here from the CX hub on 2026-10-29.
+const NEW_LOST_ITEM_URL =
+  `${COMPASS}/_layouts/15/listforms.aspx?cid=Nzk4OWYxZjUtYTgzZS00YjJlLTliNzctMzEwMmFkZjFiMDJm&ct=1782741736795&or=OWA-NTB-Mail&cid=f557994b-acfa-c95b-66a9-853f032fc868&nav=NzY1Zjg5MzAtZDQ1Ny00ZDBjLTg1YzQtMmM1ZWI3OTQ1MzVl`;
 // The live vendor data. The legacy "Driver Directory" list on the same site
 // has not been edited since this list replaced it (2026-08-25) and holds
 // vendor account passwords, so it is not embedded anywhere.
@@ -44,6 +48,19 @@ const COVERAGE_LIST_URL = `${DISPATCH_SITE_URL}/Lists/Outsource%20Vendor%20Cover
 // hub's Doc.aspx pattern (action=embedview for the iframe only).
 const EXTENSION_LIST_URL = `${ROOT}/_layouts/15/embed.aspx?UniqueId=dc8d7342-14ca-420a-b9b4-52a61e8a6ba8`;
 const WEEKEND_SIGN_UP_URL = `${ROOT}/_layouts/15/Doc.aspx?sourcedoc=%7B43C35DE2-5987-4F62-90E6-F6D8EC0B63B6%7D`;
+
+// Viva Engage: the same RISE Hub community feed the CX hub embeds. header /
+// footer=false drop the network-name chrome so only the feed shows in the
+// narrow sidebar column.
+const VIVA_ENGAGE_NETWORK = 'rapidcitytransport.com';
+const RISE_HUB_GROUP_ID = '2281731358872';
+const RISE_HUB_EMBED_URL =
+  `https://web.yammer.com/embed/groups?domain=${VIVA_ENGAGE_NETWORK}` +
+  `&feedType=group&feedId=${RISE_HUB_GROUP_ID}` +
+  `&theme=light&header=false&footer=false&useSso=true`;
+const RISE_HUB_DEEP_LINK =
+  `https://engage.cloud.microsoft/main/org/${VIVA_ENGAGE_NETWORK}` +
+  `/groups/eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIyMjgxNzMxMzU4NzIifQ/all`;
 
 /** embedUrl renders inline in the Tool Viewer, links render there as a
  *  list, and externalUrl opens a new tab. A tile with none of them shows
@@ -67,6 +84,7 @@ const TOOLS: ITool[] = [
   { label: 'Dispatch Alerts',         icon: 'Ringer',       externalUrl: `${ROOT_PAGES}/Dispatch-Alerts.aspx` },
   { label: 'Driver Directory',        icon: 'ContactCard',  externalUrl: OUTSOURCE_CARDS_URL },
   { label: 'Hotels & Meals',          icon: 'Hotel',        externalUrl: `${ROOT_PAGES}/Hotel-Meal-Business-Expenses-for-Drivers.aspx` },
+  { label: 'Log Lost Item',           icon: 'ReportDocument', externalUrl: NEW_LOST_ITEM_URL },
   {
     label: 'Procedure Guides',
     icon: 'ReadingMode',
@@ -130,8 +148,8 @@ function isDeptMember(emp: IEmployee): boolean {
 }
 
 /** Private Dispatch hub: the CX hub's layout (banner, Tool Viewer, team
- *  card, Tools + Breaks & Sick Calls sidebar) with Dispatch's tools and
- *  without the CX-only hub tiles and Rise Hub feed. */
+ *  card, Tools + Rise Hub + Breaks & Sick Calls sidebar) with Dispatch's
+ *  tools and without the CX-only hub tiles. */
 const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle }) => {
   const themeVars = React.useMemo(
     () => getThemeCssVariables(defaultTheme) as React.CSSProperties,
@@ -408,6 +426,36 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle }) => {
 
         <aside className={styles.sidebar} aria-label="Tools and policies">
           {renderToolsPanel('d', styles.toolsPanelDesktop)}
+
+          <section className={styles.engageCard} aria-labelledby="dispatch-engage">
+            <div className={styles.panelHeader}>
+              <h2 id="dispatch-engage" className={styles.panelTitle}>
+                <span className={styles.engageIcon} aria-hidden="true">
+                  <Icon iconName="Chat" />
+                </span>
+                Rise Hub
+              </h2>
+              <a
+                href={RISE_HUB_DEEP_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.panelLink}
+                aria-label="Open RISE Hub in Viva Engage in a new tab"
+              >
+                Open <Icon iconName="OpenInNewTab" aria-hidden="true" />
+              </a>
+            </div>
+            <div className={styles.engageFrameClip}>
+              <iframe
+                title="RISE Hub community feed (Viva Engage)"
+                src={RISE_HUB_EMBED_URL}
+                className={styles.engageFrame}
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allow="clipboard-read; clipboard-write"
+              />
+            </div>
+          </section>
 
           <section className={styles.policyCard} aria-labelledby="dispatch-policy-title">
             <h2 id="dispatch-policy-title" className={styles.policyTitle}>Breaks &amp; Sick Calls</h2>

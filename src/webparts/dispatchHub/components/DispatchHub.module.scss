@@ -437,6 +437,46 @@ $transition:      0.18s ease;
   box-shadow: $shadow-card;
 }
 
+// Rise Hub (Viva Engage) feed: the CX hub's white sidebar card.
+.engageCard {
+  background: $text-inverse;
+  border: 1px solid $border;
+  border-radius: $radius-card;
+  padding: 16px 18px 18px;
+  box-shadow: $shadow-card;
+}
+
+.engageIcon {
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  font-size: 16px;
+}
+
+// Viva Engage's embed renders a "<Network Name>" card at the very top of the
+// feed that the documented `header=false` URL param does NOT hide on the
+// current embed. We crop it out by clipping the iframe inside an
+// overflow:hidden wrapper and shifting the iframe up. If Microsoft changes
+// the embed layout, this offset needs re-tuning here and in the CX hub.
+$engage-frame-height: 520px;
+$engage-header-crop:  50px;
+
+.engageFrameClip {
+  position: relative;
+  width: 100%;
+  height: $engage-frame-height;
+  overflow: hidden;
+  border-radius: $radius-tile;
+  background: #f8fafc;
+}
+
+.engageFrame {
+  display: block;
+  width: 100%;
+  height: calc(#{$engage-frame-height} + #{$engage-header-crop});
+  margin-top: -$engage-header-crop;
+  border: 0;
+  background: #f8fafc;
+}
+
 // Breaks Policy card: two colour-coded blocks (blue Breaks, red Sick Calls).
 .policyCard {
   background: $text-inverse;
@@ -728,6 +768,15 @@ $transition:      0.18s ease;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.panelLink {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rct-blue-accessible, #{$blue-accessible});
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
 }
 
 // Tools grid
