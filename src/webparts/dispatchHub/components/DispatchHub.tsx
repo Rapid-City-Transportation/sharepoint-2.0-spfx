@@ -23,7 +23,6 @@ const DEPARTMENT_NAME = 'Dispatch';
 
 const ROOT = 'https://rapidcitytransport.sharepoint.com';
 const COMPASS = `${ROOT}/sites/compass`;
-const DISPATCH_SITE_URL = `${ROOT}/sites/Dispatch`;
 
 /** Back-link target. The compass page must be named Dispatch. */
 const PUBLIC_PAGE_URL = `${COMPASS}/SitePages/Dispatch.aspx`;
@@ -37,11 +36,6 @@ const OUTSOURCE_CARDS_URL = `${COMPASS}/SitePages/OutsourceContactCards.aspx`;
 // the tile moved here from the CX hub on 2026-10-29.
 const NEW_LOST_ITEM_URL =
   `${COMPASS}/_layouts/15/listforms.aspx?cid=Nzk4OWYxZjUtYTgzZS00YjJlLTliNzctMzEwMmFkZjFiMDJm&ct=1782741736795&or=OWA-NTB-Mail&cid=f557994b-acfa-c95b-66a9-853f032fc868&nav=NzY1Zjg5MzAtZDQ1Ny00ZDBjLTg1YzQtMmM1ZWI3OTQ1MzVl`;
-// The live vendor data. The legacy "Driver Directory" list on the same site
-// has not been edited since this list replaced it (2026-08-25) and holds
-// vendor account passwords, so it is not embedded anywhere.
-const COVERAGE_LIST_URL = `${DISPATCH_SITE_URL}/Lists/Outsource%20Vendor%20Coverage/AllItems.aspx?sortField=Zone&isAscending=true`;
-
 // Albert's "Weekend Calendar 2026" workbook, in his OneDrive until it moves
 // to the Dispatch site (then swap the host and the sourcedoc). Addressed by
 // sourcedoc so a rename cannot break it; Doc.aspx follows the CX hub's
@@ -83,6 +77,10 @@ const TOOLS: ITool[] = [
   { label: 'Accidents & Emergencies', icon: 'Warning',      externalUrl: `${ROOT_PAGES}/Motor-Vehicle-Accidents.aspx` },
   { label: 'Daily Checklists',        icon: 'CheckList' },
   { label: 'Dispatch Alerts',         icon: 'Ringer',       externalUrl: `${ROOT_PAGES}/Dispatch-Alerts.aspx` },
+  // Dylan or Tommy are supplying Dispatch's own driver directory (Albert,
+  // 2026-11-03); the live vendor directory stands in until then. Never point
+  // this at the legacy /sites/Dispatch "Driver Directory" list: frozen since
+  // 2026-08-25 and it holds vendor account passwords.
   { label: 'Driver Directory',        icon: 'ContactCard',  externalUrl: OUTSOURCE_CARDS_URL },
   { label: 'Hotels & Meals',          icon: 'Hotel',        externalUrl: `${ROOT_PAGES}/Hotel-Meal-Business-Expenses-for-Drivers.aspx` },
   { label: 'Log Lost Item',           icon: 'ReportDocument', externalUrl: NEW_LOST_ITEM_URL },
@@ -109,7 +107,10 @@ const TOOLS: ITool[] = [
   { label: 'SPRQ Dispatch',           icon: 'Headset' },
   { label: 'Vehicle Service',         icon: 'Repair',       externalUrl: `${ROOT_PAGES}/Garage-Directory.aspx` },
   { label: 'Weekend Sign-Up',         icon: 'CalendarWeek', embedUrl: `${WEEKEND_SIGN_UP_URL}&action=embedview`, fullUrl: WEEKEND_SIGN_UP_URL },
-  { label: 'Zones & Coverage',        icon: 'MapPin',       embedUrl: `${COVERAGE_LIST_URL}&env=Embedded`, fullUrl: COVERAGE_LIST_URL },
+  // The Outsource Vendor Coverage list view this tile embedded came down on
+  // 2026-11-03: Albert wants a map of zones and coverage here and asked for
+  // a dead button until one exists.
+  { label: 'Zones & Coverage',        icon: 'MapPin' },
 ].sort((a, b) => a.label.localeCompare(b.label));
 
 /** Management = a department tag literally "Management", set in the source
