@@ -42,12 +42,13 @@ const NEW_LOST_ITEM_URL =
 // vendor account passwords, so it is not embedded anywhere.
 const COVERAGE_LIST_URL = `${DISPATCH_SITE_URL}/Lists/Outsource%20Vendor%20Coverage/AllItems.aspx?sortField=Zone&isAscending=true`;
 
-// Root-site files, addressed by UniqueId so renames and moves cannot break
-// them. The PDF embeds through embed.aspx, which carries no embed-only
-// params, so its full view is the same URL; the workbook follows the CX
-// hub's Doc.aspx pattern (action=embedview for the iframe only).
-const EXTENSION_LIST_URL = `${ROOT}/_layouts/15/embed.aspx?UniqueId=dc8d7342-14ca-420a-b9b4-52a61e8a6ba8`;
-const WEEKEND_SIGN_UP_URL = `${ROOT}/_layouts/15/Doc.aspx?sourcedoc=%7B43C35DE2-5987-4F62-90E6-F6D8EC0B63B6%7D`;
+// Albert's "Weekend Calendar 2026" workbook, in his OneDrive until it moves
+// to the Dispatch site (then swap the host and the sourcedoc). Addressed by
+// sourcedoc so a rename cannot break it; Doc.aspx follows the CX hub's
+// pattern (action=embedview for the iframe only).
+const WEEKEND_SIGN_UP_URL =
+  'https://rapidcitytransport-my.sharepoint.com/personal/albert_gillegean_rapidcitytransport_com' +
+  '/_layouts/15/Doc.aspx?sourcedoc=%7B854BA120-9D5A-43C9-B446-EFC102744E36%7D';
 
 // Viva Engage: the same RISE Hub community feed the CX hub embeds. header /
 // footer=false drop the network-name chrome so only the feed shows in the
@@ -99,7 +100,10 @@ const TOOLS: ITool[] = [
     ],
   },
   { label: 'Rebills',                 icon: 'Money',        externalUrl: `${ROOT_PAGES}/Rebills.aspx` },
-  { label: 'Roster & Extensions',     icon: 'Phone',        embedUrl: EXTENSION_LIST_URL, fullUrl: EXTENSION_LIST_URL },
+  // The root Extension List PDF this tile embedded came down on 2026-11-03:
+  // Albert is not sure it is accurate and is supplying the Dispatch roster
+  // (extensions may be a Trevor question), so it stays unwired until then.
+  { label: 'Roster & Extensions',     icon: 'Phone' },
   // Albert wants Dispatch's own processes for SPRQ accounts here; as of
   // 2026-10-28 that content has not been written, so the tile stays unwired.
   { label: 'SPRQ Dispatch',           icon: 'Headset' },
