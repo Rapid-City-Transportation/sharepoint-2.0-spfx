@@ -6,7 +6,11 @@
   padding: 0 calc(var(--rct-spacing-unit) * 3);
   position: sticky;
   top: 0;
-  z-index: 1000;
+  // Low on purpose. SharePoint's own panes (the left "Edit navigation" pane,
+  // for one) sit between page content and its chrome, and 1000 painted this
+  // bar over them. Keep it above every z-index our page content uses (sticky
+  // tab bars are 4, hero and carousel layers are 1-2) and below SharePoint's.
+  z-index: 5;
 }
 
 .navInner {

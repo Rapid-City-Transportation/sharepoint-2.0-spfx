@@ -741,7 +741,7 @@ $transition:      0.18s ease;
   margin-bottom: 24px;
   position: sticky;
   top: 48px;
-  z-index: 100;
+  z-index: 4;                   /* one below the nav bar's 5 */
   background: #ffffff;
   padding: 16px 0 12px 0;
   border-bottom: 1px solid $border-light;
