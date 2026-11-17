@@ -587,15 +587,12 @@ const CustomerExperienceHub: React.FC<ICustomerExperienceHubProps> = ({ title, s
             <div className={`${styles.policyBlock} ${styles.policyBlockSick}`}>
               <h3 className={styles.policyBlockTitle}>Sick Calls</h3>
               <ul className={styles.policyList}>
-                <li>Sick calls must be made by phone. Emails for absences will not be accepted.</li>
+                <li>Sick calls must be made by phone. Emails, Teams messages, and text messages will not be accepted as methods of reporting an absence.</li>
               </ul>
               <p className={styles.policyContacts}>
-                <a href="tel:9056216844">Albert: 905-621-6844</a> (primary contact)
-              </p>
-              <p className={styles.policyContacts}>
-                If Albert is unavailable:<br />
-                <a href="tel:9056227566">Shelly: 905-622-7566</a> (Mornings)<br />
-                <a href="tel:4376844430">Lindsey: 437-684-4430</a> (Afternoons &amp; Evenings)
+                <a href="tel:9056227566">Shelly: 905-622-7566</a> (Shifts starting before 2:30 PM)<br />
+                <a href="tel:4376844430">Lindsey: 437-684-4430</a> (Shifts starting at 2:30 PM or later)<br />
+                <a href="tel:9056216844">Albert: 905-621-6844</a> (Backup contact)
               </p>
             </div>
           </section>
