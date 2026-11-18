@@ -6,6 +6,7 @@ import { IDepartmentPublicPageProps } from '../models/IDepartmentPublicPageProps
 import { getDepartmentConfig, DepartmentKey } from '../services/DepartmentConfig';
 import { useDepartmentLeaders } from '../hooks/useDepartmentLeaders';
 import { useAnnouncements } from '../../rapidCityHomepage/hooks/useAnnouncements';
+import { useSiteAccess } from '../../rapidCityHomepage/hooks/useSiteAccess';
 import { Dialog, DialogType, DialogFooter } from '@fluentui/react/lib/Dialog';
 import { DefaultButton } from '@fluentui/react/lib/Button';
 import { sanitizeHtml } from '../../customerContactCards/utils/sanitize';
@@ -124,8 +125,12 @@ export default function DepartmentPublicPage(props: IDepartmentPublicPageProps):
   // can be demoed before group security is configured.
   const isMember = useDepartmentMembership(props.context, groupId);
   const isGroupGated = !!groupId && !groupId.startsWith('00000000');
+  // A hub hosted on a public site is gated by the team site in its config
+  // instead (no site configured = no gate).
+  const siteAccess = useSiteAccess(config?.accessSiteUrl);
   // No URL means no hub to go to yet: hide the button instead of linking to '#'.
-  const showResourceButton = !!resourceUrl && (!isGroupGated || isMember);
+  const showResourceButton =
+    !!resourceUrl && (!isGroupGated || isMember) && siteAccess.state === 'allowed';
 
   // "See all" toggle for the What's New section.
   const [showAllNews, setShowAllNews] = React.useState(false);

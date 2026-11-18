@@ -76,6 +76,7 @@ const ABOUT_SECTIONS = [
   { key: `${COMPASS}/SitePages/QualityManagementSystem.aspx`, text: 'Quality Management System' },
 ];
 const CX_PUBLIC_URL = `${COMPASS}/SitePages/CustomerExperience.aspx`;
+const DISPATCH_PUBLIC_URL = `${COMPASS}/SitePages/Dispatch.aspx`;
 const IT_PUBLIC_URL = `${COMPASS}/SitePages/InformationTechnology.aspx`;
 const HR_PUBLIC_URL = `${COMPASS}/SitePages/HumanResources.aspx`;
 // RISE Hub lives in Viva Engage (same community deep link the CX Hub embeds).
@@ -119,7 +120,7 @@ const DEPARTMENT_HUBS_OPTIONS: INavLink[] = [
   { label: 'Accounting', href: '#' },
   { label: 'Business Development', href: '#' },
   { label: 'Customer Experience', href: CX_PUBLIC_URL },
-  { label: 'Dispatch', href: '#' },
+  { label: 'Dispatch', href: DISPATCH_PUBLIC_URL },
   { label: 'Fleet', href: '#' },
   { label: 'Human Resources', href: HR_PUBLIC_URL },
   { label: 'Information Technology', href: IT_PUBLIC_URL },

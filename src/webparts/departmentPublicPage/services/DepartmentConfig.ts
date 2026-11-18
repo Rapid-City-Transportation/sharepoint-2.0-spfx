@@ -45,6 +45,10 @@ export interface IDepartmentConfig {
   phoneNumbers?: { label: string; number: string }[];
   /** URL to the locked-down department hub page (only for authorized members). */
   resourcePageUrl: string;
+  /** When the hub page lives on a public site (compass), the team site the
+   *  viewer must be able to open to see the CTA; the hub gates on the same
+   *  site. Omit when the hub page's own site already gates it. */
+  accessSiteUrl?: string;
   /** Azure AD / M365 group GUID: members of this group see the CTA button. */
   groupId: string;
 }
@@ -101,10 +105,11 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
         ],
       },
     ],
-    // Private hub page on the Dispatch team site, so the site's own
-    // permissions gate it the way the CX hub's site does. Create it with
-    // exactly this name.
-    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/Dispatch/SitePages/DispatchHub.aspx',
+    // The hub page is on compass (public), so membership of the Dispatch team
+    // site gates both this CTA and the hub itself; the lists the hub reads
+    // live on that site anyway.
+    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/DispatchHub.aspx',
+    accessSiteUrl: 'https://rapidcitytransport.sharepoint.com/sites/Dispatch',
     groupId: '00000000-0000-0000-0000-000000000002', // Replace with real GUID
   },
   accounting: {
