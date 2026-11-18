@@ -11,6 +11,7 @@ import DispatchHub from './components/DispatchHub';
 import { IDispatchHubProps } from './components/IDispatchHubProps';
 import { initializeSP as initializeEmployeesSP } from '../employeeDirectory/services/spConfig';
 import { initializeSP as initializeFeedbackSP } from '../customerContactCards/services/spConfig';
+import { initializeSP as initializeDispatchSP } from './services/spConfig';
 
 export interface IDispatchHubWebPartProps {
   title: string;
@@ -21,10 +22,11 @@ export default class DispatchHubWebPart extends BaseClientSideWebPart<IDispatchH
 
   protected async onInit(): Promise<void> {
     await super.onInit();
-    // Employee Highlight roster (team card) and SiteFeedback (Footer). The
-    // tools are plain links and embeds, so they carry no data source.
+    // Employee Highlight roster (team card), SiteFeedback (Footer), and the
+    // Dispatch site lists behind Weekend Sign-Up and Zones & Rosters.
     initializeEmployeesSP(this.context);
     initializeFeedbackSP(this.context);
+    initializeDispatchSP(this.context);
   }
 
   public render(): void {

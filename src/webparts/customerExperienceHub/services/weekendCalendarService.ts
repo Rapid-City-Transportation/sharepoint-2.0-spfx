@@ -2,8 +2,8 @@ import { SPFI } from '@pnp/sp';
 import '@pnp/sp/webs';
 import '@pnp/sp/lists';
 import '@pnp/sp/items';
-import '@pnp/sp/fields';
 import { getSP } from './spConfig';
+import { asText, getListFields, resolveField } from './listFields';
 
 const LIST_TITLE = 'CX Weekend Calendar';
 
@@ -16,51 +16,35 @@ export interface IWeekendShift {
   schedule: string;
 }
 
-interface IFieldDef {
-  Title: string;
-  InternalName: string;
+/** Candidate column names per field, matched by display or internal name;
+ *  the first one found wins. */
+export interface IWeekendShiftColumns {
+  date: string[];
+  agent: string[];
+  skill: string[];
+  schedule: string[];
 }
 
-async function getFields(sp: SPFI): Promise<IFieldDef[]> {
-  return sp.web.lists.getByTitle(LIST_TITLE).fields.select('Title', 'InternalName')();
-}
-
-// Resolve a column's internal name by matching candidate names against either
-// the display Title or the InternalName (case-insensitive). Earlier candidates
-// win, so the preferred name is passed first. This survives the export/import
-// quirk that left a stuck "Date" column alongside the good "Date1".
-function resolveField(fields: IFieldDef[], ...candidates: string[]): string | undefined {
-  for (const candidate of candidates) {
-    const lc = candidate.trim().toLowerCase();
-    const match = fields.find(
-      f =>
-        (f.Title || '').trim().toLowerCase() === lc ||
-        (f.InternalName || '').toLowerCase() === lc
-    );
-    if (match) return match.InternalName;
-  }
-  return undefined;
-}
-
-function asText(value: unknown): string {
-  return typeof value === 'string' ? value.trim() : '';
-}
-
-export async function fetchWeekendShifts(): Promise<IWeekendShift[]> {
-  const sp = getSP();
-  const fields = await getFields(sp);
-  // Prefer "Date1" (the working column) over the stuck, import-broken "Date".
-  const dateField = resolveField(fields, 'Date1', 'Date');
-  const agentField = resolveField(fields, 'Agent');
-  const skillField = resolveField(fields, 'Skill');
-  const scheduleField = resolveField(fields, 'Schedule');
+/** Reads any list shaped like a weekend calendar (one row per person per
+ *  day), so other hubs can show their own calendar through the same
+ *  component. */
+export async function fetchWeekendShiftsFrom(
+  sp: SPFI,
+  listTitle: string,
+  columns: IWeekendShiftColumns
+): Promise<IWeekendShift[]> {
+  const fields = await getListFields(sp, listTitle);
+  const dateField = resolveField(fields, ...columns.date);
+  const agentField = resolveField(fields, ...columns.agent);
+  const skillField = resolveField(fields, ...columns.skill);
+  const scheduleField = resolveField(fields, ...columns.schedule);
 
   const selects = ['Id', dateField, agentField, skillField, scheduleField].filter(
     (f): f is string => !!f
   );
 
   const rows: Record<string, unknown>[] = await sp.web.lists
-    .getByTitle(LIST_TITLE)
+    .getByTitle(listTitle)
     .items.select(...selects)
     .top(2000)();
 
@@ -73,4 +57,14 @@ export async function fetchWeekendShifts(): Promise<IWeekendShift[]> {
       schedule: scheduleField ? asText(r[scheduleField]) : '',
     }))
     .filter(s => s.agent || s.skill || s.schedule);
+}
+
+export async function fetchWeekendShifts(): Promise<IWeekendShift[]> {
+  // Prefer "Date1" (the working column) over the stuck, import-broken "Date".
+  return fetchWeekendShiftsFrom(getSP(), LIST_TITLE, {
+    date: ['Date1', 'Date'],
+    agent: ['Agent'],
+    skill: ['Skill'],
+    schedule: ['Schedule'],
+  });
 }

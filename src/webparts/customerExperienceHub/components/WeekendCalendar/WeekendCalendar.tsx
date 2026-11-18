@@ -4,6 +4,8 @@ import styles from './WeekendCalendar.module.scss';
 import { useWeekendCalendar } from '../../hooks/useWeekendCalendar';
 import { IWeekendShift } from '../../services/weekendCalendarService';
 
+// Palette slots, named after the CX skills that first used them; the Dispatch
+// calendar's teams reuse them below.
 type SkillTone = 'checking' | 'booking' | 'wsib' | 'vet' | 'default';
 
 function skillTone(skill: string): SkillTone {
@@ -12,7 +14,17 @@ function skillTone(skill: string): SkillTone {
   if (s.indexOf('VET') !== -1) return 'vet';
   if (s.indexOf('BOOK') !== -1) return 'booking';
   if (s.indexOf('CHECK') !== -1) return 'checking';
+  if (s.indexOf('OUTSOURCE') !== -1 && s.indexOf('DISPATCH') !== -1) return 'wsib';
+  if (s.indexOf('OUTSOURCE') !== -1) return 'booking';
+  if (s.indexOf('NEXT') !== -1) return 'vet';
+  if (s.indexOf('DISPATCH') !== -1) return 'checking';
   return 'default';
+}
+
+interface IWeekendCalendarProps {
+  /** Defaults to the CX list. Another hub passes its own module-level
+   *  loader so the same calendar renders its list. */
+  loadShifts?: () => Promise<IWeekendShift[]>;
 }
 
 // Date-only SharePoint fields come back as midnight UTC, which renders as the
@@ -160,8 +172,8 @@ function groupByMonth(weekends: IWeekendGroup[]): IMonthGroup[] {
   return groups.sort((a, b) => a.key.localeCompare(b.key));
 }
 
-export const WeekendCalendar: React.FC = () => {
-  const { shifts, loading, error } = useWeekendCalendar();
+export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts }) => {
+  const { shifts, loading, error } = useWeekendCalendar(loadShifts);
   const months = React.useMemo(() => groupByMonth(groupByWeekend(shifts)), [shifts]);
 
   // Default to the current month, else the next scheduled month, else the last.
@@ -261,7 +273,11 @@ export const WeekendCalendar: React.FC = () => {
                 <ul className={styles.shiftList} role="list">
                   {day.shifts.map(shift => (
                     <li key={shift.id} className={styles.shiftRow}>
-                      <span className={styles.shiftAgent}>{shift.agent}</span>
+                      {shift.agent ? (
+                        <span className={styles.shiftAgent}>{shift.agent}</span>
+                      ) : (
+                        <span className={`${styles.shiftAgent} ${styles.shiftOpen}`}>Open slot</span>
+                      )}
                       {shift.skill && (
                         <span
                           className={`${styles.shiftSkill} ${styles[`skill_${skillTone(shift.skill)}`]}`}

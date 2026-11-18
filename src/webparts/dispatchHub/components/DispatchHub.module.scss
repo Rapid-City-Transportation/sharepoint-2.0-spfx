@@ -354,6 +354,15 @@ $transition:      0.18s ease;
   display: block;
 }
 
+// Component-rendered tools (Weekend Sign-Up, Zones & Rosters) scroll inside
+// the fixed-height viewer instead of stretching it.
+.toolContentCustom {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 22px 24px 24px;
+}
+
 // Coming soon state for tools without a real backing yet
 .toolContentComingSoon {
   padding: 32px 22px;

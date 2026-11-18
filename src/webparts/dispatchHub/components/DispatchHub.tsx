@@ -15,11 +15,20 @@ import {
   getEmployeeInitials,
   pickAccentFromString,
 } from '../../employeeDirectory/utils/employeeFormatting';
+import { WeekendCalendar } from '../../customerExperienceHub/components/WeekendCalendar/WeekendCalendar';
+import { ZonesRoster } from './ZonesRoster/ZonesRoster';
+import { fetchDispatchWeekendShifts } from '../services/weekendCalendarService';
+import { DISPATCH_SITE_URL } from '../services/spConfig';
+import { DISPATCHER_SCHEDULE_LIST, WEEKEND_CALENDAR_LIST } from '../services/fieldNames';
 
 // Same backdrop as the public Dispatch page, the way the CX hub reuses its own.
 const HEADER_BACKDROP = require('../../departmentPublicPage/assets/dept-header-backdrop.png');
 
 const DEPARTMENT_NAME = 'Dispatch';
+
+// Siyam is the primary sick-call contact (Albert is backup). His direct line
+// was not on file on 2026-11-18; the row appears once the number is set.
+const SIYAM_SICK_CALL_PHONE: string = '';
 
 const ROOT = 'https://rapidcitytransport.sharepoint.com';
 const COMPASS = `${ROOT}/sites/compass`;
@@ -36,13 +45,12 @@ const OUTSOURCE_CARDS_URL = `${COMPASS}/SitePages/OutsourceContactCards.aspx`;
 // the tile moved here from the CX hub on 2026-10-29.
 const NEW_LOST_ITEM_URL =
   `${COMPASS}/_layouts/15/listforms.aspx?cid=Nzk4OWYxZjUtYTgzZS00YjJlLTliNzctMzEwMmFkZjFiMDJm&ct=1782741736795&or=OWA-NTB-Mail&cid=f557994b-acfa-c95b-66a9-853f032fc868&nav=NzY1Zjg5MzAtZDQ1Ny00ZDBjLTg1YzQtMmM1ZWI3OTQ1MzVl`;
-// Albert's "Weekend Calendar 2026" workbook, in his OneDrive until it moves
-// to the Dispatch site (then swap the host and the sourcedoc). Addressed by
-// sourcedoc so a rename cannot break it; Doc.aspx follows the CX hub's
-// pattern (action=embedview for the iframe only).
-const WEEKEND_SIGN_UP_URL =
-  'https://rapidcitytransport-my.sharepoint.com/personal/albert_gillegean_rapidcitytransport_com' +
-  '/_layouts/15/Doc.aspx?sourcedoc=%7B854BA120-9D5A-43C9-B446-EFC102744E36%7D';
+// The weekend calendar and the zones roster are lists on the Dispatch site
+// that Siyam and Albert maintain; "Open full" takes editors to the list.
+const listUrl = (title: string): string =>
+  `${DISPATCH_SITE_URL}/Lists/${encodeURIComponent(title)}/AllItems.aspx`;
+const WEEKEND_CALENDAR_LIST_URL = listUrl(WEEKEND_CALENDAR_LIST);
+const DISPATCHER_SCHEDULE_LIST_URL = listUrl(DISPATCHER_SCHEDULE_LIST);
 
 // Viva Engage: the same RISE Hub community feed the CX hub embeds. header /
 // footer=false drop the network-name chrome so only the feed shows in the
@@ -58,12 +66,13 @@ const RISE_HUB_DEEP_LINK =
   `/groups/eyJfdHlwZSI6Ikdyb3VwIiwiaWQiOiIyMjgxNzMxMzU4NzIifQ/all`;
 
 /** embedUrl renders inline in the Tool Viewer, links render there as a
- *  list, and externalUrl opens a new tab. A tile with none of them shows
- *  the coming-soon state. */
+ *  list, customRender mounts a component there, and externalUrl opens a
+ *  new tab. A tile with none of them shows the coming-soon state. */
 interface ITool {
   label: string;
   icon: string;
   embedUrl?: string;
+  customRender?: () => React.ReactNode;
   /** "Open full" target, kept apart from embedUrl so the iframe-only params
    *  (env=Embedded, action=embedview) never reach the full view. */
   fullUrl?: string;
@@ -98,19 +107,14 @@ const TOOLS: ITool[] = [
     ],
   },
   { label: 'Rebills',                 icon: 'Money',        externalUrl: `${ROOT_PAGES}/Rebills.aspx` },
-  // The root Extension List PDF this tile embedded came down on 2026-11-03:
-  // Albert is not sure it is accurate and is supplying the Dispatch roster
-  // (extensions may be a Trevor question), so it stays unwired until then.
-  { label: 'Roster & Extensions',     icon: 'Phone' },
   // Albert wants Dispatch's own processes for SPRQ accounts here; as of
   // 2026-10-28 that content has not been written, so the tile stays unwired.
   { label: 'SPRQ Dispatch',           icon: 'Headset' },
   { label: 'Vehicle Service',         icon: 'Repair',       externalUrl: `${ROOT_PAGES}/Garage-Directory.aspx` },
-  { label: 'Weekend Sign-Up',         icon: 'CalendarWeek', embedUrl: `${WEEKEND_SIGN_UP_URL}&action=embedview`, fullUrl: WEEKEND_SIGN_UP_URL },
-  // The Outsource Vendor Coverage list view this tile embedded came down on
-  // 2026-11-03: Albert wants a map of zones and coverage here and asked for
-  // a dead button until one exists.
-  { label: 'Zones & Coverage',        icon: 'MapPin' },
+  { label: 'Weekend Sign-Up',         icon: 'CalendarWeek', customRender: () => <WeekendCalendar loadShifts={fetchDispatchWeekendShifts} />, fullUrl: WEEKEND_CALENDAR_LIST_URL },
+  // One tile for who dispatches which zone on which shift; it replaced the
+  // separate Zones & Coverage and Roster & Extensions tiles on 2026-11-18.
+  { label: 'Zones & Rosters',         icon: 'MapPin',       customRender: () => <ZonesRoster />, fullUrl: DISPATCHER_SCHEDULE_LIST_URL },
 ].sort((a, b) => a.label.localeCompare(b.label));
 
 /** Management = a department tag literally "Management", set in the source
@@ -302,7 +306,9 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle }) => {
                     </div>
                   </header>
 
-                  {activeTool.links ? (
+                  {activeTool.customRender ? (
+                    <div className={styles.toolContentCustom}>{activeTool.customRender()}</div>
+                  ) : activeTool.links ? (
                     <ul className={styles.toolContentList}>
                       {activeTool.links.map((link) => (
                         <li key={link.url}>
@@ -479,7 +485,16 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle }) => {
                 <li>Sick calls must be made by phone. Emails for absences will not be accepted.</li>
               </ul>
               <p className={styles.policyContacts}>
-                <a href="tel:9056216844">Albert: 905-621-6844</a> (primary contact)
+                {SIYAM_SICK_CALL_PHONE && (
+                  <>
+                    <a href={`tel:${SIYAM_SICK_CALL_PHONE.replace(/\D/g, '')}`}>
+                      Siyam: {SIYAM_SICK_CALL_PHONE}
+                    </a>{' '}
+                    (primary contact)<br />
+                  </>
+                )}
+                <a href="tel:9056216844">Albert: 905-621-6844</a>{' '}
+                ({SIYAM_SICK_CALL_PHONE ? 'backup contact' : 'primary contact'})
               </p>
             </div>
           </section>
