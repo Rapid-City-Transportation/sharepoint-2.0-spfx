@@ -10,15 +10,18 @@ export interface IListFieldDef {
 
 interface IFieldRow extends IListFieldDef {
   Hidden?: boolean;
+  ReadOnlyField?: boolean;
 }
 
 // Hidden system columns are dropped so a candidate such as "Name" or "Order"
-// can never resolve to SharePoint's own FileLeafRef / Order fields.
+// can never resolve to SharePoint's own FileLeafRef / Order fields, and
+// read-only ones so a renamed Title never resolves to its computed
+// "Title (linked to item)" twins, which carry the same display name.
 export async function getListFields(sp: SPFI, listTitle: string): Promise<IListFieldDef[]> {
   const rows: IFieldRow[] = await sp.web.lists
     .getByTitle(listTitle)
-    .fields.select('Title', 'InternalName', 'Hidden')();
-  return rows.filter(f => !f.Hidden);
+    .fields.select('Title', 'InternalName', 'Hidden', 'ReadOnlyField')();
+  return rows.filter(f => !f.Hidden && !f.ReadOnlyField);
 }
 
 // Resolve a column's internal name by matching candidate names against either
