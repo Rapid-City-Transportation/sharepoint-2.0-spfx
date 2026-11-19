@@ -105,10 +105,10 @@ export const DEPARTMENT_CONFIGS: Record<DepartmentKey, IDepartmentConfig> = {
         ],
       },
     ],
-    // The hub page is on compass (public), so membership of the Dispatch team
-    // site gates both this CTA and the hub itself; the lists the hub reads
-    // live on that site anyway.
-    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/compass/SitePages/DispatchHub.aspx',
+    // The hub is the Dispatch team site's home page, so the site's own
+    // permissions gate it the way the CX hub's site does; accessSiteUrl
+    // keeps this CTA off the public page for people the site would refuse.
+    resourcePageUrl: 'https://rapidcitytransport.sharepoint.com/sites/Dispatch/SitePages/Home.aspx',
     accessSiteUrl: 'https://rapidcitytransport.sharepoint.com/sites/Dispatch',
     groupId: '00000000-0000-0000-0000-000000000002', // Replace with real GUID
   },

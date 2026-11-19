@@ -15,7 +15,6 @@ import {
   getEmployeeInitials,
   pickAccentFromString,
 } from '../../employeeDirectory/utils/employeeFormatting';
-import { useSiteAccess } from '../../rapidCityHomepage/hooks/useSiteAccess';
 import { WeekendCalendar } from '../../customerExperienceHub/components/WeekendCalendar/WeekendCalendar';
 import { ZonesRoster } from './ZonesRoster/ZonesRoster';
 import { fetchDispatchWeekendShifts } from '../services/weekendCalendarService';
@@ -26,9 +25,6 @@ import { DISPATCHER_SCHEDULE_LIST, WEEKEND_CALENDAR_LIST } from '../services/fie
 const HEADER_BACKDROP = require('../../departmentPublicPage/assets/dept-header-backdrop.png');
 
 const DEPARTMENT_NAME = 'Dispatch';
-
-// Albert owns the Dispatch team site, so access requests go to him.
-const DISPATCH_MANAGER_EMAIL = 'albert.gillegean@rapidcitytransport.com';
 
 const ROOT = 'https://rapidcitytransport.sharepoint.com';
 const COMPASS = `${ROOT}/sites/compass`;
@@ -167,10 +163,6 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle }) => {
 
   const [activeTool, setActiveTool] = React.useState<ITool | null>(null);
 
-  // The page is hosted on compass, a public site, so the Dispatch team site's
-  // membership is the gate: nothing renders until the viewer can open it.
-  const access = useSiteAccess(DISPATCH_SITE_URL);
-
   const activeToolFullUrl = activeTool?.fullUrl;
 
   const handleOpenFull = React.useCallback((): void => {
@@ -241,46 +233,6 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle }) => {
       </ul>
     </section>
   );
-
-  if (access.state !== 'allowed') {
-    return (
-      <div className={styles.hub} style={themeVars}>
-        <Navigation onSearch={handleSearch} activePage="departmentHub" />
-        <main className={styles.stateMain}>
-          {/* One mounted live region: swapping its content announces reliably. */}
-          <div className={styles.stateBlock} role="status" aria-live="polite">
-            {access.state === 'checking' ? (
-              <>
-                <Icon iconName="Lock" className={styles.stateIcon} aria-hidden="true" />
-                <h1 className={styles.stateTitle}>Checking access...</h1>
-              </>
-            ) : (
-              <>
-                <Icon iconName="BlockedSite" className={styles.stateIcon} aria-hidden="true" />
-                <h1 className={styles.stateTitle}>This page is for the Dispatch team.</h1>
-                <p className={styles.stateText}>
-                  You need to be a member of the Dispatch team site to view this hub. If you
-                  believe you should have access, contact{' '}
-                  <a className={styles.stateLink} href={`mailto:${DISPATCH_MANAGER_EMAIL}`}>
-                    Albert Gillegean
-                  </a>.
-                </p>
-                <div className={styles.stateActions}>
-                  <button type="button" className={styles.retryBtn} onClick={access.retry}>
-                    Try again
-                  </button>
-                  <a href={PUBLIC_PAGE_URL} className={styles.stateLink}>
-                    Back to the public Dispatch page
-                  </a>
-                </div>
-              </>
-            )}
-          </div>
-        </main>
-        <Footer pageIdentifier="Dispatch Hub" />
-      </div>
-    );
-  }
 
   return (
     <div className={styles.hub} style={themeVars}>
