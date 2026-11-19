@@ -14,6 +14,8 @@ export interface IWeekendShift {
   agent: string;
   skill: string;
   schedule: string;
+  /** Login of whoever took the slot through a hub, on lists that record it. */
+  signedUpBy?: string;
 }
 
 /** Candidate column names per field, matched by display or internal name;
@@ -23,6 +25,20 @@ export interface IWeekendShiftColumns {
   agent: string[];
   skill: string[];
   schedule: string[];
+  /** Only lists that offer sign-up carry this column. */
+  signedUpBy?: string[];
+}
+
+// Date-only SharePoint fields come back as midnight UTC, which renders as the
+// previous day in Ontario's timezone. Building the date from its Y/M/D parts
+// keeps it on the intended calendar day.
+export function parseListDate(value?: string): Date | undefined {
+  const datePart = (value || '').split('T')[0];
+  const [y, m, d] = datePart.split('-').map(Number);
+  if (y && m && d) return new Date(y, m - 1, d);
+  if (!value) return undefined;
+  const fallback = new Date(value);
+  return isNaN(fallback.getTime()) ? undefined : fallback;
 }
 
 /** Reads any list shaped like a weekend calendar (one row per person per
@@ -38,8 +54,9 @@ export async function fetchWeekendShiftsFrom(
   const agentField = resolveField(fields, ...columns.agent);
   const skillField = resolveField(fields, ...columns.skill);
   const scheduleField = resolveField(fields, ...columns.schedule);
+  const signedUpByField = columns.signedUpBy ? resolveField(fields, ...columns.signedUpBy) : undefined;
 
-  const selects = ['Id', dateField, agentField, skillField, scheduleField].filter(
+  const selects = ['Id', dateField, agentField, skillField, scheduleField, signedUpByField].filter(
     (f): f is string => !!f
   );
 
@@ -55,6 +72,7 @@ export async function fetchWeekendShiftsFrom(
       agent: agentField ? asText(r[agentField]) : '',
       skill: skillField ? asText(r[skillField]) : '',
       schedule: scheduleField ? asText(r[scheduleField]) : '',
+      signedUpBy: signedUpByField ? asText(r[signedUpByField]) || undefined : undefined,
     }))
     .filter(s => s.agent || s.skill || s.schedule);
 }

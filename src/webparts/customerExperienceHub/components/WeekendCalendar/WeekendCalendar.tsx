@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Icon } from '@fluentui/react/lib/Icon';
 import styles from './WeekendCalendar.module.scss';
 import { useWeekendCalendar } from '../../hooks/useWeekendCalendar';
-import { IWeekendShift } from '../../services/weekendCalendarService';
+import { IWeekendShift, parseListDate } from '../../services/weekendCalendarService';
 
 // Palette slots, named after the CX skills that first used them; the Dispatch
 // calendar's teams reuse them below.
@@ -21,21 +21,42 @@ function skillTone(skill: string): SkillTone {
   return 'default';
 }
 
+/** Lets viewers take and give back open slots. Absent on read-only calendars. */
+export interface IWeekendSignUp {
+  /** Why this open slot cannot be taken right now; undefined means it can. */
+  blockReason: (shift: IWeekendShift, all: IWeekendShift[]) => string | undefined;
+  isMine: (shift: IWeekendShift) => boolean;
+  signUp: (shift: IWeekendShift) => Promise<void>;
+  release: (shift: IWeekendShift) => Promise<void>;
+}
+
 interface IWeekendCalendarProps {
   /** Defaults to the CX list. Another hub passes its own module-level
    *  loader so the same calendar renders its list. */
   loadShifts?: () => Promise<IWeekendShift[]>;
+  signUp?: IWeekendSignUp;
 }
 
-// Date-only SharePoint fields come back as midnight UTC, which renders as the
-// previous day in Ontario's timezone. Building the date from its Y/M/D parts
-// keeps it on the intended calendar day.
-function parseListDate(value: string): Date | undefined {
-  const datePart = (value || '').split('T')[0];
-  const [y, m, d] = datePart.split('-').map(Number);
-  if (y && m && d) return new Date(y, m - 1, d);
-  const fallback = new Date(value);
-  return isNaN(fallback.getTime()) ? undefined : fallback;
+function startOfToday(): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function isPast(shift: IWeekendShift, today: Date): boolean {
+  const d = parseListDate(shift.date);
+  return !!d && d.getTime() < today.getTime();
+}
+
+function shortDate(shift: IWeekendShift): string {
+  const d = parseListDate(shift.date);
+  return d ? d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '';
+}
+
+/** Errors the sign-up service wrote for the person carry a flag; anything
+ *  else is a failed request and gets a generic line. */
+function failureText(err: unknown): string {
+  const e = err as { userFacing?: boolean; message?: string } | null;
+  return e && e.userFacing && e.message ? e.message : 'That did not save. Try again.';
 }
 
 function pad2(n: number): string {
@@ -172,9 +193,46 @@ function groupByMonth(weekends: IWeekendGroup[]): IMonthGroup[] {
   return groups.sort((a, b) => a.key.localeCompare(b.key));
 }
 
-export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts }) => {
-  const { shifts, loading, error } = useWeekendCalendar(loadShifts);
+export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, signUp }) => {
+  const { shifts, loading, error, refresh } = useWeekendCalendar(loadShifts);
   const months = React.useMemo(() => groupByMonth(groupByWeekend(shifts)), [shifts]);
+  const today = startOfToday();
+
+  // One row at a time saves; its outcome shows beside that row and is also
+  // mirrored into the always-mounted live region below the month picker.
+  const [busyId, setBusyId] = React.useState<number | undefined>(undefined);
+  const [notice, setNotice] = React.useState<
+    { id: number; text: string; tone: 'info' | 'error' } | undefined
+  >(undefined);
+
+  const runSlotAction = (shift: IWeekendShift, action: (s: IWeekendShift) => Promise<void>): void => {
+    setBusyId(shift.id);
+    setNotice(undefined);
+    action(shift)
+      .then(() => refresh())
+      .catch(err => setNotice({ id: shift.id, text: failureText(err), tone: 'error' }))
+      .then(() => setBusyId(undefined))
+      .catch(() => undefined);
+  };
+
+  const handleSignUp = (shift: IWeekendShift): void => {
+    if (!signUp) return;
+    const reason = signUp.blockReason(shift, shifts);
+    if (reason) {
+      setNotice({ id: shift.id, text: reason, tone: 'info' });
+      return;
+    }
+    runSlotAction(shift, signUp.signUp);
+  };
+
+  const myUpcoming = React.useMemo(() => {
+    if (!signUp) return [];
+    return shifts
+      .filter(s => signUp.isMine(s) && !isPast(s, today))
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    // today changes once a day; the list is recomputed with the shifts anyway.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shifts, signUp]);
 
   // Default to the current month, else the next scheduled month, else the last.
   const defaultKey = React.useMemo(() => {
@@ -210,8 +268,28 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts })
     return <div className={styles.state}>No weekend shifts are scheduled right now.</div>;
   }
 
+  const openThisMonth = activeMonth.weekends.reduce(
+    (n, w) => n + w.days.reduce(
+      (m, d) => m + d.shifts.filter(s => !s.agent && !isPast(s, today)).length,
+      0
+    ),
+    0
+  );
+
   return (
     <div className={styles.calendar}>
+      {signUp && (
+        <p className={styles.yourShifts}>
+          <strong>Your shifts:</strong>{' '}
+          {myUpcoming.length === 0
+            ? 'none yet. Pick an open slot below.'
+            : myUpcoming
+                .slice(0, 4)
+                .map(s => `${shortDate(s)}${s.skill ? ` (${s.skill})` : ''}`)
+                .join(', ') + (myUpcoming.length > 4 ? ` and ${myUpcoming.length - 4} more` : '')}
+        </p>
+      )}
+
       <div className={styles.monthNav}>
         <button
           type="button"
@@ -237,6 +315,19 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts })
           <Icon iconName="ChevronRight" aria-hidden="true" />
         </button>
       </div>
+
+      {signUp && (
+        <p className={styles.monthOpen}>
+          {openThisMonth === 0
+            ? 'No open slots this month.'
+            : `${openThisMonth} open ${openThisMonth === 1 ? 'slot' : 'slots'} this month.`}
+        </p>
+      )}
+
+      {/* Mounted once so a row's outcome is announced; the visible copy sits by the row. */}
+      <p className={styles.srOnly} role="status" aria-live="polite">
+        {notice ? notice.text : ''}
+      </p>
 
       {activeMonth.weekends.map(weekend => (
         <section
@@ -271,23 +362,67 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts })
                 </header>
 
                 <ul className={styles.shiftList} role="list">
-                  {day.shifts.map(shift => (
-                    <li key={shift.id} className={styles.shiftRow}>
-                      {shift.agent ? (
-                        <span className={styles.shiftAgent}>{shift.agent}</span>
-                      ) : (
-                        <span className={`${styles.shiftAgent} ${styles.shiftOpen}`}>Open slot</span>
-                      )}
-                      {shift.skill && (
-                        <span
-                          className={`${styles.shiftSkill} ${styles[`skill_${skillTone(shift.skill)}`]}`}
-                        >
-                          {shift.skill}
-                        </span>
-                      )}
-                      {shift.schedule && <span className={styles.shiftTime}>{shift.schedule}</span>}
-                    </li>
-                  ))}
+                  {day.shifts.map(shift => {
+                    const past = isPast(shift, today);
+                    const mine = !!signUp && signUp.isMine(shift);
+                    const busy = busyId === shift.id;
+                    const slotLabel = `${shift.skill || 'shift'} ${shift.schedule || ''} on ${day.weekday} ${day.dateLabel}`.trim();
+                    return (
+                      <li
+                        key={shift.id}
+                        className={`${styles.shiftRow} ${mine ? styles.shiftRowMine : ''}`}
+                      >
+                        {shift.agent ? (
+                          <span className={styles.shiftAgent}>
+                            {shift.agent}
+                            {mine && <span className={styles.youBadge}>You</span>}
+                          </span>
+                        ) : (
+                          <span className={`${styles.shiftAgent} ${styles.shiftOpen}`}>
+                            {past ? 'Not filled' : 'Open slot'}
+                          </span>
+                        )}
+                        {shift.skill && (
+                          <span
+                            className={`${styles.shiftSkill} ${styles[`skill_${skillTone(shift.skill)}`]}`}
+                          >
+                            {shift.skill}
+                          </span>
+                        )}
+                        {shift.schedule && <span className={styles.shiftTime}>{shift.schedule}</span>}
+
+                        {signUp && !past && !shift.agent && (
+                          <button
+                            type="button"
+                            className={styles.signUpBtn}
+                            onClick={() => handleSignUp(shift)}
+                            disabled={busy}
+                            aria-label={`Sign up for the ${slotLabel}`}
+                          >
+                            {busy ? 'Saving...' : 'Sign up'}
+                          </button>
+                        )}
+                        {signUp && !past && mine && (
+                          <button
+                            type="button"
+                            className={styles.releaseBtn}
+                            onClick={() => runSlotAction(shift, signUp.release)}
+                            disabled={busy}
+                            aria-label={`Release the ${slotLabel}`}
+                          >
+                            {busy ? 'Saving...' : 'Release'}
+                          </button>
+                        )}
+                        {notice && notice.id === shift.id && (
+                          <span
+                            className={`${styles.shiftNotice} ${notice.tone === 'error' ? styles.shiftNoticeError : ''}`}
+                          >
+                            {notice.text}
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             ))}

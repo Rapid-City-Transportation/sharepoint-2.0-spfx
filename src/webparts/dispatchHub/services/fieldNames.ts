@@ -10,12 +10,16 @@ export const DISPATCHER_SCHEDULE_LIST = 'Dispatcher Schedule';
 
 /** One row per person per weekend day: Date (date only), Title (dispatcher,
  *  blank = open slot), Team (choice: Dispatch / Next Days / Outsource /
- *  Outsource/Dispatch), Shift (text, e.g. "8AM - 4PM"). */
+ *  Outsource/Dispatch), Shift (text, e.g. "8AM - 4PM"), and an optional
+ *  Signed Up By text column the hub fills with the login of whoever took
+ *  the slot, so Release and the one-per-month rule key on identity rather
+ *  than on how a name was spelled. */
 export const WeekendCalendarColumns = {
   date: ['Date', 'Date1'],
   agent: ['Dispatcher', 'Title'],
   skill: ['Team'],
   schedule: ['Shift'],
+  signedUpBy: ['Signed Up By', 'SignedUpBy'],
 };
 
 /** One row per dispatcher: Title (name), Team (choice: Dispatch / Outsource),

@@ -37,6 +37,8 @@ export default class DispatchHubWebPart extends BaseClientSideWebPart<IDispatchH
         subtitle:
           this.properties.subtitle ||
           'Everything you need for daily operations, in one place.',
+        userDisplayName: this.context.pageContext.user.displayName,
+        userLogin: this.context.pageContext.user.email || this.context.pageContext.user.loginName,
       }
     );
     ReactDom.render(element, this.domElement);

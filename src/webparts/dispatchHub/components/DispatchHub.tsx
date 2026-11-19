@@ -15,9 +15,18 @@ import {
   getEmployeeInitials,
   pickAccentFromString,
 } from '../../employeeDirectory/utils/employeeFormatting';
-import { WeekendCalendar } from '../../customerExperienceHub/components/WeekendCalendar/WeekendCalendar';
+import {
+  IWeekendSignUp,
+  WeekendCalendar,
+} from '../../customerExperienceHub/components/WeekendCalendar/WeekendCalendar';
 import { ZonesRoster } from './ZonesRoster/ZonesRoster';
 import { fetchDispatchWeekendShifts } from '../services/weekendCalendarService';
+import {
+  isMine,
+  releaseShift,
+  signUpBlockReason,
+  signUpForShift,
+} from '../services/weekendSignUpService';
 import { DISPATCH_SITE_URL } from '../services/spConfig';
 import { DISPATCHER_SCHEDULE_LIST, WEEKEND_CALENDAR_LIST } from '../services/fieldNames';
 
@@ -78,7 +87,10 @@ interface ITool {
 
 // Named as Albert asked. SharePoint pages open in a new tab, as the CX hub
 // does for its Procedure Guides; lists and documents embed in the viewer.
-const TOOLS: ITool[] = [
+// A function because Weekend Sign-Up renders with the viewer's own sign-up
+// controller.
+function buildTools(weekendSignUp: IWeekendSignUp): ITool[] {
+  return [
   { label: 'Accidents & Emergencies', icon: 'Warning',      externalUrl: `${ROOT_PAGES}/Motor-Vehicle-Accidents.aspx` },
   { label: 'Daily Checklists',        icon: 'CheckList' },
   { label: 'Dispatch Alerts',         icon: 'Ringer',       externalUrl: `${ROOT_PAGES}/Dispatch-Alerts.aspx` },
@@ -107,11 +119,12 @@ const TOOLS: ITool[] = [
   // 2026-10-28 that content has not been written, so the tile stays unwired.
   { label: 'SPRQ Dispatch',           icon: 'Headset' },
   { label: 'Vehicle Service',         icon: 'Repair',       externalUrl: `${ROOT_PAGES}/Garage-Directory.aspx` },
-  { label: 'Weekend Sign-Up',         icon: 'CalendarWeek', customRender: () => <WeekendCalendar loadShifts={fetchDispatchWeekendShifts} />, fullUrl: WEEKEND_CALENDAR_LIST_URL },
+  { label: 'Weekend Sign-Up',         icon: 'CalendarWeek', customRender: () => <WeekendCalendar loadShifts={fetchDispatchWeekendShifts} signUp={weekendSignUp} />, fullUrl: WEEKEND_CALENDAR_LIST_URL },
   // One tile for who dispatches which zone on which shift; it replaced the
   // separate Zones & Coverage and Roster & Extensions tiles on 2026-11-18.
   { label: 'Zones & Rosters',         icon: 'MapPin',       customRender: () => <ZonesRoster />, fullUrl: DISPATCHER_SCHEDULE_LIST_URL },
-].sort((a, b) => a.label.localeCompare(b.label));
+  ].sort((a, b) => a.label.localeCompare(b.label));
+}
 
 /** Management = a department tag literally "Management", set in the source
  *  list alongside the member's primary department to mark leadership. */
@@ -155,11 +168,22 @@ function isDeptMember(emp: IEmployee): boolean {
 /** Private Dispatch hub: the CX hub's layout (banner, Tool Viewer, team
  *  card, Tools + Rise Hub + Breaks & Sick Calls sidebar) with Dispatch's
  *  tools and without the CX-only hub tiles. */
-const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle }) => {
+const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle, userDisplayName, userLogin }) => {
   const themeVars = React.useMemo(
     () => getThemeCssVariables(defaultTheme) as React.CSSProperties,
     []
   );
+
+  const weekendSignUp = React.useMemo<IWeekendSignUp>(() => {
+    const user = { name: userDisplayName, login: userLogin };
+    return {
+      blockReason: (shift, all) => signUpBlockReason(shift, all, user),
+      isMine: shift => isMine(shift, user),
+      signUp: shift => signUpForShift(shift, user),
+      release: shift => releaseShift(shift, user),
+    };
+  }, [userDisplayName, userLogin]);
+  const tools = React.useMemo(() => buildTools(weekendSignUp), [weekendSignUp]);
 
   const [activeTool, setActiveTool] = React.useState<ITool | null>(null);
 
@@ -212,7 +236,7 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle }) => {
         </h2>
       </div>
       <ul className={styles.toolsGrid} role="list">
-        {TOOLS.map((tool) => {
+        {tools.map((tool) => {
           const isActive = activeTool?.label === tool.label;
           return (
             <li key={tool.label}>
