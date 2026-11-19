@@ -30,10 +30,6 @@ const DEPARTMENT_NAME = 'Dispatch';
 // Albert owns the Dispatch team site, so access requests go to him.
 const DISPATCH_MANAGER_EMAIL = 'albert.gillegean@rapidcitytransport.com';
 
-// Siyam is the primary sick-call contact (Albert is backup). His direct line
-// was not on file on 2026-11-18; the row appears once the number is set.
-const SIYAM_SICK_CALL_PHONE: string = '';
-
 const ROOT = 'https://rapidcitytransport.sharepoint.com';
 const COMPASS = `${ROOT}/sites/compass`;
 
@@ -533,16 +529,8 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle }) => {
                 <li>Sick calls must be made by phone. Emails for absences will not be accepted.</li>
               </ul>
               <p className={styles.policyContacts}>
-                {SIYAM_SICK_CALL_PHONE && (
-                  <>
-                    <a href={`tel:${SIYAM_SICK_CALL_PHONE.replace(/\D/g, '')}`}>
-                      Siyam: {SIYAM_SICK_CALL_PHONE}
-                    </a>{' '}
-                    (primary contact)<br />
-                  </>
-                )}
-                <a href="tel:9056216844">Albert: 905-621-6844</a>{' '}
-                ({SIYAM_SICK_CALL_PHONE ? 'backup contact' : 'primary contact'})
+                <a href="tel:9055502732">Siyam: 905-550-2732</a> (primary contact)<br />
+                <a href="tel:9056216844">Albert: 905-621-6844</a> (backup contact)
               </p>
             </div>
           </section>
