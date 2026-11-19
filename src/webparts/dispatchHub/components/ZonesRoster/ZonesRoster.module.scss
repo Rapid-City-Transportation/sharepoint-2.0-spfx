@@ -1,7 +1,7 @@
 @import '../../../rapidCityHomepage/theme/themeVariables.module.scss';
 
-// Same card language as the CX Weekend Calendar: a dark header per group,
-// white rows underneath.
+// One roster table per team: a dark band per zone, then one row per
+// dispatcher. The CX Weekend Calendar's colours, in table form.
 
 .roster {
   display: flex;
@@ -51,33 +51,52 @@
   white-space: nowrap;
 }
 
-.zoneGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  align-items: start;
-  gap: 12px;
-}
-
-.zoneCard {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+.rosterTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
   background: #FFFFFF;
   border: 1px solid var(--rct-border, #E2E8F0);
   border-radius: 12px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
   overflow: hidden;
+  font-size: 14px;
+
+  th,
+  td {
+    text-align: left;
+    vertical-align: middle;
+    padding: 10px 16px;
+  }
+
+  thead th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--rct-text-secondary, #4A5568);
+    background: var(--rct-surface-page, #F1F4F9);
+    border-bottom: 1px solid var(--rct-border, #E2E8F0);
+  }
 }
 
-.zoneHeader {
+// The name column keeps one width across every band so shifts line up.
+.colName {
+  width: 46%;
+}
+
+.zoneRow th {
+  padding: 9px 16px;
+  background:
+    linear-gradient(135deg, rgba(31, 76, 127, 0.96) 0%, rgba(38, 41, 49, 0.97) 100%);
+  color: #FFFFFF;
+}
+
+.zoneHeading {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 12px 16px;
-  background:
-    linear-gradient(135deg, rgba(31, 76, 127, 0.96) 0%, rgba(38, 41, 49, 0.97) 100%);
-  color: #FFFFFF;
 }
 
 .zoneName {
@@ -101,49 +120,23 @@
   white-space: nowrap;
 }
 
-.personList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  background: #FFFFFF;
-}
-
-// The outsource list has no zone cards, so it carries the card frame itself.
-.personListFlat {
-  border: 1px solid var(--rct-border, #E2E8F0);
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
-  overflow: hidden;
-}
-
-.personRow {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 12px;
-  padding: 11px 16px;
+.personRow td {
   border-top: 1px solid var(--rct-border, #E2E8F0);
-
-  &:first-child {
-    border-top: none;
-  }
 }
 
 .personName {
-  flex: 1 1 auto;
-  min-width: 0;
-  font-size: 14px;
   font-weight: 600;
   color: var(--rct-text-primary, #262931);
+  overflow-wrap: anywhere;
 }
 
-.shiftChips {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.personShifts {
+  min-width: 0;
 }
 
 .shiftChip {
+  display: inline-block;
+  margin: 2px 6px 2px 0;
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -163,11 +156,14 @@
 }
 
 @media (max-width: 600px) {
-  .zoneGrid {
-    grid-template-columns: 1fr;
+  .rosterTable {
+    th,
+    td {
+      padding: 9px 12px;
+    }
   }
 
-  .personRow {
-    padding: 11px 14px;
+  .colName {
+    width: 50%;
   }
 }

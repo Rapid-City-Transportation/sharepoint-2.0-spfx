@@ -32,23 +32,32 @@ function countLabel(n: number): string {
   return `${n} ${n === 1 ? 'dispatcher' : 'dispatchers'}`;
 }
 
-function renderPerson(person: IDispatcherShift): React.ReactNode {
+function renderPersonRow(person: IDispatcherShift): React.ReactNode {
   return (
-    <li key={person.id} className={styles.personRow}>
-      <span className={styles.personName}>{person.name}</span>
-      {person.shifts.length > 0 && (
-        <span className={styles.shiftChips}>
-          {person.shifts.map((shift, i) => (
-            <span key={i} className={styles.shiftChip}>{shift}</span>
-          ))}
-        </span>
-      )}
-    </li>
+    <tr key={person.id} className={styles.personRow}>
+      <td className={styles.personName}>{person.name}</td>
+      <td className={styles.personShifts}>
+        {person.shifts.map((shift, i) => (
+          <span key={i} className={styles.shiftChip}>{shift}</span>
+        ))}
+      </td>
+    </tr>
   );
 }
 
-/** Who dispatches which zone, from the Dispatcher Schedule list: one card
- *  per area of coverage, then the outsource dispatchers as a flat list. */
+const TableHead: React.FC = () => (
+  <thead>
+    <tr>
+      <th scope="col" className={styles.colName}>Dispatcher</th>
+      <th scope="col">Shift</th>
+    </tr>
+  </thead>
+);
+
+/** Who dispatches which zone, from the Dispatcher Schedule list: one table
+ *  with a band per area of coverage, then the outsource dispatchers. A
+ *  table rather than cards so every row lines up whatever the name or zone
+ *  length, which cards in the narrow viewer could not do. */
 export const ZonesRoster: React.FC = () => {
   const { rows, loading, error } = useDispatcherSchedule();
   const zones = React.useMemo(
@@ -88,19 +97,22 @@ export const ZonesRoster: React.FC = () => {
             <span className={styles.groupCount}>{countLabel(dispatchCount)}</span>
           </header>
 
-          <div className={styles.zoneGrid}>
+          <table className={styles.rosterTable}>
+            <TableHead />
             {zones.map(zone => (
-              <section key={zone.name} className={styles.zoneCard} aria-label={zone.name}>
-                <header className={styles.zoneHeader}>
-                  <span className={styles.zoneName}>{zone.name}</span>
-                  <span className={styles.zoneCount}>{countLabel(zone.people.length)}</span>
-                </header>
-                <ul className={styles.personList} role="list">
-                  {zone.people.map(renderPerson)}
-                </ul>
-              </section>
+              <tbody key={zone.name}>
+                <tr className={styles.zoneRow}>
+                  <th scope="rowgroup" colSpan={2}>
+                    <span className={styles.zoneHeading}>
+                      <span className={styles.zoneName}>{zone.name}</span>
+                      <span className={styles.zoneCount}>{countLabel(zone.people.length)}</span>
+                    </span>
+                  </th>
+                </tr>
+                {zone.people.map(renderPersonRow)}
+              </tbody>
             ))}
-          </div>
+          </table>
         </section>
       )}
 
@@ -112,9 +124,11 @@ export const ZonesRoster: React.FC = () => {
             <h4 id="zones-roster-outsource" className={styles.groupTitle}>Outsource dispatchers</h4>
             <span className={styles.groupCount}>{countLabel(outsource.length)}</span>
           </header>
-          <ul className={`${styles.personList} ${styles.personListFlat}`} role="list">
-            {outsource.map(renderPerson)}
-          </ul>
+
+          <table className={styles.rosterTable}>
+            <TableHead />
+            <tbody>{outsource.map(renderPersonRow)}</tbody>
+          </table>
         </section>
       )}
     </div>
