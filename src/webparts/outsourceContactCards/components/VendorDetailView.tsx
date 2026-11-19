@@ -15,6 +15,7 @@ import {
 import { isManagerView } from '../services/permissions';
 import { ANY_WHEELCHAIR, hasVehicle } from '../services/vendorSearch';
 import VehicleIcon from './VehicleIcon';
+import VendorDocuments from './VendorDocuments';
 
 // Accent hexes match the customer detail view's sections so the two card
 // pages read as one family.
@@ -112,17 +113,19 @@ const OnFileRow: React.FC<{ label: string; value?: boolean }> = ({ label, value 
   </div>
 );
 
+const managersOnlyBadge = (
+  <span className={styles.managerBadge}>
+    <Icon iconName="Lock" aria-hidden="true" /> Managers only
+  </span>
+);
+
 const ManagerSections: React.FC<{ info: IVendorManagerInfo }> = ({ info }) => (
   <>
     <AccordionSection
       id="vendor-contracts"
       title="Contracts & Insurance"
       accentColor={SECTION_COLORS.contracts}
-      badge={
-        <span className={styles.managerBadge}>
-          <Icon iconName="Lock" aria-hidden="true" /> Managers only
-        </span>
-      }
+      badge={managersOnlyBadge}
     >
       <FieldRow label="Insurance Provider" value={info.insuranceProvider} />
       <FieldRow label="Policy Number" value={info.policyNumber} />
@@ -155,11 +158,7 @@ const ManagerSections: React.FC<{ info: IVendorManagerInfo }> = ({ info }) => (
       id="vendor-notes"
       title="Reviews & Notes"
       accentColor={SECTION_COLORS.notes}
-      badge={
-        <span className={styles.managerBadge}>
-          <Icon iconName="Lock" aria-hidden="true" /> Managers only
-        </span>
-      }
+      badge={managersOnlyBadge}
     >
       <FieldRow label="Last Review" value={formatDate(info.lastReviewDate)} />
       <FieldRow label="Next Review" value={formatDate(info.nextReviewDate)} />
@@ -677,6 +676,13 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
             )}
 
             {manager && vendor.managerOnly && <ManagerSections info={vendor.managerOnly} />}
+            {manager && (
+              <VendorDocuments
+                vendor={vendor}
+                accentColor={SECTION_COLORS.contracts}
+                badge={managersOnlyBadge}
+              />
+            )}
           </div>
         </div>
       )}

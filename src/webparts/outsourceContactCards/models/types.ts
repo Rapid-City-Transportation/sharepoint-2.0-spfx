@@ -186,6 +186,9 @@ export interface IVendor {
   /** Driver Directory row id carried over by the migration; joins the
    *  manager-view list, which still keys on the old directory. */
   legacyDirectoryId?: string;
+  /** ERP number from the Masterlist, digits only; keys the vendor's folder in
+   *  the Vendor Compliance Documents library. Standalone coverage rows have none. */
+  erpDriverId?: string;
 }
 
 /** Display names for the Masterlist's two-letter codes; anything else (US

@@ -20,6 +20,9 @@ export const ML = {
 
   Id: 'ID',
   Title: 'Title',
+  /** ERPDriverID: the ERP's number for the company; also the suffix of its
+   *  folder in the Management site's Vendor Compliance Documents library. */
+  ERPDriverID: 'field_1',
   /** ProperName */
   ProperName: 'field_2',
   /** ERPSystemName */
@@ -48,6 +51,7 @@ export const ML = {
 export const ML_SELECT_FIELDS: readonly string[] = [
   ML.Id,
   ML.Title,
+  ML.ERPDriverID,
   ML.ProperName,
   ML.ERPSystemName,
   ML.ProvinceState,

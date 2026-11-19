@@ -40,6 +40,14 @@ function sameSet(a: string[], b: string[]): boolean {
   return key(a) === key(b);
 }
 
+/** The ERP id arrives as a number (1250) or text ("0058"); both become "1250"
+ *  / "58" so they match the library folder suffixes. */
+function readErpId(row: SPRow, field: string): string | undefined {
+  const val = row[field];
+  const n = typeof val === 'number' ? val : parseInt(String(val ?? ''), 10);
+  return isFinite(n) && n > 0 ? String(Math.round(n)) : undefined;
+}
+
 function splitCities(value?: string): string[] {
   if (!value) return [];
   return value.split(',').map(s => s.trim()).filter(s => s.length > 0);
@@ -125,6 +133,7 @@ function mapMasterRow(row: SPRow): IVendor {
     id: String(row[ML.Id] ?? row['Id'] ?? ''),
     name: readString(row, ML.ProperName) || readString(row, ML.Title) || '(unnamed vendor)',
     operatingName: readString(row, ML.ERPSystemName),
+    erpDriverId: readErpId(row, ML.ERPDriverID),
     province: readString(row, ML.ProvinceState),
     vehicleTypes: readChoiceArray(row, ML.VehicleTypesC),
     portal: readBool(row, ML.PortalAccessYN),
