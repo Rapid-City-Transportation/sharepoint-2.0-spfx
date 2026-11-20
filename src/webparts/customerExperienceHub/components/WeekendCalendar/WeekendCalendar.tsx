@@ -21,13 +21,15 @@ function skillTone(skill: string): SkillTone {
   return 'default';
 }
 
-/** Lets viewers take and give back open slots. Absent on read-only calendars. */
+/** Lets viewers take open slots and ask to be taken off their own. Absent on
+ *  read-only calendars. Nobody clears a row from here: a drop is a request
+ *  that a manager acts on in the list. */
 export interface IWeekendSignUp {
   /** Why this open slot cannot be taken right now; undefined means it can. */
   blockReason: (shift: IWeekendShift, all: IWeekendShift[]) => string | undefined;
   isMine: (shift: IWeekendShift) => boolean;
   signUp: (shift: IWeekendShift) => Promise<void>;
-  release: (shift: IWeekendShift) => Promise<void>;
+  requestDrop: (shift: IWeekendShift) => Promise<void>;
 }
 
 interface IWeekendCalendarProps {
@@ -250,6 +252,25 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, s
   const activeIndex = months.findIndex(m => m.key === activeKey);
   const activeMonth = activeIndex >= 0 ? months[activeIndex] : undefined;
 
+  // Open slots are scattered among taken ones, so a filter hides everything
+  // that cannot be signed up for: taken rows, past rows, and the days and
+  // weekends left empty by that.
+  const [openOnly, setOpenOnly] = React.useState(false);
+  const shownWeekends = React.useMemo<IWeekendGroup[]>(() => {
+    if (!activeMonth) return [];
+    if (!openOnly) return activeMonth.weekends;
+    return activeMonth.weekends
+      .map(w => {
+        const days = w.days
+          .map(d => ({ ...d, shifts: d.shifts.filter(s => !s.agent && !isPast(s, today)) }))
+          .filter(d => d.shifts.length > 0);
+        return { ...w, days, total: days.reduce((n, d) => n + d.shifts.length, 0) };
+      })
+      .filter(w => w.days.length > 0);
+    // today changes once a day; recomputed with the month anyway.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeMonth, openOnly]);
+
   if (loading) {
     return (
       <div className={styles.state} role="status" aria-live="polite">
@@ -285,8 +306,10 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, s
             ? 'none yet. Pick an open slot below.'
             : myUpcoming
                 .slice(0, 4)
-                .map(s => `${shortDate(s)}${s.skill ? ` (${s.skill})` : ''}`)
-                .join(', ') + (myUpcoming.length > 4 ? ` and ${myUpcoming.length - 4} more` : '')}
+                .map(s =>
+                  `${shortDate(s)}${s.skill ? ` (${s.skill})` : ''}${s.dropRequested ? ', drop requested' : ''}`
+                )
+                .join('; ') + (myUpcoming.length > 4 ? ` and ${myUpcoming.length - 4} more` : '')}
         </p>
       )}
 
@@ -316,20 +339,39 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, s
         </button>
       </div>
 
-      {signUp && (
-        <p className={styles.monthOpen}>
-          {openThisMonth === 0
-            ? 'No open slots this month.'
-            : `${openThisMonth} open ${openThisMonth === 1 ? 'slot' : 'slots'} this month.`}
-        </p>
-      )}
+      <div className={styles.monthTools}>
+        {signUp ? (
+          <p className={styles.monthOpen}>
+            {openThisMonth === 0
+              ? 'No open slots this month.'
+              : `${openThisMonth} open ${openThisMonth === 1 ? 'slot' : 'slots'} this month.`}
+          </p>
+        ) : (
+          <span />
+        )}
+        <button
+          type="button"
+          className={`${styles.filterToggle} ${openOnly ? styles.filterToggleActive : ''}`}
+          onClick={() => setOpenOnly(v => !v)}
+          aria-pressed={openOnly}
+        >
+          <Icon iconName={openOnly ? 'CheckboxComposite' : 'Checkbox'} aria-hidden="true" />
+          Open slots only
+        </button>
+      </div>
 
       {/* Mounted once so a row's outcome is announced; the visible copy sits by the row. */}
       <p className={styles.srOnly} role="status" aria-live="polite">
         {notice ? notice.text : ''}
       </p>
 
-      {activeMonth.weekends.map(weekend => (
+      {openOnly && shownWeekends.length === 0 && (
+        <div className={styles.state} role="status">
+          No open slots in {activeMonth.label}. Try the next month.
+        </div>
+      )}
+
+      {shownWeekends.map(weekend => (
         <section
           key={weekend.key}
           className={styles.weekendGroup}
@@ -340,7 +382,7 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, s
             <span className={styles.weekendEyebrow}>Weekend</span>
             <span className={styles.weekendLabel}>{weekend.label}</span>
             <span className={styles.weekendCount}>
-              {weekend.total} {weekend.total === 1 ? 'shift' : 'shifts'}
+              {weekend.total} {openOnly ? 'open' : weekend.total === 1 ? 'shift' : 'shifts'}
             </span>
           </header>
 
@@ -357,7 +399,7 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, s
                     {day.dateLabel && <span className={styles.dayDate}>{day.dateLabel}</span>}
                   </div>
                   <span className={styles.dayCount}>
-                    {day.shifts.length} {day.shifts.length === 1 ? 'shift' : 'shifts'}
+                    {day.shifts.length} {openOnly ? 'open' : day.shifts.length === 1 ? 'shift' : 'shifts'}
                   </span>
                 </header>
 
@@ -376,6 +418,9 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, s
                           <span className={styles.shiftAgent}>
                             {shift.agent}
                             {mine && <span className={styles.youBadge}>You</span>}
+                            {shift.dropRequested && (
+                              <span className={styles.dropBadge}>Drop requested</span>
+                            )}
                           </span>
                         ) : (
                           <span className={`${styles.shiftAgent} ${styles.shiftOpen}`}>
@@ -402,15 +447,15 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, s
                             {busy ? 'Saving...' : 'Sign up'}
                           </button>
                         )}
-                        {signUp && !past && mine && (
+                        {signUp && !past && mine && !shift.dropRequested && (
                           <button
                             type="button"
                             className={styles.releaseBtn}
-                            onClick={() => runSlotAction(shift, signUp.release)}
+                            onClick={() => runSlotAction(shift, signUp.requestDrop)}
                             disabled={busy}
-                            aria-label={`Release the ${slotLabel}`}
+                            aria-label={`Ask to drop the ${slotLabel}`}
                           >
-                            {busy ? 'Saving...' : 'Release'}
+                            {busy ? 'Saving...' : 'Request to drop'}
                           </button>
                         )}
                         {notice && notice.id === shift.id && (

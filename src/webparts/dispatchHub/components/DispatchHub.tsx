@@ -23,7 +23,7 @@ import { ZonesRoster } from './ZonesRoster/ZonesRoster';
 import { fetchDispatchWeekendShifts } from '../services/weekendCalendarService';
 import {
   isMine,
-  releaseShift,
+  requestDrop,
   signUpBlockReason,
   signUpForShift,
 } from '../services/weekendSignUpService';
@@ -180,7 +180,7 @@ const DispatchHub: React.FC<IDispatchHubProps> = ({ title, subtitle, userDisplay
       blockReason: (shift, all) => signUpBlockReason(shift, all, user),
       isMine: shift => isMine(shift, user),
       signUp: shift => signUpForShift(shift, user),
-      release: shift => releaseShift(shift, user),
+      requestDrop: shift => requestDrop(shift, user),
     };
   }, [userDisplayName, userLogin]);
   const tools = React.useMemo(() => buildTools(weekendSignUp), [weekendSignUp]);

@@ -34,6 +34,7 @@ function userError(message: string): ISignUpError {
 interface IWriteFields {
   agent: string;
   signedUpBy?: string;
+  dropRequested?: string;
 }
 
 let _fields: Promise<IWriteFields> | undefined;
@@ -45,7 +46,11 @@ function writeFields(): Promise<IWriteFields> {
       .then(fields => {
         const agent = resolveField(fields, ...WeekendCalendarColumns.agent);
         if (!agent) throw new Error(`${WEEKEND_CALENDAR_LIST} has no Dispatcher column.`);
-        return { agent, signedUpBy: resolveField(fields, ...WeekendCalendarColumns.signedUpBy) };
+        return {
+          agent,
+          signedUpBy: resolveField(fields, ...WeekendCalendarColumns.signedUpBy),
+          dropRequested: resolveField(fields, ...WeekendCalendarColumns.dropRequested),
+        };
       })
       .catch(err => {
         _fields = undefined;
@@ -116,10 +121,16 @@ export async function signUpForShift(shift: IWeekendShift, user: ISignUpUser): P
   }
 }
 
-export async function releaseShift(shift: IWeekendShift, user: ISignUpUser): Promise<void> {
-  if (!isMine(shift, user)) throw userError('Only the person who signed up can release this slot.');
+/** A holder never clears their own row: the request flags it for a manager
+ *  (Albert), who clears the name and the flag in the list. */
+export async function requestDrop(shift: IWeekendShift, user: ISignUpUser): Promise<void> {
+  if (!isMine(shift, user)) throw userError('Only the person who signed up can ask to drop this slot.');
   const fields = await writeFields();
-  const props: Record<string, string> = { [fields.agent]: '' };
-  if (fields.signedUpBy) props[fields.signedUpBy] = '';
-  await getSP().web.lists.getByTitle(WEEKEND_CALENDAR_LIST).items.getById(shift.id).update(props);
+  if (!fields.dropRequested) {
+    throw userError('The list has no Drop Requested column yet. Ask Albert to take you off this slot.');
+  }
+  await getSP().web.lists
+    .getByTitle(WEEKEND_CALENDAR_LIST)
+    .items.getById(shift.id)
+    .update({ [fields.dropRequested]: true });
 }

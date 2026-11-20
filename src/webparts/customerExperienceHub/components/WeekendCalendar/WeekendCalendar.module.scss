@@ -262,12 +262,72 @@
   }
 }
 
+.monthTools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: -12px;
+}
+
 .monthOpen {
-  margin: -12px 0 0;
-  text-align: center;
+  margin: 0;
   font-size: 12px;
   font-weight: 600;
   color: var(--rct-text-secondary, #4A5568);
+}
+
+.filterToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  min-height: 32px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--rct-border, #E2E8F0);
+  background: #FFFFFF;
+  color: var(--rct-text-primary, #262931);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  i {
+    font-size: 14px;
+    color: var(--rct-blue-accessible, #187389);
+  }
+
+  &:hover {
+    border-color: var(--rct-blue-accessible, #187389);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--rct-primary, #1F4C7F);
+    outline-offset: 2px;
+  }
+}
+
+.filterToggleActive {
+  background: rgba(24, 115, 137, 0.1);
+  border-color: var(--rct-blue-accessible, #187389);
+}
+
+.dropBadge {
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(210, 159, 28, 0.18);
+  border: 1px solid rgba(210, 159, 28, 0.4);
+  color: var(--rct-gold-accessible, #8A6A0C);
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
 .srOnly {
@@ -367,7 +427,8 @@
   }
 
   .signUpBtn,
-  .releaseBtn {
+  .releaseBtn,
+  .filterToggle {
     min-height: 44px;
   }
 }
