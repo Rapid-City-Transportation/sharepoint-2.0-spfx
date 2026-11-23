@@ -6,6 +6,8 @@ import {
   ResourceCategory,
 } from '../../services/resourcesService';
 import { sanitizeHtml } from '../../utils/sanitize';
+import { useSiteAccess } from '../../../rapidCityHomepage/hooks/useSiteAccess';
+import { MANAGEMENT_SITE_URL } from '../../../rapidCityHomepage/services/managementAccessService';
 
 export interface IResourceTab {
   id: string;
@@ -65,6 +67,14 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({
 
   const drawerRef = React.useRef<HTMLDivElement>(null);
   const closeBtnRef = React.useRef<HTMLButtonElement>(null);
+
+  // Archived items stay in the list for the record but are retired from
+  // use: agents never see them, managers (anyone who can open the
+  // Management site) see them under their own heading. Asked by Jackie
+  // after an agent followed a stale Auto Alert instruction.
+  const isManager = useSiteAccess(MANAGEMENT_SITE_URL).state === 'allowed';
+  const [archivedOpen, setArchivedOpen] = React.useState(false);
+
   const categories = React.useMemo(
     () => tabs.map(t => t.category).filter((c): c is ResourceCategory => c !== null),
     [tabs]
@@ -132,6 +142,7 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({
     setSearch('');
     setExpandedIds(new Set());
     setExpandedGroups(new Set());
+    setArchivedOpen(false);
   }, []);
 
   const toggleGroup = React.useCallback((groupName: string) => {
@@ -157,7 +168,7 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({
   const isCollapsibleTab = COLLAPSIBLE_GROUP_TABS.has(activeTab);
   const isSearching = search.trim().length > 0;
 
-  const visibleItems = React.useMemo(() => {
+  const tabItems = React.useMemo(() => {
     if (!currentTab || currentTab.category === null) return [];
     let list = resources.filter(r => r.category === currentTab.category);
     const q = search.trim().toLowerCase();
@@ -166,6 +177,12 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({
     }
     return list;
   }, [resources, currentTab, search]);
+
+  const visibleItems = React.useMemo(() => tabItems.filter(r => !r.archived), [tabItems]);
+  const archivedItems = React.useMemo(
+    () => (isManager ? tabItems.filter(r => r.archived).sort((a, b) => a.title.localeCompare(b.title)) : []),
+    [tabItems, isManager]
+  );
 
   const hasAnyGroup = React.useMemo(
     () => visibleItems.some(item => item.group && item.group.trim().length > 0),
@@ -186,6 +203,52 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({
     }
     return Array.from(groups.entries());
   }, [visibleItems]);
+
+  const renderItem = (item: ISiteResource): React.ReactNode => {
+    const isExpanded = expandedIds.has(item.id);
+    const panelId = `res-item-${item.id}`;
+    return (
+      <div key={item.id} className={`${styles.item} ${item.archived ? styles.itemArchived : ''}`}>
+        <button
+          type="button"
+          className={styles.itemHeader}
+          onClick={() => toggleItem(item.id)}
+          aria-expanded={isExpanded}
+          aria-controls={panelId}
+        >
+          <span className={styles.itemTitle}>{item.title}</span>
+          <span
+            className={`${styles.chevron} ${isExpanded ? styles.chevronOpen : ''}`}
+            aria-hidden="true"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        {isExpanded && (
+          <div id={panelId} className={styles.itemContent}>
+            {item.content && (
+              <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content) }} />
+            )}
+            {item.attachments.length > 0 && (
+              <div className={styles.downloadList}>
+                {item.attachments.map((att) => (
+                  <a
+                    key={att.url}
+                    href={att.url}
+                    download={att.name}
+                    className={styles.downloadLink}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download {att.name}
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
       <aside
@@ -282,7 +345,7 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({
                 </div>
               )}
 
-              {!loading && !error && visibleItems.length === 0 && (
+              {!loading && !error && visibleItems.length === 0 && archivedItems.length === 0 && (
                 <div className={styles.placeholder} role="status">
                   <p className={styles.placeholderTitle}>No results</p>
                   <p className={styles.placeholderText}>
@@ -330,55 +393,41 @@ const ResourcesDrawer: React.FC<IResourcesDrawerProps> = ({
                             <h3 className={styles.groupHeading}>{groupName}</h3>
                           )
                         )}
-                        {isGroupOpen && items.map(item => {
-                          const isExpanded = expandedIds.has(item.id);
-                          const panelId = `res-item-${item.id}`;
-                          return (
-                            <div key={item.id} className={styles.item}>
-                              <button
-                                type="button"
-                                className={styles.itemHeader}
-                                onClick={() => toggleItem(item.id)}
-                                aria-expanded={isExpanded}
-                                aria-controls={panelId}
-                              >
-                                <span className={styles.itemTitle}>{item.title}</span>
-                                <span
-                                  className={`${styles.chevron} ${isExpanded ? styles.chevronOpen : ''}`}
-                                  aria-hidden="true"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                                </span>
-                              </button>
-                              {isExpanded && (
-                                <div id={panelId} className={styles.itemContent}>
-                                  {item.content && (
-                                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content) }} />
-                                  )}
-                                  {item.attachments.length > 0 && (
-                                    <div className={styles.downloadList}>
-                                      {item.attachments.map((att) => (
-                                        <a
-                                          key={att.url}
-                                          href={att.url}
-                                          download={att.name}
-                                          className={styles.downloadLink}
-                                        >
-                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                                          Download {att.name}
-                                        </a>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                        {isGroupOpen && items.map(renderItem)}
                       </section>
                     );
                   })}
                 </>
+              )}
+
+              {!loading && !error && archivedItems.length > 0 && (
+                <section className={styles.archivedSection} aria-label="Archived items, managers only">
+                  <button
+                    type="button"
+                    className={styles.groupHeadingBtn}
+                    onClick={() => setArchivedOpen(v => !v)}
+                    aria-expanded={archivedOpen}
+                    aria-controls="res-archived"
+                  >
+                    <span>Archived</span>
+                    <span className={styles.groupCount}>{archivedItems.length}</span>
+                    <span className={styles.archivedTag}>Managers only</span>
+                    <span
+                      className={`${styles.groupChevron} ${archivedOpen ? styles.groupChevronOpen : ''}`}
+                      aria-hidden="true"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </span>
+                  </button>
+                  {archivedOpen && (
+                    <div id="res-archived">
+                      <p className={styles.archivedNote}>
+                        Retired instructions kept for the record. Agents do not see these.
+                      </p>
+                      {archivedItems.map(renderItem)}
+                    </div>
+                  )}
+                </section>
               )}
             </>
           )}

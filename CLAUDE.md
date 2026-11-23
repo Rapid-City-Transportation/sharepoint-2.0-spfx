@@ -130,7 +130,7 @@ Cross-page coupling to remember:
 |---|---|---|---|
 | `Protocol Book Draft2` | IntranetRedesign | read | Contact Cards protocol book |
 | `PB Instruction Blocks Test` | IntranetRedesign | read | Contact Cards instruction blocks |
-| `SiteResources` | IntranetRedesign | read | Contact Cards resources drawer |
+| `SiteResources` | IntranetRedesign | read | Contact Cards resources drawer (Address Directories on both card pages). Optional `Archived` Yes/No column (2026-11-23, asked by Jackie after an agent followed a stale Auto Alert instruction): archived rows stay in the list for the record, are hidden from agents, and show to managers (viewers who can open `/sites/Management`, via `useSiteAccess`) under a collapsed "Archived / Managers only" heading at the bottom of the tab, struck through; resolved by display name so a list without the column just has nothing archived |
 | `EmailTemplates` | IntranetRedesign | read | Email templates drawer on BOTH card pages: `Category` picks the page (Booking / Dispatch Alerts / Reminder Call = Customer Contact Cards; Vendor Booking / Vendor Changes / Vendor Cancellation = Outsource Contact Cards), `Body` rich text, `IsActive`, `CcRecipients`, optional `Subject` (prefills the Outlook subject; selected only if the column exists). The three vendor rows (IDs 31-33) were seeded via the Graph app on 2026-10-28 with the Vendor values typed in; the Category choice column and the Subject column still need the user to add them in SharePoint (the app gets 403 on list schema changes) |
 | `ContactCardNotifications` | IntranetRedesign | read/write | NotificationBell |
 | `ContactCardNotifReads` | IntranetRedesign | read/write | NotificationBell read-state |

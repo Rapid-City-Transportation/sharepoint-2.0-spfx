@@ -1,5 +1,6 @@
 import { getSP } from './spConfig';
 import { SR, SR_SELECT_FIELDS } from './fieldNames';
+import { getListFields, resolveField } from '../../customerExperienceHub/services/listFields';
 
 export type ResourceCategory =
   | 'Airport'
@@ -25,9 +26,29 @@ export interface ISiteResource {
   content: string;
   /** Downloadable files on the item (e.g. Flight & Hotel .docx templates). */
   attachments: ISiteResourceAttachment[];
+  /** Kept in the list for the record but retired from use: hidden from
+   *  agents, shown to managers under a separate heading. */
+  archived: boolean;
 }
 
 type RawItem = Record<string, unknown>;
+
+// The Archived column is optional: a list without it simply has nothing
+// archived. Resolved once per page load.
+const ARCHIVED_CANDIDATES = ['Archived', 'IsArchived'];
+let _archivedField: Promise<string | undefined> | undefined;
+
+function archivedField(): Promise<string | undefined> {
+  if (!_archivedField) {
+    _archivedField = getListFields(getSP(), SR.LIST_TITLE)
+      .then(fields => resolveField(fields, ...ARCHIVED_CANDIDATES))
+      .catch(() => {
+        _archivedField = undefined;
+        return undefined;
+      });
+  }
+  return _archivedField;
+}
 
 /**
  * Fetch site resources from the SiteResources SharePoint list.
@@ -40,22 +61,29 @@ export async function fetchResourcesByCategory(
   if (categories.length === 0) return [];
 
   const sp = getSP();
+  const archived = await archivedField();
   const filter = categories
     .map(c => `${SR.Category} eq '${escapeODataString(c)}'`)
     .join(' or ');
+  const selects: string[] = [
+    ...SR_SELECT_FIELDS,
+    'AttachmentFiles/FileName',
+    'AttachmentFiles/ServerRelativeUrl',
+  ];
+  if (archived) selects.push(archived);
 
   const items: RawItem[] = await sp.web.lists
     .getByTitle(SR.LIST_TITLE)
     .items
-    .select(...SR_SELECT_FIELDS, 'AttachmentFiles/FileName', 'AttachmentFiles/ServerRelativeUrl')
+    .select(...selects)
     .expand('AttachmentFiles')
     .filter(filter)
     .top(500)();
 
-  return items.map(mapRawToResource).filter(isValidResource);
+  return items.map(raw => mapRawToResource(raw, archived)).filter(isValidResource);
 }
 
-function mapRawToResource(raw: RawItem): ISiteResource | null {
+function mapRawToResource(raw: RawItem, archivedKey: string | undefined): ISiteResource | null {
   const id = Number(raw[SR.Id]);
   const title = typeof raw[SR.Title] === 'string' ? (raw[SR.Title] as string) : '';
   const categoryRaw = typeof raw[SR.Category] === 'string' ? (raw[SR.Category] as string) : '';
@@ -66,7 +94,15 @@ function mapRawToResource(raw: RawItem): ISiteResource | null {
     return null;
   }
 
-  return { id, title, category: categoryRaw, group, content, attachments: mapAttachments(raw) };
+  return {
+    id,
+    title,
+    category: categoryRaw,
+    group,
+    content,
+    attachments: mapAttachments(raw),
+    archived: !!archivedKey && raw[archivedKey] === true,
+  };
 }
 
 interface RawAttachment {

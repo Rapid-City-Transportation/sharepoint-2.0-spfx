@@ -358,6 +358,35 @@ $attention-red-hover: #B91C1C;
   }
 }
 
+// Archived items (managers only): retired instructions kept for the record.
+.archivedSection {
+  margin-top: 8px;
+}
+
+.archivedTag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgba(210, 159, 28, 0.18);
+  color: var(--rct-gold-accessible, #8A6A0C);
+  text-transform: uppercase;
+}
+
+.archivedNote {
+  margin: 8px 4px 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #718096;
+}
+
+.itemArchived .itemTitle {
+  color: #718096;
+  text-decoration: line-through;
+  text-decoration-color: rgba(113, 128, 150, 0.5);
+}
+
 .itemHeader {
   width: 100%;
   display: flex;
