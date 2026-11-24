@@ -95,10 +95,13 @@ const OutsourceContactCards: React.FC<IOutsourceContactCardsProps> = ({
 
   // The alternatives' vehicle filter. Seeded from the grid's vehicle filter
   // when a card is opened from the grid or the nav search, then left alone
-  // as the dispatcher hops from one alternative's card to the next.
-  const [altVehicle, setAltVehicle] = React.useState<string>(EMPTY_FILTERS.vehicleType);
+  // as the dispatcher hops from one alternative's card to the next. Null
+  // means nobody has picked a vehicle yet, so each card falls back to the
+  // open company's own vehicle type (Dispatch found a Stretcher chip on a
+  // taxi company's backups confusing).
+  const [altVehicle, setAltVehicle] = React.useState<string | null>(null);
   const handleGridCardClick = React.useCallback((vendor: IVendor): void => {
-    setAltVehicle(filters.vehicleType);
+    setAltVehicle(filters.vehicleType === EMPTY_FILTERS.vehicleType ? null : filters.vehicleType);
     handleCardClick(vendor);
   }, [filters.vehicleType, handleCardClick]);
 

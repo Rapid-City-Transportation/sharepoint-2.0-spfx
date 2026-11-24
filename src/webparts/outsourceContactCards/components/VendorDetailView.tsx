@@ -33,10 +33,12 @@ interface IVendorDetailViewProps {
   /** Full directory, for the "If Unavailable" alternatives panel. */
   allVendors: IVendor[];
   onVendorSelect: (vendor: IVendor) => void;
-  /** The vehicle the alternatives are narrowed to ('All' for none). Held by
-   *  the page so the choice follows the dispatcher from one alternative's
-   *  card to the next while they look for, say, a minivan. */
-  altVehicle: string;
+  /** The vehicle the alternatives are narrowed to ('All' for none, null when
+   *  nobody has picked one yet). Held by the page so a pick follows the
+   *  dispatcher from one alternative's card to the next while they look for,
+   *  say, a minivan. With no pick, the open company's own vehicle type is
+   *  the default when its coverage lists exactly one. */
+  altVehicle: string | null;
   onAltVehicleChange: (vehicle: string) => void;
 }
 
@@ -303,10 +305,18 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
     [vendor, zoneProfile, allVendors]
   );
   const vehicleChips = React.useMemo(() => vehicleChoices(candidates), [candidates]);
+  // No pick yet: a company that sends one kind of vehicle starts on that
+  // chip, so a taxi company's backups are taxis until the dispatcher says
+  // otherwise. Several kinds, or no chips to choose from, start on all.
+  const ownVehicles = vehiclesForZone(vendor, zoneProfile);
+  const defaultVehicle =
+    vehicleChips.length > 1 && ownVehicles.length === 1 ? ownVehicles[0] : 'All';
+  const wantedVehicle = altVehicle === null ? defaultVehicle : altVehicle;
   // A vehicle none of these companies can send (carried over from the grid
   // or the previous card) shows every company rather than an empty list.
   const activeVehicle =
-    altVehicle !== 'All' && vehicleChips.indexOf(altVehicle) !== -1 ? altVehicle : 'All';
+    wantedVehicle !== 'All' && vehicleChips.indexOf(wantedVehicle) !== -1 ? wantedVehicle : 'All';
+  const vehicleDefaulted = altVehicle === null && activeVehicle !== 'All';
   const alternatives = React.useMemo(() => {
     const kept = activeVehicle === 'All'
       ? candidates
@@ -607,7 +617,11 @@ const VendorDetailView: React.FC<IVendorDetailViewProps> = ({
                   <p className={styles.altVehicleNote} role="status">
                     {activeVehicle === 'All'
                       ? ''
-                      : `Showing ${alternatives.length} ${alternatives.length === 1 ? 'company' : 'companies'} that list ${vehiclePhrase(activeVehicle)}.`}
+                      : `Showing ${alternatives.length} ${alternatives.length === 1 ? 'company' : 'companies'} that list ${vehiclePhrase(activeVehicle)}${
+                          vehicleDefaulted
+                            ? `, matching ${vendor.name}. Choose Any vehicle to see every company.`
+                            : '.'
+                        }`}
                   </p>
                   <ul className={styles.recList} role="list">
                     {alternatives.map(alt => (
