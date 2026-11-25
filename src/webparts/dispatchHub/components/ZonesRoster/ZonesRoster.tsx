@@ -32,10 +32,18 @@ function countLabel(n: number): string {
   return `${n} ${n === 1 ? 'dispatcher' : 'dispatchers'}`;
 }
 
+// A dispatcher on leave keeps their place under the zone (Albert: include
+// them, mark them unavailable) so the roster never has to be edited twice.
 function renderPersonRow(person: IDispatcherShift): React.ReactNode {
   return (
-    <tr key={person.id} className={styles.personRow}>
-      <td className={styles.personName}>{person.name}</td>
+    <tr
+      key={person.id}
+      className={`${styles.personRow} ${person.onLeave ? styles.personRowLeave : ''}`}
+    >
+      <td className={styles.personName}>
+        {person.name}
+        {person.onLeave && <span className={styles.leaveBadge}>Unavailable (on leave)</span>}
+      </td>
       <td className={styles.personShifts}>
         {person.shifts.map((shift, i) => (
           <span key={i} className={styles.shiftChip}>{shift}</span>

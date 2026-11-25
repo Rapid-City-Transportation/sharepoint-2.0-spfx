@@ -20,6 +20,8 @@ export interface IDispatcherShift {
   shifts: string[];
   zone: string;
   sortOrder: number;
+  /** On vacation: still on the roster, shown as unavailable. */
+  onLeave: boolean;
 }
 
 // Rows without a Sort Order sink to the bottom instead of jumping to the top.
@@ -45,8 +47,9 @@ export async function fetchDispatcherSchedule(): Promise<IDispatcherShift[]> {
   const shiftField = resolveField(fields, ...DispatcherScheduleColumns.shift);
   const zoneField = resolveField(fields, ...DispatcherScheduleColumns.zone);
   const sortField = resolveField(fields, ...DispatcherScheduleColumns.sortOrder);
+  const leaveField = resolveField(fields, ...DispatcherScheduleColumns.onLeave);
 
-  const selects = ['Id', nameField, teamField, shiftField, zoneField, sortField].filter(
+  const selects = ['Id', nameField, teamField, shiftField, zoneField, sortField, leaveField].filter(
     (f): f is string => !!f
   );
 
@@ -67,6 +70,7 @@ export async function fetchDispatcherSchedule(): Promise<IDispatcherShift[]> {
         shifts: shiftField ? toLines(r[shiftField]) : [],
         zone: zoneField ? asText(r[zoneField]) : '',
         sortOrder: isNaN(order) ? UNORDERED : order,
+        onLeave: !!leaveField && r[leaveField] === true,
       };
     })
     .filter(s => !!s.name)

@@ -29,11 +29,15 @@ export const WeekendCalendarColumns = {
 
 /** One row per dispatcher: Title (name), Team (choice: Dispatch / Outsource),
  *  Shift (plain multi-line text, one shift per line), Area Coverage (the
- *  zone), Sort Order (number, the order on Albert's sheet). */
+ *  zone), Sort Order (number, the order on Albert's sheet), plus the optional
+ *  On Leave (Yes/No): a dispatcher on vacation stays under their zone on
+ *  Zones & Rosters, marked "Unavailable (on leave)", rather than being taken
+ *  off the list. */
 export const DispatcherScheduleColumns = {
   name: ['Dispatcher', 'Title'],
   team: ['Team'],
   shift: ['Shift'],
   zone: ['Area Coverage', 'AreaCoverage', 'Zone'],
   sortOrder: ['Sort Order', 'SortOrder'],
+  onLeave: ['On Leave', 'OnLeave', 'Unavailable'],
 };
