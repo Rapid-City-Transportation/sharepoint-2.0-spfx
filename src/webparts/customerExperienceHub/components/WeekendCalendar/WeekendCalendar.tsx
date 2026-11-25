@@ -49,6 +49,11 @@ function isPast(shift: IWeekendShift, today: Date): boolean {
   return !!d && d.getTime() < today.getTime();
 }
 
+/** Rows that are shifts: a person on leave is listed but is not working. */
+function worked(shifts: IWeekendShift[]): number {
+  return shifts.filter(s => !s.onLeave).length;
+}
+
 function shortDate(shift: IWeekendShift): string {
   const d = parseListDate(shift.date);
   return d ? d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '';
@@ -111,8 +116,10 @@ function groupByDay(shifts: IWeekendShift[]): IDayGroup[] {
       dateLabel: d
         ? d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
         : '',
+      // People on leave sit under the day's working rows.
       shifts: bucket.sort(
         (a, b) =>
+          Number(!!a.onLeave) - Number(!!b.onLeave) ||
           (a.skill || '').localeCompare(b.skill || '') ||
           (a.agent || '').localeCompare(b.agent || '')
       ),
@@ -160,7 +167,7 @@ function groupByWeekend(shifts: IWeekendShift[]): IWeekendGroup[] {
     groups.push({
       key,
       label: weekendLabel(days),
-      total: days.reduce((sum, day) => sum + day.shifts.length, 0),
+      total: days.reduce((sum, day) => sum + worked(day.shifts), 0),
       days,
     });
   });
@@ -230,7 +237,7 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, s
   const myUpcoming = React.useMemo(() => {
     if (!signUp) return [];
     return shifts
-      .filter(s => signUp.isMine(s) && !isPast(s, today))
+      .filter(s => signUp.isMine(s) && !s.onLeave && !isPast(s, today))
       .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     // today changes once a day; the list is recomputed with the shifts anyway.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -399,7 +406,7 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, s
                     {day.dateLabel && <span className={styles.dayDate}>{day.dateLabel}</span>}
                   </div>
                   <span className={styles.dayCount}>
-                    {day.shifts.length} {openOnly ? 'open' : day.shifts.length === 1 ? 'shift' : 'shifts'}
+                    {worked(day.shifts)} {openOnly ? 'open' : worked(day.shifts) === 1 ? 'shift' : 'shifts'}
                   </span>
                 </header>
 
@@ -412,14 +419,18 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, s
                     return (
                       <li
                         key={shift.id}
-                        className={`${styles.shiftRow} ${mine ? styles.shiftRowMine : ''}`}
+                        className={`${styles.shiftRow} ${mine ? styles.shiftRowMine : ''} ${shift.onLeave ? styles.shiftRowLeave : ''}`}
                       >
                         {shift.agent ? (
                           <span className={styles.shiftAgent}>
                             {shift.agent}
                             {mine && <span className={styles.youBadge}>You</span>}
-                            {shift.dropRequested && (
-                              <span className={styles.dropBadge}>Drop requested</span>
+                            {shift.onLeave ? (
+                              <span className={styles.leaveBadge}>Unavailable (on leave)</span>
+                            ) : (
+                              shift.dropRequested && (
+                                <span className={styles.dropBadge}>Drop requested</span>
+                              )
                             )}
                           </span>
                         ) : (
@@ -447,7 +458,7 @@ export const WeekendCalendar: React.FC<IWeekendCalendarProps> = ({ loadShifts, s
                             {busy ? 'Saving...' : 'Sign up'}
                           </button>
                         )}
-                        {signUp && !past && mine && !shift.dropRequested && (
+                        {signUp && !past && mine && !shift.onLeave && !shift.dropRequested && (
                           <button
                             type="button"
                             className={styles.releaseBtn}

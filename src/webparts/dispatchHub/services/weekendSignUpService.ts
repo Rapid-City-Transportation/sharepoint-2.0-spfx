@@ -90,7 +90,8 @@ export function signUpBlockReason(
   if (today.getTime() >= monthStart.getTime() - WEEK_MS) return undefined;
 
   const alreadyHasOne = all.some(s => {
-    if (s.id === shift.id || s.skill !== shift.skill || !isMine(s, user)) return false;
+    // A row marking the person on leave is not a shift they hold.
+    if (s.id === shift.id || s.onLeave || s.skill !== shift.skill || !isMine(s, user)) return false;
     const d = parseListDate(s.date);
     return !!d && d.getFullYear() === date.getFullYear() && d.getMonth() === date.getMonth();
   });
@@ -125,6 +126,7 @@ export async function signUpForShift(shift: IWeekendShift, user: ISignUpUser): P
  *  (Albert), who clears the name and the flag in the list. */
 export async function requestDrop(shift: IWeekendShift, user: ISignUpUser): Promise<void> {
   if (!isMine(shift, user)) throw userError('Only the person who signed up can ask to drop this slot.');
+  if (shift.onLeave) throw userError('This row marks you on leave; there is no shift to drop.');
   const fields = await writeFields();
   if (!fields.dropRequested) {
     throw userError('The list has no Drop Requested column yet. Ask Albert to take you off this slot.');

@@ -18,6 +18,9 @@ export interface IWeekendShift {
   signedUpBy?: string;
   /** The holder has asked to be taken off; a manager clears the row. */
   dropRequested?: boolean;
+  /** The person is on leave (vacation) that day: still listed, but
+   *  unavailable. Not a shift, so it stays out of the counts and rules. */
+  onLeave?: boolean;
 }
 
 /** Candidate column names per field, matched by display or internal name;
@@ -30,6 +33,8 @@ export interface IWeekendShiftColumns {
   /** Only lists that offer sign-up carry these two. */
   signedUpBy?: string[];
   dropRequested?: string[];
+  /** Yes/No: the person is on leave that day. */
+  onLeave?: string[];
 }
 
 // Date-only SharePoint fields come back as midnight UTC, which renders as the
@@ -59,9 +64,10 @@ export async function fetchWeekendShiftsFrom(
   const scheduleField = resolveField(fields, ...columns.schedule);
   const signedUpByField = columns.signedUpBy ? resolveField(fields, ...columns.signedUpBy) : undefined;
   const dropField = columns.dropRequested ? resolveField(fields, ...columns.dropRequested) : undefined;
+  const leaveField = columns.onLeave ? resolveField(fields, ...columns.onLeave) : undefined;
 
   const selects = [
-    'Id', dateField, agentField, skillField, scheduleField, signedUpByField, dropField,
+    'Id', dateField, agentField, skillField, scheduleField, signedUpByField, dropField, leaveField,
   ].filter((f): f is string => !!f);
 
   const rows: Record<string, unknown>[] = await sp.web.lists
@@ -78,6 +84,7 @@ export async function fetchWeekendShiftsFrom(
       schedule: scheduleField ? asText(r[scheduleField]) : '',
       signedUpBy: signedUpByField ? asText(r[signedUpByField]) || undefined : undefined,
       dropRequested: dropField ? r[dropField] === true : undefined,
+      onLeave: leaveField ? r[leaveField] === true : undefined,
     }))
     .filter(s => s.agent || s.skill || s.schedule);
 }

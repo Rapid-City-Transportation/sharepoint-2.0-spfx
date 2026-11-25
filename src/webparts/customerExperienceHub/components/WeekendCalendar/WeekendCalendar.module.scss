@@ -330,6 +330,27 @@
   white-space: nowrap;
 }
 
+// A person on leave that day: listed so nobody books them, but not working.
+.shiftRowLeave .shiftAgent {
+  font-weight: 500;
+  color: var(--rct-text-secondary, #4A5568);
+}
+
+.leaveBadge {
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(74, 85, 104, 0.1);
+  border: 1px solid rgba(74, 85, 104, 0.35);
+  color: var(--rct-text-secondary, #4A5568);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
 .srOnly {
   position: absolute;
   width: 1px;

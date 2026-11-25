@@ -14,7 +14,9 @@ export const DISPATCHER_SCHEDULE_LIST = 'Dispatcher Schedule';
  *  columns the hub maintains: Signed Up By (text, the login of whoever took
  *  the slot, so ownership and the one-per-month rule key on identity rather
  *  than on how a name was spelled) and Drop Requested (Yes/No, set when the
- *  holder asks off; a manager clears the row and the flag). */
+ *  holder asks off; a manager clears the row and the flag). A third optional
+ *  column, On Leave (Yes/No), is Albert's: a dispatcher on vacation stays on
+ *  the calendar for that day but reads "Unavailable (on leave)". */
 export const WeekendCalendarColumns = {
   date: ['Date', 'Date1'],
   agent: ['Dispatcher', 'Title'],
@@ -22,6 +24,7 @@ export const WeekendCalendarColumns = {
   schedule: ['Shift'],
   signedUpBy: ['Signed Up By', 'SignedUpBy'],
   dropRequested: ['Drop Requested', 'DropRequested'],
+  onLeave: ['On Leave', 'OnLeave', 'Unavailable'],
 };
 
 /** One row per dispatcher: Title (name), Team (choice: Dispatch / Outsource),
